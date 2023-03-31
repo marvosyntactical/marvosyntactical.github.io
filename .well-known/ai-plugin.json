@@ -1,0 +1,18 @@
+{
+	"schema_version": "v1",
+	"name_for_human": "DuckDuckGoChat Plugin",
+	"name_for_model": "duckduckgo search",
+	"description_for_human": "Plugin to let ChatGPT Search using DuckDuckGo.",
+	"description_for_model": "Plugin to let ChatGPT Search using DuckDuckGo.",
+	"auth": {
+		"type": "none"
+	},
+	"api": {
+		"type": "openapi",
+		"url": "https://marvosyntactical.github.io/ddgs/openapi.yaml",
+		"is_user_authenticated": false
+	},
+	"logo_url": "https://marvosyntactical.github.io/ddgs/icon.png",
+	"contact_email": "marvinklg@outlook.de",
+	"legal_info_url": "https://marvosyntactical.github.io/ddgs/legal"
+}

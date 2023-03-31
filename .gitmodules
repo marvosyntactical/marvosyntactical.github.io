@@ -1,0 +1,3 @@
+[submodule "ddgs"]
+	path = ddgs
+	url = https://github.com/marvosyntactical/duckduckgo_search
