@@ -101,7 +101,61 @@ document.addEventListener('DOMContentLoaded', function() {
   // Create the neural network visualization
   createNeuralNetworkVisualization();
 
+  // Function to simulate typing effect
+  function typeText(element, text, cursor, delay, callback) {
+    let i = 0;
+    const timer = setInterval(function() {
+      if (i < text.length) {
+        element.textContent = text.slice(0, i + 1);
+        element.insertAdjacentHTML('beforeend', cursor);
+        i++;
+      } else {
+        clearInterval(timer);
+        element.innerHTML = element.dataset.originalHtml;
+        callback();
+      }
+    }, delay);
+  }
 
+  // Function to apply typing effect to all visible text
+  function applyTypingEffect() {
+    const elements = document.querySelectorAll('h1, h2, p, li');
+    const cursor = '<span class="cursor">|</span>';
+    const delay = 50; // Adjust the delay between each character (in milliseconds)
+
+    elements.forEach(function(element) {
+      element.dataset.originalHtml = element.innerHTML;
+      element.textContent = '';
+
+      // Hide bullet points for list items
+      if (element.tagName === 'LI') {
+        element.style.listStyleType = 'none';
+      }
+    });
+
+    let currentIndex = 0;
+
+    function typeNextElement() {
+      if (currentIndex < elements.length) {
+        const element = elements[currentIndex];
+        const text = element.dataset.originalHtml.replace(/(<([^>]+)>)/gi, '');
+        typeText(element, text, cursor, delay, function() {
+          // Restore bullet points for list items after typing effect
+          if (element.tagName === 'LI') {
+            element.style.listStyleType = '';
+          }
+          typeNextElement();
+        });
+        currentIndex++;
+      }
+    }
+
+    typeNextElement();
+  }
+
+  // Apply typing effect when the page loads
+  applyTypingEffect();
+  
   let mode = 'normal';
   let selectedLink = 0;
   let commandMode = false;
