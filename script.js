@@ -154,6 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Open the selected link
         document.querySelectorAll('a')[selectedLink].click();
       } else if (event.key === 'i') {
+				event.preventDefault(); // Prevent default behavior of inserting "i"
         mode = 'insert';
         document.getElementById('content').setAttribute('contenteditable', 'true');
         document.getElementById('content').focus();
