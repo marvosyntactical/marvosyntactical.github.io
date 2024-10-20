@@ -110,7 +110,7 @@ function createParticles() {
 
 function objectiveFunction(x, y) {
     // Example objective function (you can replace this with your own)
-    return Math.sin(x * 0.5) * Math.cos(y * 0.5) * 2;
+    return Math.sin(x * 0.5) * Math.cos(y * 0.5) * 2 + Math.exp(y*0.3);
 }
 
 
@@ -119,10 +119,11 @@ function optimizationStep() {
     console.log("Optimization step");
 
     const positions = particles.geometry.attributes.position.array;
+
     for (let i = 0; i < particleCount; i++) {
         // Simple random movement for demonstration
-        positions[i * 3] += (Math.random() - 0.5) * 0.2;
-        positions[i * 3 + 1] += (Math.random() - 0.5) * 0.2;
+        positions[i * 3] += (Math.random() - 0.5) * 2.0;
+        positions[i * 3 + 1] += (Math.random() - 0.5) * 2.0;
         positions[i * 3 + 2] = objectiveFunction(positions[i * 3], positions[i * 3 + 1]);
     }
     particles.geometry.attributes.position.needsUpdate = true;
