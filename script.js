@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function applyTypingEffect() {
     const elements = document.querySelectorAll('h1, h2, p, li');
     const cursor = '<span class="cursor">|</span>';
-    const delay = 50; // Adjust the delay between each character (in milliseconds)
+    const delay = 10; // Adjust the delay between each character (in milliseconds)
 
     elements.forEach(function(element) {
       element.dataset.originalHtml = element.innerHTML;
