@@ -1,21 +1,23 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Particle Swarm Optimization Visualization</title>
-  <link rel="stylesheet" type="text/css" href="partstyles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Particle Optimizer</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
 </head>
 <body>
-  <div id="container"></div>
-  <div id="controls">
-    <label for="function">Objective Function:</label>
-    <input type="text" id="function" value="x^2 + y^2">
-    <label for="particles">Number of Particles:</label>
-    <input type="number" id="particles" value="20">
-    <label for="iterations">Number of Iterations:</label>
-    <input type="number" id="iterations" value="100">
-    <button id="startButton">Start</button>
-  </div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="partscript.js"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.158.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.158.0/examples/jsm/"
+            }
+        }
+    </script>
+    <script type="module" src="particlescript.js"></script>
 </body>
 </html>
