@@ -8,7 +8,7 @@ function createNeuralNetworkVisualization() {
   const ctx = canvas.getContext('2d');
 
   // Define the neural network layers
-  const layers = [5, 4, 3, 2];
+  const layers = [2, 4, 5, 2, 8, 3, 7, 10, 3, 2, 9, 8];
 
   // Calculate the positions of the neurons
   const neuronPositions = layers.map((numNeurons, layerIndex) => {
@@ -51,7 +51,7 @@ function createNeuralNetworkVisualization() {
   // Function to update the triangle positions based on mouse movement
   function updateTriangles(event) {
     const mouseX = event.clientX;
-    const mouseY = event.clientY;
+    const mouseY = event.clientY - 400;
 
     for (let layerIndex = 0; layerIndex < layers.length - 1; layerIndex++) {
       const currentLayer = neuronPositions[layerIndex];
@@ -66,7 +66,7 @@ function createNeuralNetworkVisualization() {
           const dy = mouseY - triangleCenterY;
           const distance = Math.sqrt(dx * dx + dy * dy);
 
-          const maxDistance = 100;
+          const maxDistance = 10;
           const distanceRatio = Math.min(distance / maxDistance, 1);
 
           const offsetX = dx * distanceRatio * 0.1;
