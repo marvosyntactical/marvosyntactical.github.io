@@ -1,16 +1,111 @@
+// Function to create a neural network visualization
+function createNeuralNetworkVisualization() {
+  const canvas = document.createElement('canvas');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  document.body.appendChild(canvas);
+
+  const ctx = canvas.getContext('2d');
+
+  // Define the neural network layers
+  const layers = [5, 4, 3, 2];
+
+  // Calculate the positions of the neurons
+  const neuronPositions = layers.map((numNeurons, layerIndex) => {
+    const layerSpacing = canvas.width / (layers.length + 1);
+    const neuronSpacing = canvas.height / (numNeurons + 1);
+
+    return Array.from({ length: numNeurons }, (_, neuronIndex) => ({
+      x: layerSpacing * (layerIndex + 1),
+      y: neuronSpacing * (neuronIndex + 1),
+    }));
+  });
+
+  // Function to draw the neural network
+  function drawNeuralNetwork() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw the triangles between the layers
+    for (let layerIndex = 0; layerIndex < layers.length - 1; layerIndex++) {
+      const currentLayer = neuronPositions[layerIndex];
+      const nextLayer = neuronPositions[layerIndex + 1];
+
+      for (let i = 0; i < currentLayer.length; i++) {
+        for (let j = 0; j < nextLayer.length; j++) {
+          ctx.beginPath();
+          ctx.moveTo(currentLayer[i].x, currentLayer[i].y);
+          ctx.lineTo(nextLayer[j].x, nextLayer[j].y);
+          ctx.lineTo(
+            (currentLayer[i].x + nextLayer[j].x) / 2,
+            (currentLayer[i].y + nextLayer[j].y) / 2
+          );
+          ctx.closePath();
+
+          ctx.fillStyle = 'rgba(0, 255, 0, 0.9)';
+          ctx.fill();
+        }
+      }
+    }
+  }
+
+  // Function to update the triangle positions based on mouse movement
+  function updateTriangles(event) {
+    const mouseX = event.clientX;
+    const mouseY = event.clientY;
+
+    for (let layerIndex = 0; layerIndex < layers.length - 1; layerIndex++) {
+      const currentLayer = neuronPositions[layerIndex];
+      const nextLayer = neuronPositions[layerIndex + 1];
+
+      for (let i = 0; i < currentLayer.length; i++) {
+        for (let j = 0; j < nextLayer.length; j++) {
+          const triangleCenterX = (currentLayer[i].x + nextLayer[j].x) / 2;
+          const triangleCenterY = (currentLayer[i].y + nextLayer[j].y) / 2;
+
+          const dx = mouseX - triangleCenterX;
+          const dy = mouseY - triangleCenterY;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          const maxDistance = 100;
+          const distanceRatio = Math.min(distance / maxDistance, 1);
+
+          const offsetX = dx * distanceRatio * 0.1;
+          const offsetY = dy * distanceRatio * 0.1;
+
+          currentLayer[i].x += offsetX;
+          currentLayer[i].y += offsetY;
+          nextLayer[j].x += offsetX;
+          nextLayer[j].y += offsetY;
+        }
+      }
+    }
+
+    drawNeuralNetwork();
+  }
+
+  // Add event listener for mouse movement
+  document.addEventListener('mousemove', updateTriangles);
+
+  // Initial draw of the neural network
+  drawNeuralNetwork();
+}
+
+
+
 document.addEventListener('DOMContentLoaded', function() {
   // Show the loading spinner for a few seconds
   setTimeout(function() {
     document.getElementById('loading-spinner').style.display = 'none';
     document.getElementById('content').style.display = 'block';
   }, 800);
+  // Create the neural network visualization
+  createNeuralNetworkVisualization();
+
 
   let mode = 'normal';
   let selectedLink = 0;
   let commandMode = false;
   let command = '';
-
-
   
   function updateSelectedLink() {
     const links = document.querySelectorAll('a');
