@@ -7,9 +7,53 @@
     <style>
         body { margin: 0; }
         canvas { display: block; }
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+        }
+        input, select {
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
+    <div id="controls">
+        <label for="lambda">lambda:</label>
+        <input type="number" id="lambda" step="0.1" value="1.5"><br>
+        <label for="sigma">sigma:</label>
+        <input type="number" id="sigma" step="0.1" value="0.8"><br>
+        <label for="c1">c1:</label>
+        <input type="number" id="c1" step="0.1" value="1.0"><br>
+        <label for="c2">c2:</label>
+        <input type="number" id="c2" step="0.1" value="0.0"><br>
+        <label for="beta1">beta1:</label>
+        <input type="number" id="beta1" step="0.1" value="0.9"><br>
+        <label for="beta2">beta2:</label>
+        <input type="number" id="beta2" step="0.1" value="0.99"><br>
+        <label for="leak">leak:</label>
+        <input type="number" id="leak" step="0.1" value="0.1"><br>
+        <label for="lr">lr:</label>
+        <input type="number" id="lr" step="0.1" value="1.0"><br>
+        <label for="K">K:</label>
+        <input type="number" id="K" value="5"><br>
+        <label for="doMomentum">doMomentum:</label>
+        <input type="checkbox" id="doMomentum" checked><br>
+        <label for="normalize">normalize:</label>
+        <input type="number" id="normalize" value="2"><br>
+        <label for="objectiveFunction">Objective Function:</label>
+        <input type="text" id="objectiveFunction" value="Math.sin(x * 0.5) * Math.cos(y * 0.5) * 2 + y*y*0.02 + x*x*0.03"><br>
+        <label for="optimizer">Optimizer:</label>
+        <select id="optimizer">
+            <option value="sga">Swarm Grad Accelerated</option>
+            <option value="pso">Particle Swarm Optimization</option>
+            <option value="cbo">Consensus-Based Optimization</option>
+        </select>
+    </div>
     <script type="importmap">
         {
             "imports": {
