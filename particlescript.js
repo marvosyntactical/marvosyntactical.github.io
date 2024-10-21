@@ -393,6 +393,7 @@ function init() {
 
     // Create particles
     createParticles();
+		resetOptimizer();
     
     // Initialize the optimizer
     initOptimizer();
@@ -451,16 +452,6 @@ function createFunctionSurface() {
 function createParticles() {
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(particleCount * 3);
-
-    for (let i = 0; i < particleCount; i++) {
-        const x = sampleNormal() * 10; // Initialize in bottom-left corner
-        const y = sampleNormal() * 10;
-        const z = objectiveFunction(x, y);
-
-        positions[i * 3] = x;
-        positions[i * 3 + 1] = y;
-        positions[i * 3 + 2] = z;
-    }
 
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
