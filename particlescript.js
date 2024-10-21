@@ -8,7 +8,43 @@ const functionResolution = 20;
 // Optimizer vars
 let velocities = new Float32Array(particleCount * 3);
 let accelerations = new Float32Array(particleCount * 3);
+velocities.fill(0);
+accelerations.fill(0);
+
+let pbestPositions = new Float32Array(particleCount * 3);
+let pbestValues = new Float32Array(particleCount);
+let gbestPosition = new Float32Array(3);
+let gbestValue = Infinity;
+
 let t = 1;
+
+function loginfo() {
+	    let meanx = 0, meany = 0;
+      let minLoss = Infinity;
+			const positions = particles.geometry.attributes.position.array;
+			for (let i = 0; i < particleCount; i++) {
+				meanx += positions[i * 3] / particleCount;
+				meany += positions[i * 3 + 1] / particleCount;
+
+				const loss = objectiveFunction(positions[i * 3], positions[i * 3 + 1]);
+        if (loss < minLoss) {
+            minLoss = loss;
+        }
+			}
+
+	    console.log("Mean: (" + meanx + "," + meany +")");
+	    console.log("Loss: " + minLoss);
+}
+
+function sampleNormal() {
+	    let u = 0, v = 0;
+	    while (u === 0) u = Math.random(); // Converting [0,1) to (0,1)
+	    while (v === 0) v = Math.random();
+	    let num = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+	    num = num / 10.0 + 0.5; // Translate to 0 -> 1
+	    if (num > 1 || num < 0) return sampleNormal(); // resample between 0 and 1
+	    return num;
+}
 
 function initOptimizer() {
     const optimizerType = document.getElementById('optimizer').value;
@@ -19,7 +55,9 @@ function initOptimizer() {
         optimizer = particleSwarmOptimizationStep;
     } else if (optimizerType === 'cbo') {
         optimizer = consensusBasedOptimizationStep;
-    }
+    } else {
+				console.log("Not a Valid Optimizer!");
+		}
 }
 
 function resetOptimizer() {
@@ -30,8 +68,8 @@ function resetOptimizer() {
     const positions = particles.geometry.attributes.position.array;
 
     for (let i = 0; i < particleCount; i++) {
-        const x = Math.random() * 5 - 17; // Initialize in bottom-left corner
-        const y = Math.random() * 5 + 17;
+        const x = Math.random() * 5 + 25; // Initialize in bottom-left corner
+        const y = Math.random() * 5 - 25;
         const z = objectiveFunction(x, y);
 
         positions[i * 3] = x;
@@ -46,25 +84,100 @@ function objectiveFunction(x, y) {
     return Math.sin(x * 0.5) * Math.cos(y * 0.5) * 2 + y*y*0.02 + x*x*0.03;
 }
 
+
 function particleSwarmOptimizationStep() {
-    // Implement Particle Swarm Optimization step
-    console.log("Particle Swarm Optimization step");
+    const positions = particles.geometry.attributes.position.array;
+
+    const c1 = parseFloat(document.getElementById('c1').value); // personal
+    const c2 = parseFloat(document.getElementById('c2').value); // global
+    const inertia = parseFloat(document.getElementById('inertia').value);
+    const doMomentum = document.getElementById('doMomentum').checked;
+    const beta1 = parseFloat(document.getElementById('beta1').value);
+    const beta2 = parseFloat(document.getElementById('beta2').value);
+    const lr = parseFloat(document.getElementById('lr').value);
+
+    for (let i = 0; i < particleCount; i++) {
+        const x = positions[i * 3];
+        const y = positions[i * 3 + 1];
+        const z = positions[i * 3 + 2];
+
+        const value = objectiveFunction(x, y);
+
+        if (value < pbestValues[i]) {
+            pbestValues[i] = value;
+            pbestPositions[i * 3] = x;
+            pbestPositions[i * 3 + 1] = y;
+            pbestPositions[i * 3 + 2] = z;
+        }
+
+        if (value < gbestValue) {
+            gbestValue = value;
+            gbestPosition[0] = x;
+            gbestPosition[1] = y;
+            gbestPosition[2] = z;
+        }
+    }
+
+    for (let i = 0; i < particleCount; i++) {
+        const pbestX = pbestPositions[i * 3] - positions[i * 3];
+        const pbestY = pbestPositions[i * 3 + 1] - positions[i * 3 + 1];
+
+        const gbestX = gbestPosition[0] - positions[i * 3];
+        const gbestY = gbestPosition[1] - positions[i * 3 + 1];
+
+        const r1 = Math.random();
+        const r2 = Math.random();
+
+        const vx = r1 * c1 * pbestX + r2 * c2 * gbestX;
+        const vy = r1 * c1 * pbestY + r2 * c2 * gbestY;
+
+        if (doMomentum) {
+            velocities[i * 3] = beta1 * velocities[i * 3] + (1 - beta1) * vx;
+            velocities[i * 3 + 1] = beta1 * velocities[i * 3 + 1] + (1 - beta1) * vy;
+
+            accelerations[i * 3] = beta2 * accelerations[i * 3] + (1 - beta2) * vx ** 2;
+            accelerations[i * 3 + 1] = beta2 * accelerations[i * 3 + 1] + (1 - beta2) * vy ** 2;
+
+            const mthatX = velocities[i * 3] / (1 - beta1 ** t);
+            const mthatY = velocities[i * 3 + 1] / (1 - beta1 ** t);
+
+            const vthatX = accelerations[i * 3] / (1 - beta2 ** t);
+            const vthatY = accelerations[i * 3 + 1] / (1 - beta2 ** t);
+
+            const updateX = lr * (mthatX / (Math.sqrt(vthatX) + 1e-9));
+            const updateY = lr * (mthatY / (Math.sqrt(vthatY) + 1e-9));
+
+            positions[i * 3] += updateX;
+            positions[i * 3 + 1] += updateY;
+        } else {
+            velocities[i * 3] = vx + inertia * velocities[i * 3];
+            velocities[i * 3 + 1] = vy + inertia * velocities[i * 3 + 1];
+
+            positions[i * 3] += velocities[i * 3];
+            positions[i * 3 + 1] += velocities[i * 3 + 1];
+        }
+
+        positions[i * 3 + 2] = objectiveFunction(positions[i * 3], positions[i * 3 + 1]) + 1.0;
+    }
+
+    t++;
+    particles.geometry.attributes.position.needsUpdate = true;
 }
 
 function getSoftmax(positions, temp) {
-    let maxLoss = -Infinity;
-    for (let i = 0; i < particleCount; i++) {
-        const loss = objectiveFunction(positions[i * 3], positions[i * 3 + 1]);
-        if (loss > maxLoss) {
-            maxLoss = loss;
-        }
-    }
+    // let maxLoss = -Infinity;
+    // for (let i = 0; i < particleCount; i++) {
+    //     const loss = objectiveFunction(positions[i * 3], positions[i * 3 + 1]);
+    //     if (loss > maxLoss) {
+    //         maxLoss = loss;
+    //     }
+    // }
 
     let sumExp = 0;
     const coeffs = new Float32Array(particleCount);
     for (let i = 0; i < particleCount; i++) {
         const loss = objectiveFunction(positions[i * 3], positions[i * 3 + 1]);
-        const weight = Math.exp(-temp * (loss - maxLoss));
+        const weight = Math.exp(-temp * loss);
         coeffs[i] = weight;
         sumExp += weight;
     }
@@ -99,8 +212,8 @@ function consensusBasedOptimizationStep() {
         const vdetx = softmax[0] - positions[i * 3];
         const vdety = softmax[1] - positions[i * 3 + 1];
 
-        const bx = Math.random() - 0.5;
-        const by = Math.random() - 0.5;
+        const bx = sampleNormal();
+        const by = sampleNormal();
 
         let diffusionx, diffusiony;
         if (noiseType === 'component') {
@@ -141,7 +254,7 @@ function consensusBasedOptimizationStep() {
             positions[i * 3 + 1] += vy;
         }
 
-        positions[i * 3 + 2] = objectiveFunction(positions[i * 3], positions[i * 3 + 1]) + 0.5;
+        positions[i * 3 + 2] = objectiveFunction(positions[i * 3], positions[i * 3 + 1]) + 1.0;
     }
 
     t++;
@@ -231,7 +344,7 @@ function swarmGradStep() {
             positions[i * 3 + 1] += vy;
         }
 
-        positions[i * 3 + 2] = objectiveFunction(positions[i * 3], positions[i * 3 + 1]) + 0.5;
+        positions[i * 3 + 2] = objectiveFunction(positions[i * 3], positions[i * 3 + 1]) + 1.0;
     }
 
     t++;
@@ -262,8 +375,8 @@ function init() {
     document.body.appendChild(renderer.domElement);
 
     // Camera position
-    camera.position.set(30, 30, 30);
-    camera.lookAt(scene.position);
+    camera.position.set(40, 40, 40);
+    camera.lookAt(0, 0, 0);
 
     // Lighting
     const ambientLight = new THREE.AmbientLight(0x404040);
@@ -291,6 +404,8 @@ function init() {
             optimizer();
         } else if (event.code === 'KeyR') {
             resetOptimizer();
+        } else if (event.code === 'KeyP') {
+            loginfo();
         }
     });
 
@@ -304,8 +419,8 @@ function createFunctionSurface() {
 
     for (let x = 0; x < functionResolution; x++) {
         for (let y = 0; y < functionResolution; y++) {
-            const xPos = (x / (functionResolution - 1)) * 40 - 20;
-            const yPos = (y / (functionResolution - 1)) * 40 - 20;
+            const xPos = (x / (functionResolution - 1)) * 60 - 30;
+            const yPos = (y / (functionResolution - 1)) * 60 - 30;
             const zPos = objectiveFunction(xPos, yPos);
             vertices.push(xPos, yPos, zPos);
         }
@@ -327,7 +442,7 @@ function createFunctionSurface() {
     geometry.setIndex(indices);
     geometry.computeVertexNormals();
 
-    const material = new THREE.MeshPhongMaterial({ color: 0x00ff00, wireframe: false });
+    const material = new THREE.MeshPhongMaterial({ color: 0x00ff88, wireframe: false });
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
 }
@@ -338,8 +453,8 @@ function createParticles() {
     const positions = new Float32Array(particleCount * 3);
 
     for (let i = 0; i < particleCount; i++) {
-        const x = Math.random() * 2 - 20; // Initialize in bottom-left corner
-        const y = Math.random() * 2 - 20;
+        const x = sampleNormal() * 10; // Initialize in bottom-left corner
+        const y = sampleNormal() * 10;
         const z = objectiveFunction(x, y);
 
         positions[i * 3] = x;

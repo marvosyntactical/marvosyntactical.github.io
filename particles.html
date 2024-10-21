@@ -23,16 +23,18 @@
 </head>
 <body>
     <div id="controls">
+        <label for="inertia">inertia:</label>
+        <input type="number" id="inertia" step="0.1" value="0.5"><br>
         <label for="lambda">lambda:</label>
-        <input type="number" id="lambda" step="0.1" value="1.5"><br>
+        <input type="number" id="lambda" step="0.1" value="1.0"><br>
         <label for="sigma">sigma:</label>
-        <input type="number" id="sigma" step="0.1" value="0.8"><br>
+        <input type="number" id="sigma" step="0.1" value="0.1"><br>
         <label for="c1">c1:</label>
         <input type="number" id="c1" step="0.1" value="1.0"><br>
         <label for="c2">c2:</label>
         <input type="number" id="c2" step="0.1" value="0.0"><br>
         <label for="beta1">beta1:</label>
-        <input type="number" id="beta1" step="0.1" value="0.9"><br>
+        <input type="number" id="beta1" step="0.1" value="0.95"><br>
         <label for="beta2">beta2:</label>
         <input type="number" id="beta2" step="0.1" value="0.99"><br>
         <label for="leak">leak:</label>
@@ -49,10 +51,15 @@
         <input type="text" id="objectiveFunction" value="Math.sin(x * 0.5) * Math.cos(y * 0.5) * 2 + y*y*0.02 + x*x*0.03"><br>
         <label for="optimizer">Optimizer:</label>
         <select id="optimizer">
-            <option value="sga">Swarm Grad Accelerated</option>
+            <option value="sga">Swarm Grad</option>
             <option value="pso">Particle Swarm Optimization</option>
             <option value="cbo">Consensus-Based Optimization</option>
         </select>
+	<p>'space' for optimizer step</p>
+	<p>'r' to reset optimizer</p>
+	<p>'p' to log mean pos and best loss in dev console (F12)</p>
+	<p>Left Mouse Button to rotate</p>
+	<p>Right Mouse Button to translate</p>
     </div>
     <script type="importmap">
         {
