@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
   setTimeout(function() {
     document.getElementById('loading-spinner').style.display = 'none';
     document.getElementById('content').style.display = 'block';
-  }, 800);
+  }, 400);
 
   // Function to simulate typing effect
   function typeText(element, text, cursor, delay, callback) {

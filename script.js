@@ -258,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function() {
   setTimeout(function() {
     document.getElementById('loading-spinner').style.display = 'none';
     document.getElementById('content').style.display = 'block';
-  }, 800);
+  }, 400);
   // Create the neural network visualization
   // createNeuralNetworkVisualization();
 	createVoronoiDiagram();

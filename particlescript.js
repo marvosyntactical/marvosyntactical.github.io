@@ -165,19 +165,19 @@ function particleSwarmOptimizationStep() {
 }
 
 function getSoftmax(positions, temp) {
-    // let maxLoss = -Infinity;
-    // for (let i = 0; i < particleCount; i++) {
-    //     const loss = objectiveFunction(positions[i * 3], positions[i * 3 + 1]);
-    //     if (loss > maxLoss) {
-    //         maxLoss = loss;
-    //     }
-    // }
+    let maxLoss = -Infinity;
+    for (let i = 0; i < particleCount; i++) {
+        const loss = objectiveFunction(positions[i * 3], positions[i * 3 + 1]);
+        if (loss > maxLoss) {
+            maxLoss = loss;
+        }
+    }
 
     let sumExp = 0;
     const coeffs = new Float32Array(particleCount);
     for (let i = 0; i < particleCount; i++) {
         const loss = objectiveFunction(positions[i * 3], positions[i * 3 + 1]);
-        const weight = Math.exp(-temp * loss);
+        const weight = Math.exp(-temp * (loss-maxLoss));
         coeffs[i] = weight;
         sumExp += weight;
     }
@@ -207,6 +207,7 @@ function consensusBasedOptimizationStep() {
     const lr = 1.0;
 
     const softmax = getSoftmax(positions, temp);
+	  console.log("Softmax: " + softmax[0] + ", " + softmax[1]);
 
     for (let i = 0; i < particleCount; i++) {
         const vdetx = softmax[0] - positions[i * 3];
@@ -224,6 +225,7 @@ function consensusBasedOptimizationStep() {
             diffusionx = norm * bx;
             diffusiony = norm * by;
         }
+				console.log("Diffusion: " + diffusionx + ", " + diffusiony);
 
         const vrndx = sigma * Math.sqrt(dt) * diffusionx;
         const vrndy = sigma * Math.sqrt(dt) * diffusiony;
@@ -363,6 +365,13 @@ document.getElementById('optimizer').addEventListener('change', () => {
     initOptimizer();
     resetOptimizer();
 });
+
+document.getElementById('objectiveFunction').addEventListener('change', () => {
+    initOptimizer();
+    resetOptimizer();
+		createFunctionSurface();
+});
+
 
 
 
