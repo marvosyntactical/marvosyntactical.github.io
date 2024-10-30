@@ -1,3 +1,164 @@
+function createVoronoiDiagram() {
+    const canvas = document.createElement('canvas');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    canvas.style.position = 'fixed';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.zIndex = '-1';
+    canvas.style.opacity = '0.5';
+    document.body.appendChild(canvas);
+    
+    const ctx = canvas.getContext('2d');
+    
+    // Reduce number of points
+    const numPoints = 20;
+    let points = Array.from({ length: numPoints }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        originalX: 0,
+        originalY: 0
+    }));
+    
+    points.forEach(point => {
+        point.originalX = point.x;
+        point.originalY = point.y;
+    });
+
+    // Pre-calculate grid for optimization
+    const gridSize = 15; // Larger grid cells = better performance
+    const grid = [];
+    const cols = Math.ceil(canvas.width / gridSize);
+    const rows = Math.ceil(canvas.height / gridSize);
+
+    for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+            grid.push({
+                x: x * gridSize,
+                y: y * gridSize
+            });
+        }
+    }
+
+    function drawVoronoi() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#1a1a1a';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.beginPath();
+        ctx.strokeStyle = '#32CD32';
+        ctx.lineWidth = 0.5;
+
+        // Process grid points instead of individual pixels
+        grid.forEach(cell => {
+            const x = cell.x;
+            const y = cell.y;
+
+            let closest = 0;
+            let secondClosest = 1;
+            let minDist = Number.MAX_VALUE;
+            let secondMinDist = Number.MAX_VALUE;
+
+            // Only check nearby points using distance optimization
+            for (let i = 0; i < points.length; i++) {
+                const dx = x - points[i].x;
+                const dy = y - points[i].y;
+                const dist = dx * dx + dy * dy;
+                
+                if (dist < minDist) {
+                    secondMinDist = minDist;
+                    minDist = dist;
+                } else if (dist < secondMinDist) {
+                    secondMinDist = dist;
+                }
+            }
+
+            const diff = Math.abs(Math.sqrt(minDist) - Math.sqrt(secondMinDist));
+            if (diff < gridSize) {
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + gridSize, y);
+            }
+        });
+
+        ctx.stroke();
+    }
+
+    let isUpdating = false;
+    let lastUpdateTime = 0;
+    const updateInterval = 50; // Minimum time between updates in ms
+
+    function updatePoints(event) {
+        const currentTime = Date.now();
+        if (isUpdating || currentTime - lastUpdateTime < updateInterval) {
+            return;
+        }
+
+        isUpdating = true;
+        lastUpdateTime = currentTime;
+
+        const mouseX = event.clientX;
+        const mouseY = event.clientY;
+
+        // Find closest points more efficiently
+        const closestPoints = points
+            .map((point, index) => ({
+                index,
+                distance: Math.hypot(point.x - mouseX, point.y - mouseY)
+            }))
+            .sort((a, b) => a.distance - b.distance)
+            .slice(0, 5);
+
+        // Update only the closest points
+        closestPoints.forEach(({index}) => {
+            const point = points[index];
+            const dx = mouseX - point.x;
+            const dy = mouseY - point.y;
+            point.x += dx * 0.05;
+            point.y += dy * 0.05;
+        });
+
+        // Update points returning to original position less frequently
+        points.forEach((point, index) => {
+            if (!closestPoints.some(p => p.index === index)) {
+                point.x += (point.originalX - point.x) * 0.02;
+                point.y += (point.originalY - point.y) * 0.02;
+            }
+        });
+
+        drawVoronoi();
+        isUpdating = false;
+    }
+
+    // Debounced resize handler
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            drawVoronoi();
+        }, 250);
+    });
+
+    // Throttled mousemove handler
+    const throttledUpdate = (event) => {
+        if (!isUpdating) {
+            requestAnimationFrame(() => updatePoints(event));
+        }
+    };
+
+    document.addEventListener('mousemove', throttledUpdate, { passive: true });
+
+    // Initial draw
+    drawVoronoi();
+
+    return function cleanup() {
+        document.removeEventListener('mousemove', throttledUpdate);
+        window.removeEventListener('resize', drawVoronoi);
+        document.body.removeChild(canvas);
+    };
+}
+
 // Function to create a neural network visualization
 function createNeuralNetworkVisualization() {
   const canvas = document.createElement('canvas');
@@ -99,7 +260,8 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('content').style.display = 'block';
   }, 800);
   // Create the neural network visualization
-  createNeuralNetworkVisualization();
+  // createNeuralNetworkVisualization();
+	createVoronoiDiagram();
 
   // Function to simulate typing effect
   function typeText(element, text, cursor, delay, callback) {
