@@ -18,7 +18,14 @@
 				</div>
 			</div>
 			<div id="content" style="display: none;">
-				<img src="me_square.png" alt="Marvin Koß Selfie" style="width: 300px; height: 300px; object-fit: cover; border-radius: 50%; shape-outside: circle(50%); float: left; margin-right: 20px; align: center">	
+                <!--<img src="me_square.png" alt="Marvin Koß Selfie" style="width: 300px; height: 300px; object-fit: cover; border-radius: 50%; shape-outside: circle(50%); float: left; margin-right: 20px; align: center"> -->
+                <img id="profile-pic"
+                     src="me_square.png"
+                     alt="Marvin Koß Selfie"
+                     style="width:300px; height:300px; object-fit:cover;
+                            border-radius:50%; shape-outside:circle(50%);
+                            float:left; margin-right:20px;"
+                >
 				<h1><a href="https://github.com/marvosyntactical/">marvosyntactical</a></h1>
 				<p><a href="cv.html">CV</a></p>
 				<p><a href="https://marvosyntactical.substack.com">Blog</a></p>
@@ -52,6 +59,27 @@
 		<canvas id="canvas"></canvas>
 		<script src="https://d3js.org/d3.v7.min.js"></script>
 		<script src="script.js"></script>
+		<script>
+		document.addEventListener('DOMContentLoaded', () => {
+		const pic        = document.getElementById('profile-pic');
+		const PNG_SRC    = 'me_square.png';
+		const GIF_SRC    = 'me_triangle.gif';     // put the new GIF next to the HTML
+		const GIF_MS     = 7200;                  // 90 frames × 0.08 s per frame
+
+		// play once right after page load
+		playGifOnce();
+
+		// play again every time the mouse hovers
+		pic.addEventListener('mouseenter', playGifOnce);
+
+		function playGifOnce () {
+			// restart the GIF by re‑assigning its src
+			pic.src = GIF_SRC;
+			// swap back to PNG when the last frame SHOULD be done
+			setTimeout(() => { pic.src = PNG_SRC; }, GIF_MS);
+		}
+		});
+		</script>
 
 
 </html>
