@@ -37,24 +37,48 @@
       "slug": "hh-tf",
       "date": "2025-09-12",
       "tags": ["transformers","fokker-planck","helmholtz","wasserstein","schrodinger-bridge","diffgeo","attention","mlp","sde","entropy"],
-      "summary": "Part 1 formalizes attention-as-diffusion and MLP-as-conservative drift on the sphere, yielding a testable Fokker–Planck model with Schrödinger-bridge editing.",
+      "summary": "Formalizes attention-as-diffusion and MLP-as-conservative drift on the sphere, yielding a testable Fokker–Planck model with Schrödinger-bridge editing.",
       "read_time": "12–18 min"
     },
     {
-      "title": "Compressed Sensing, Superposition, and MLP Potentials (Part 2)",
+      "title": "Compressed Sensing, Superposition, and MLP Potentials",
       "slug": "cs-tf",
       "date": "2025-09-12",
       "tags": ["transformers","compressed-sensing","superposition","mutual-coherence","mlp","sparse-coding","helmholtz","entropy"],
-      "summary": "Part 2 explains MLPs via low-coherence sparse coding, deriving an exact potential and testable predictions for interference and entropy.",
+      "summary": "Explains MLPs via low-coherence sparse coding, deriving an exact potential and testable predictions for interference and entropy.",
       "read_time": "9–13 min"
     },
     {
-      "title": "Causality, Abstraction DAGs, and G-Causal Wasserstein Geometry (Part 3)",
+      "title": "Causality, Abstraction DAGs, and G-Causal Wasserstein Geometry",
       "slug": "cause-tf",
       "date": "2025-09-12",
       "tags": ["transformers","causality","dags","optimal-transport","coarse-graining","renormalization","abstraction","wasserstein"],
-      "summary": "Part 3 formalizes abstraction via DAG-constrained OT, adds a causal geometry, and identifies decision points via committors for targeted interventions.",
+      "summary": "Formalizes abstraction via DAG-constrained OT, adds a causal geometry, and identifies decision points via committors for targeted interventions.",
       "read_time": "8–12 min"
+    },
+    {
+      "title": "Geometry-Aware Losses for Language Models: From Cross-Entropy to Wasserstein and Semantic Smoothing",
+      "slug": "geo-loss",
+      "date": "2025-09-12",
+      "tags": ["language models","loss functions","wasserstein","semantic smoothing","geometry","transformers","gan","rlhf","orthogonal rotation"],
+      "summary": "Explores replacing cross-entropy with geometry-aware losses in LLMs, using Wasserstein, rotations, and semantic smoothing to exploit embedding geometry for better generalization and calibration.",
+      "read_time": "7–10 min"
+    },
+    {
+      "title": "Time, Entropy, and Consciousness: Towards a Thermodynamic Formalism",
+      "slug": "subj-time",
+      "date": "2025-09-12",
+      "tags": ["time","entropy","thermodynamics","consciousness","information-theory","dopamine","landauer","causality"],
+      "summary": "Speculative derivation of equations linking time, entropy production, and consciousness, with extensions from Landauer to relativistic field couplings.",
+      "read_time": "10–14 min"
+    },
+    {
+      "title": "Thermodynamics, Causality, and Fokker–Planck",
+      "slug": "cause-fpe",
+      "date": "2025-09-12",
+      "tags": ["causality","fokker-planck","wasserstein gradient flow","thermodynamics","landauer","schrodinger bridge","evolutionary game theory","bbgky","mean-field"],
+      "summary": "A unified exploration of causality, entropy production, and Schrödinger bridges under the Fokker–Planck framework, with connections to BBGKY and evolutionary game theory.",
+      "read_time": "10–15 min"
     }
   ]
 }
