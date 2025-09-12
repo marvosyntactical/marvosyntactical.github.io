@@ -34,7 +34,7 @@ with diffusion tensor $D=\tfrac12\sigma\sigma^\top$.
 
 An agent with running reward $r$ solves the **HJB**  
 $$
--\partial_t V(t,x) = \sup_u\Big\{ r(x,u,\rho_t)+\nabla V\cdot b(x,u,\rho_t)+\mathrm{Tr}(D\nabla^2 V)\Big\}.
+-\partial_t V(t,x) = \sup_u\{ r(x,u,\rho_t)+\nabla V\cdot b(x,u,\rho_t)+\mathrm{Tr}(D\nabla^2 V)\}.
 $$
 
 The **Hamiltonian** is  
@@ -53,7 +53,7 @@ $$
 First-order conditions yield  
 $$
 \begin{cases}
--\partial_t u-\tfrac12\|\nabla u\|^2 = \tfrac{\delta \Phi}{\delta \rho}(\rho_t), \\[6pt]
+-\partial_t u-\tfrac12\|\nabla u\|^2 = \tfrac{\delta \Phi}{\delta \rho}(\rho_t),\quad
 \partial_t \rho_t - \nabla\cdot(\rho_t \nabla u)=0.
 \end{cases}
 $$
@@ -106,7 +106,7 @@ Let $E:\mathcal{X}\to \mathbb{R}^k$ be an encoder. Actions depend only on $z=E(x
 ### To try next
 - Build toy $\Phi$ with convexity and simulate via JKO scheme:  
 $$
-\rho_{t+1}=\arg\min_\rho \Big\{ \Phi(\rho)+\tfrac{1}{2\tau}W_2^2(\rho,\rho_t)\Big\}.
+\rho_{t+1}=\arg\min_\rho \{ \Phi(\rho)+\tfrac{1}{2\tau}W_2^2(\rho,\rho_t)\}.
 $$
 - Model attention as diffusion deformation: $D\mapsto ADA^\top$.  
 

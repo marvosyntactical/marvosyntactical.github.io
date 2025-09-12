@@ -43,6 +43,13 @@ Stylistic rules:
 - Use inline math `$...$` and display math `$$...$$` where it clarifies the crux; if nontrivial, add a one-line interpretation.
 - Avoid personal details or meta about the chat UI.
 - Do NOT include implementation code unless essential to the claim.
+- This is what math has to look like to render correctly:
+Let $\\rho$ be token-emb density. Consider energy $\\mathcal{E}(\\rho)$ so that
+$$\\partial_t \\rho = \\nabla\\cdot\\big( \\rho\\,\\nabla \\delta \\mathcal{E}/\\delta \\rho \\big) + \\nu \\Delta \\rho.$$
+Attention with kernel $K$ approximates transport $T$, giving a JKO step:
+$$\\rho_{t+1} = \\arg\\min_\\rho \\mathcal{E}(\\rho) + \\tfrac{1}{2\\tau} W_2^2(\\rho, T_\\#\\rho_t) + \\varepsilon\\,\\mathrm{Ent}(\\rho).$$
+
+
 
 For (2) the JSON manifest entry:
 - Match the Markdown’s frontmatter.
