@@ -7,6 +7,14 @@
       "tags": ["transformers","WGF","Navier–Stokes","Helmholtz","diffgeo","optimization"],
       "summary": "Sketching the view that vanilla transformers approximate a Wasserstein gradient flow with a viscous Navier–Stokes regularizer; notes, heuristics, and open problems.",
       "read_time": "10–15 min"
+    },
+    {
+      "title": "Benamou–Brenier vs Fisher–Rao: Geodesics in OT and IG",
+      "slug": "bb-vs-fr",
+      "date": "2025-09-12",
+      "tags": ["optimal transport","information geometry","benamou-brenier","fisher-rao","exponential families","wasserstein","geodesics","machine learning"],
+      "summary": "Explores how Benamou–Brenier geodesics in Wasserstein space compare to Fisher–Rao geodesics in information geometry, and when they coincide.",
+      "read_time": "5–8 min"
     }
   ]
 }
