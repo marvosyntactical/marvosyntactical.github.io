@@ -79,7 +79,7 @@
       "tags": ["trace","divergence","laplacian","green","stokes","riemannian-geometry","dirichlet","determinant","sobolev"],
       "summary": "A rigorous tour of how 'trace' unifies divergence, Laplacian, boundary restriction, and curvature through index contraction and Stokes-type identities.",
       "read_time": "10–14 min"
-    }
+    },
     {
       "title": "Harmonic functions, Helmholtz eigenbases, and the colour–sound bridge",
       "slug": "harmonic",
