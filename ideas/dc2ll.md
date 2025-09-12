@@ -1,4 +1,3 @@
-
 ---
 title: "From Displacement Convexity to Lasry–Lions Monotonicity"
 date: "2025-09-12"
