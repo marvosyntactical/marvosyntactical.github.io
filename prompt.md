@@ -1,5 +1,6 @@
 I'm going through old chats right now and asking you to summarize this chat into a uniform markdown format (with GitHub-flavored Markdown + MathJax/LaTeX) to display on my website. 
-Please follow the below EXACT structure.
+First, decide whether to split this conversation into several topical articles, or keep it at one article.
+For each article, please follow the below EXACT structure.
 
 OUTPUT: Produce exactly TWO fenced code blocks in this order:
 (1) a single Markdown document (language tag: markdown)
@@ -8,7 +9,7 @@ OUTPUT: Produce exactly TWO fenced code blocks in this order:
 For (1) the Markdown document:
 - Begin with a YAML frontmatter block containing:
   title: short, specific
-  date: today in YYYY-MM-DD (use Europe/Berlin)
+  date: start of chat in YYYY-MM-DD (use Europe/Berlin)
   tags: 5–10 topical tags, lowercase
   related: [] (leave empty unless obviously referenced)
   slug: a kebab-case slug you propose from the title
@@ -27,7 +28,7 @@ For (1) the Markdown document:
   - 5–10 bullet points capturing the boldest hypotheses/insights from THIS CHAT ONLY. Be pithy; one line each; no hedging.
   ## Abstract (2–4 sentences)
   ## Expanded notes (main section)
-  ### Core derivations (sketches welcome)
+  ### Core derivations
   ### Connections & metaphors
   ### Open questions
   ### To try next
@@ -36,7 +37,9 @@ For (1) the Markdown document:
 Stylistic rules:
 - It is most important to present the ideas in a structured way so that the line of thought can be followed. Often, this will mean following the flow of the conversation, but you can also choose to structure the ideas differently, but they should progressively build on one another.
 - Focus on novel ideas, but if necessary, you can of course also include preliminaries, things that are already known in the literature.
-- Be concise but information-dense; prefer bullets over walls of text.
+- Being schizo is okay but avoid being cringe, like saying something has "navier stokes vibes". Prefer saying similar etc etc.
+- Be verbose but information-dense. Bullet points ONLY in the "Key Ideas" section, then elaborate under "Expanded Notes" with coherent argumentation! Don't use bullet points here, this section serves as a *writeup*. Actually articulate the ideas using full sentences, paragraphs, argumentation flow here!! It is MANDATORY that right after "## Expanded notes" you introduce the reader to the topic and guide them towards the ideas.
+- Elaborate in "## Expanded Notes". E.g. if a key idea is that X is a Hamiltonian, then in this section, you write down the math and explain.
 - Use inline math `$...$` and display math `$$...$$` where it clarifies the crux; if nontrivial, add a one-line interpretation.
 - Avoid personal details or meta about the chat UI.
 - Do NOT include implementation code unless essential to the claim.

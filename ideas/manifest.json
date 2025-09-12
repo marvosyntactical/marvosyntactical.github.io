@@ -15,6 +15,22 @@
       "tags": ["optimal transport","information geometry","benamou-brenier","fisher-rao","exponential families","wasserstein","geodesics","machine learning"],
       "summary": "Explores how Benamou–Brenier geodesics in Wasserstein space compare to Fisher–Rao geodesics in information geometry, and when they coincide.",
       "read_time": "5–8 min"
+    },
+    {
+      "title": "Reflexive Mean Field Emergence",
+      "slug": "rmfe",
+      "date": "2025-09-12",
+      "tags": ["mean field","psychology","fokker-planck","emergence","game theory","compression","abstraction"],
+      "summary": "Mapping psychological concepts like aesthetics, morality, and consciousness onto mean-field dynamics and compression-based dualities.",
+      "read_time": "6–9 min"
+    },
+    {
+      "title": "From Displacement Convexity to Lasry–Lions Monotonicity",
+      "slug": "dc2ll",
+      "date": "2025-09-12",
+      "tags": ["mean field games","optimal transport","wasserstein geometry","displacement convexity","lasry–lions","evi","uniqueness"],
+      "summary": "Gives a rigorous proof that λ-displacement convexity implies strong Lasry–Lions monotonicity and deduces uniqueness and contraction for potential MFG equilibria.",
+      "read_time": "12–16 min"
     }
   ]
 }

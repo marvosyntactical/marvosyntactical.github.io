@@ -1,5 +1,5 @@
 ---
-title: "Transformers as Approximate Wasserstein Gradient Flows (with viscous NS vibes)"
+title: "Transformers as Approximate Wasserstein Gradient Flows"
 date: "2025-09-01"
 tags: ["transformers","WGF","Navier–Stokes","Helmholtz","diffgeo","optimization"]
 related: []
