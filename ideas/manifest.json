@@ -1,0 +1,12 @@
+{
+  "items": [
+    {
+      "title": "Transformers as Approximate Wasserstein Gradient Flows (with viscous NS vibes)",
+      "slug": "example-transformer-wgf",
+      "date": "2025-09-01",
+      "tags": ["transformers","WGF","Navier–Stokes","Helmholtz","diffgeo","optimization"],
+      "summary": "Sketching the view that vanilla transformers approximate a Wasserstein gradient flow with a viscous Navier–Stokes regularizer; notes, heuristics, and open problems.",
+      "read_time": "10–15 min"
+    }
+  ]
+}

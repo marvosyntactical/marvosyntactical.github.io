@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Marv’s Ideas — Index</title>
+  <link rel="stylesheet" href="assets/style.css"/>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net"/>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com"/>
+  <meta name="description" content="Index of ideas, scribbles, derivations, and wild conjectures by Marv."/>
+</head>
+<body>
+  <header class="site-header">
+    <h1>Marv’s Ideas</h1>
+    <p class="tagline">scribbles • conjectures • derivations • <span class="mono">$\\TeX$</span>-enabled</p>
+  </header>
+
+  <main class="container">
+    <section class="controls">
+      <input id="search" type="search" placeholder="Search titles, summaries, tags..." autocomplete="off"/>
+      <div id="tag-pills" class="tags"></div>
+      <div class="meta">
+        <span id="count"></span>
+        <button id="clear" class="ghost">Clear filters</button>
+      </div>
+    </section>
+
+    <section id="list" class="cards"></section>
+  </main>
+
+  <footer class="site-footer">
+    <a href="ideas/_template.md">New idea template</a> •
+    <a href="https://github.com/marvosyntactical/marvosyntactical.github.io" target="_blank" rel="noopener">Repo</a>
+  </footer>
+
+  <script>
+    const $ = s => document.querySelector(s);
+    const $$ = s => Array.from(document.querySelectorAll(s));
+
+    const state = {
+      all: [],
+      filtered: [],
+      search: "",
+      tags: new Set(),
+      selectedTags: new Set(),
+    };
+
+    function normalize(s){ return (s||"").toLowerCase(); }
+
+    function renderTags(){
+      const allTags = [...new Set(state.all.flatMap(x => x.tags || []))].sort();
+      const wrap = $("#tag-pills");
+      wrap.innerHTML = "";
+      for(const t of allTags){
+        const b = document.createElement("button");
+        b.className = "tag";
+        b.textContent = t;
+        b.dataset.tag = t;
+        b.onclick = () => {
+          if(state.selectedTags.has(t)) state.selectedTags.delete(t); else state.selectedTags.add(t);
+          update();
+        };
+        wrap.appendChild(b);
+      }
+    }
+
+    function renderList(items){
+      const el = $("#list");
+      el.innerHTML = "";
+      if(items.length === 0){
+        el.innerHTML = `<div class="empty">No matches. Try fewer tags or a different query.</div>`;
+        return;
+      }
+      for(const it of items){
+        const card = document.createElement("article");
+        card.className = "card";
+        const tags = (it.tags || []).map(t => `<span class="chip">${t}</span>`).join(" ");
+        const date = it.date ? new Date(it.date).toISOString().slice(0,10) : "";
+        card.innerHTML = `
+          <h3><a href="idea.html?slug=${encodeURIComponent(it.slug)}">${it.title}</a></h3>
+          <div class="muted">${date}${it.read_time ? ` • ${it.read_time}` : ""}</div>
+          <p>${it.summary || ""}</p>
+          <div class="chips">${tags}</div>
+        `;
+        el.appendChild(card);
+      }
+    }
+
+    function update(){
+      // style selected tags
+      $$("#tag-pills .tag").forEach(el => {
+        el.classList.toggle("tag-selected", state.selectedTags.has(el.dataset.tag));
+      });
+      const q = normalize(state.search);
+      const hasTagFilter = state.selectedTags.size > 0;
+      const selected = hasTagFilter ? [...state.selectedTags] : [];
+      state.filtered = state.all.filter(it => {
+        const hay = [it.title, it.summary, ...(it.tags||[])].map(normalize).join(" ");
+        const matchesQ = q ? hay.includes(q) || hay.split(/\s+/).some(w => w.startsWith(q)) : true;
+        const matchesTags = hasTagFilter ? selected.every(t => (it.tags||[]).includes(t)) : true;
+        return matchesQ && matchesTags;
+      });
+      $("#count").textContent = `${state.filtered.length}/${state.all.length} shown`;
+      renderList(state.filtered);
+    }
+
+    async function main(){
+      const res = await fetch("ideas/manifest.json", {cache:"no-store"});
+      const data = await res.json();
+      state.all = (data.items || []).slice().sort((a,b) => (b.date||"").localeCompare(a.date||""));
+      renderTags();
+      update();
+      $("#search").addEventListener("input", e => { state.search = e.target.value; update(); });
+      $("#clear").addEventListener("click", () => { state.search=""; state.selectedTags.clear(); $("#search").value=""; update(); });
+    }
+    main().catch(err => {
+      console.error(err);
+      $("#list").innerHTML = `<div class="empty">Couldn’t load manifest.json</div>`;
+    });
+  </script>
+</body>
+</html>

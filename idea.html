@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Idea — Marv</title>
+  <link rel="stylesheet" href="assets/style.css"/>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net"/>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com"/>
+
+  <!-- Marked.js for Markdown -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <!-- Highlight.js for code blocks -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+  <!-- MathJax v3 -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$','$$'], ['\\[','\\]']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a href="index.html" class="ghost">← Back</a>
+    <h1 id="title">Idea</h1>
+    <div class="muted" id="meta"></div>
+  </header>
+
+  <main class="container">
+    <article id="content" class="prose"></article>
+    <div class="muted small" id="rawlinks"></div>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const slug = params.get("slug");
+    const $ = s => document.querySelector(s);
+
+    function parseFrontmatter(md){
+      if(!md.startsWith('---')) return [{}, md];
+      const end = md.indexOf('\n---', 3);
+      if(end === -1) return [{}, md];
+      const fm = md.slice(3, end).trim();
+      const body = md.slice(end+4).replace(/^\s*\n/, '');
+      const meta = {};
+      for(const line of fm.split('\n')){
+        const m = line.match(/^([A-Za-z0-9_-]+)\s*:\s*(.*)$/);
+        if(m){
+          const k = m[1].trim();
+          let v = m[2].trim();
+          if(v.startsWith("[") || v.startsWith("{")){
+            try { v = JSON.parse(v); } catch {}
+          } else {
+            v = v.replace(/^"(.*)"$/, '$1');
+          }
+          meta[k] = v;
+        }
+      }
+      return [meta, body];
+    }
+
+    async function load(){
+      if(!slug){
+        $("#content").innerHTML = "<div class='empty'>No slug given.</div>";
+        return;
+      }
+      const path = `ideas/${encodeURIComponent(slug)}.md`;
+      const res = await fetch(path, {cache:"no-store"});
+      if(!res.ok){
+        $("#content").innerHTML = "<div class='empty'>Not found.</div>";
+        return;
+      }
+      const md = await res.text();
+      const [meta, body] = parseFrontmatter(md);
+
+      document.title = (meta.title ? meta.title + " — " : "") + "Marv";
+      $("#title").textContent = meta.title || slug;
+      const date = meta.date ? new Date(meta.date).toISOString().slice(0,10) : "";
+      const tags = Array.isArray(meta.tags) ? meta.tags.join(", ") : (meta.tags || "");
+      $("#meta").textContent = [date, tags].filter(Boolean).join(" • ");
+
+      // Render
+      marked.setOptions({
+        highlight(code, lang){ try { return hljs.highlight(code, {language: lang}).value; } catch { return hljs.highlightAuto(code).value; } }
+      });
+      $("#content").innerHTML = marked.parse(body);
+
+      // Raw links
+      $("#rawlinks").innerHTML = `Raw: <a href="${path}" target="_blank" rel="noopener">${slug}.md</a>`;
+
+      // Typeset TeX
+      if(window.MathJax?.typesetPromise){
+        await MathJax.typesetPromise();
+      }
+    }
+    load().catch(e => {
+      console.error(e);
+      $("#content").innerHTML = "<div class='empty'>Error loading file.</div>";
+    });
+  </script>
+</body>
+</html>
