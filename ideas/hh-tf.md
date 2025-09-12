@@ -82,4 +82,3 @@ The first sum is $\nabla U_t$ with $U_t=\sum_j a_j\,\psi(v_j\!\cdot x)$; the sec
 - **FFN memory:** Geva et al. (key–value FFNs).
 - **Superposition/SAEs:** Anthropic (toy models; scaling monosemanticity).
 - **Schrödinger bridges:** Föllmer; Jamison; Léonard survey; entropic OT (Cuturi).
-
