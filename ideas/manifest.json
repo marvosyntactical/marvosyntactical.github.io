@@ -32,5 +32,13 @@
       "summary": "Gives a rigorous proof that λ-displacement convexity implies strong Lasry–Lions monotonicity and deduces uniqueness and contraction for potential MFG equilibria.",
       "read_time": "12–16 min"
     }
+    {
+      "title": "The Helmholtz Transformer",
+      "slug": "hh-tf",
+      "date": "2025-09-12",
+      "tags": ["transformers","fokker-planck","helmholtz","wasserstein","schrodinger-bridge","diffgeo","attention","mlp","sde","entropy"],
+      "summary": "Part 1 formalizes attention-as-diffusion and MLP-as-conservative drift on the sphere, yielding a testable Fokker–Planck model with Schrödinger-bridge editing.",
+      "read_time": "12–18 min"
+    }
   ]
 }
