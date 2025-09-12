@@ -30,7 +30,7 @@ For distributions $\mu,\nu$ on $\mathbb{R}^d$ with a causal mask $M$, define
 $$
 W_{2,G}^2(\mu,\nu)=\inf_{\gamma\in\Gamma_G(\mu,\nu)}\int \|x-y\|^2\,d\gamma(x,y),
 $$
-where $\Gamma_G(\mu,\nu)\subset\Gamma(\mu,\nu)$ are couplings supported on pairs $(x,y)$ consistent with $G$ (mask $M(x,y)=1$). Coarse-graining $\pi$ induces pushforwards $\pi_\\#\mu,\pi_\#\nu$, and we can similarly define $W_{2,\bar G}$. Minimizing $W_{2,\bar G}$ under a capacity constraint formalizes “best abstraction” given a budget.
+where $\Gamma_G(\mu,\nu)\subset\Gamma(\mu,\nu)$ are couplings supported on pairs $(x,y)$ consistent with $G$ (mask $M(x,y)=1$). Coarse-graining with $\pi$ induces pushforwards $\pi_\\#\mu,\pi_\\#\nu$, and we can similarly define $W_{2,\bar G}$. Minimizing $W_{2,\bar G}$ under a capacity constraint formalizes “best abstraction” given a budget.
 
 ### Connections & metaphors
 - **Causal transport:** move mass only along arrows allowed by the DAG; mask violations are “forbidden paths”.

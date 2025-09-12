@@ -21,7 +21,7 @@ The Benamou–Brenier dynamic formulation of optimal transport (OT) defines geod
 
 ## Expanded notes
 
-### Core derivations (sketches welcome)
+### Core derivations
 - **BB action functional**:
   $$
   W_2^2(\mu_0,\mu_1) = \inf_{\rho,v} \int_0^1 \int \tfrac{1}{2}\rho_t(x)\|v_t(x)\|^2\,dx\,dt,
