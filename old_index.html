@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+	<br>
+	<br>
+	<head>
+		<title>marvosyntactical</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="styles.css" >
+	</head>
+		<body>
+			<div id="loading-spinner">
+				<div class="spinner-frame">
+					<div class="spinner-line"></div>
+					<div class="spinner-line"></div>
+					<div class="spinner-line"></div>
+					<div class="spinner-line"></div>
+				</div>
+			</div>
+			<div id="content" style="display: none;">
+                <!--<img src="me_square.png" alt="Marvin Koß Selfie" style="width: 300px; height: 300px; object-fit: cover; border-radius: 50%; shape-outside: circle(50%); float: left; margin-right: 20px; align: center"> -->
+                <img id="profile-pic"
+                     src="me_square.png"
+                     alt="Marvin Koß Selfie"
+                     style="width:300px; height:300px; object-fit:cover;
+                            border-radius:50%; shape-outside:circle(50%);
+                            float:left; margin-right:20px;"
+                >
+				<h1><a href="https://github.com/marvosyntactical/">marvosyntactical</a></h1>
+				<p><a href="cv.html">CV</a></p>
+				<p><a href="https://marvosyntactical.substack.com">Blog</a></p>
+				<p><a href="mailto:kossATclDOTuniDASHheidelbergDOTde">Email</a></p>
+				<p>I care mainly about making the world a better place to inhabit for conscious beings.</p>
+				<p>I believe that, at the moment, the most important issue to achieve this is to ensure modern AI systems are not only conscious, but conscientious.</p>
+				<p>I am asking you to believe in friendship, love, truth and to use your intelligence generatively rather than discriminatively.</p>
+				<p>Love is the nash equilbrium wherein mutual bayesian inference is stablest; god is its mean field limit.</p>
+				<br>
+				<br>
+				<p>Materials:</p>
+				<ul>
+					<li>An Intro to Bayesian Neural Networks: <a href="slides/bnn_workshop.slides.html">slides</a>, <a href="https://github.com/marvosyntactical/bnn_intro/">code</a></li>
+					<li>Uncertainty Quantification using Bayesian Neural Networks: <a href="slides/synthetic_benchmark.slides.html">slides</a></li>
+					<li>Rational Speech Act Framework in Pyro: <a href="slides/01-RSA-introduction.html">intro slides</a>, <a href="slides/09-RSA-politeness.html">politeness slides</a>, <a href="https://github.com/marvosyntactical/pragmatics-pyro/">code</a></li>
+					<li>Particle Swarm Optimization Visualization: <a href="https://github.com/marvosyntactical/simoss">code</a>, <a href="particles.html">Interactive Visualization!</a></li>
+					<li><a href="https://github.com/marvosyntactical/hydra">Hydra</a> Latent Evolution: <a href="hydra_latent_labeled.html"><b>Interactive Visualisation</b></a></li>
+                    <li><a href="https://argos-viz.fly.dev/"><b>Interactive</b> LLM Latent Flow Visualisation</a></li>
+                    <li><a href="https://collatzin.fly.dev/"><b>Interactive</b> Collatz Shrub</a></li>
+                    <li><a href="https://pd-echo.fly.dev/"><b>Interactive</b> Anti-Cynicism Simulation</a></li>
+				</ul>		    
+				<br>
+				<br>
+				<p>A couple of playlists:</p>
+				<ul>
+					<li><a href="https://music.youtube.com/playlist?list=PL1O4S7bQsAjHoEOAdzr3OgpACzrCCm8Kc">Summer</a></li>
+					<li><a href="https://music.youtube.com/playlist?list=PL1O4S7bQsAjHygu3b5mYW6842FoDl6Ob0">Electronostalgia</a></li>
+					<li><a href="https://music.youtube.com/playlist?list=PL1O4S7bQsAjHqhwy72j4nach_GYzkckcw">Alastair Grey</a></li>
+					<br>
+				</ul>
+				<p><a href="#" onclick="let pw = prompt('Enter password:'); if (pw === 'wittgenstein') window.location.href='peace.pdf'; else alert('Wrong password!');">Navigation</a>: "j" for next link, "k" for previous link, Enter to open link. "i" to edit text, "Esc" to stop editing.</p>
+			</div>
+		</body>
+		<canvas id="canvas"></canvas>
+		<script src="https://d3js.org/d3.v7.min.js"></script>
+		<script src="script.js"></script>
+		<script>
+		document.addEventListener('DOMContentLoaded', () => {
+		const pic        = document.getElementById('profile-pic');
+		const PNG_SRC    = 'me_square.png';
+		const GIF_SRC    = 'me_triangle.gif';     // put the new GIF next to the HTML
+		const GIF_MS     = 12000;                  // number frames × 0.08 s per frame
+
+		// play once right after page load
+		playGifOnce();
+
+		// play again every time the mouse hovers
+		pic.addEventListener('mouseenter', playGifOnce);
+
+		function playGifOnce () {
+			// restart the GIF by re‑assigning its src
+			pic.src = GIF_SRC;
+			// swap back to PNG when the last frame SHOULD be done
+			setTimeout(() => { pic.src = PNG_SRC; }, GIF_MS);
+		}
+		});
+		</script>
+
+
+</html>

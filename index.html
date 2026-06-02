@@ -1,88 +1,513 @@
 <!DOCTYPE html>
-<html>
-	<br>
-	<br>
-	<head>
-		<title>marvosyntactical</title>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<link rel="stylesheet" href="styles.css" >
-	</head>
-		<body>
-			<div id="loading-spinner">
-				<div class="spinner-frame">
-					<div class="spinner-line"></div>
-					<div class="spinner-line"></div>
-					<div class="spinner-line"></div>
-					<div class="spinner-line"></div>
-				</div>
-			</div>
-			<div id="content" style="display: none;">
-                <!--<img src="me_square.png" alt="Marvin Koß Selfie" style="width: 300px; height: 300px; object-fit: cover; border-radius: 50%; shape-outside: circle(50%); float: left; margin-right: 20px; align: center"> -->
-                <img id="profile-pic"
-                     src="me_square.png"
-                     alt="Marvin Koß Selfie"
-                     style="width:300px; height:300px; object-fit:cover;
-                            border-radius:50%; shape-outside:circle(50%);
-                            float:left; margin-right:20px;"
-                >
-				<h1><a href="https://github.com/marvosyntactical/">marvosyntactical</a></h1>
-				<p><a href="cv.html">CV</a></p>
-				<p><a href="https://marvosyntactical.substack.com">Blog</a></p>
-				<p><a href="mailto:kossATclDOTuniDASHheidelbergDOTde">Email</a></p>
-				<p>I care mainly about making the world a better place to inhabit for conscious beings.</p>
-				<p>I believe that, at the moment, the most important issue to achieve this is to ensure modern AI systems are not only conscious, but conscientious.</p>
-				<p>I am asking you to believe in friendship, love, truth and to use your intelligence generatively rather than discriminatively.</p>
-				<p>Love is the nash equilbrium wherein mutual bayesian inference is stablest; god is its mean field limit.</p>
-				<br>
-				<br>
-				<p>Materials:</p>
-				<ul>
-					<li>An Intro to Bayesian Neural Networks: <a href="slides/bnn_workshop.slides.html">slides</a>, <a href="https://github.com/marvosyntactical/bnn_intro/">code</a></li>
-					<li>Uncertainty Quantification using Bayesian Neural Networks: <a href="slides/synthetic_benchmark.slides.html">slides</a></li>
-					<li>Rational Speech Act Framework in Pyro: <a href="slides/01-RSA-introduction.html">intro slides</a>, <a href="slides/09-RSA-politeness.html">politeness slides</a>, <a href="https://github.com/marvosyntactical/pragmatics-pyro/">code</a></li>
-					<li>Particle Swarm Optimization Visualization: <a href="https://github.com/marvosyntactical/simoss">code</a>, <a href="particles.html">Interactive Visualization!</a></li>
-					<li><a href="https://github.com/marvosyntactical/hydra">Hydra</a> Latent Evolution: <a href="hydra_latent_labeled.html"><b>Interactive Visualisation</b></a></li>
-                    <li><a href="https://argos-viz.fly.dev/"><b>Interactive</b> LLM Latent Flow Visualisation</a></li>
-                    <li><a href="https://collatzin.fly.dev/"><b>Interactive</b> Collatz Shrub</a></li>
-                    <li><a href="https://pd-echo.fly.dev/"><b>Interactive</b> Anti-Cynicism Simulation</a></li>
-				</ul>		    
-				<br>
-				<br>
-				<p>A couple of playlists:</p>
-				<ul>
-					<li><a href="https://music.youtube.com/playlist?list=PL1O4S7bQsAjHoEOAdzr3OgpACzrCCm8Kc">Summer</a></li>
-					<li><a href="https://music.youtube.com/playlist?list=PL1O4S7bQsAjHygu3b5mYW6842FoDl6Ob0">Electronostalgia</a></li>
-					<li><a href="https://music.youtube.com/playlist?list=PL1O4S7bQsAjHqhwy72j4nach_GYzkckcw">Alastair Grey</a></li>
-					<br>
-				</ul>
-				<p><a href="#" onclick="let pw = prompt('Enter password:'); if (pw === 'wittgenstein') window.location.href='peace.pdf'; else alert('Wrong password!');">Navigation</a>: "j" for next link, "k" for previous link, Enter to open link. "i" to edit text, "Esc" to stop editing.</p>
-			</div>
-		</body>
-		<canvas id="canvas"></canvas>
-		<script src="https://d3js.org/d3.v7.min.js"></script>
-		<script src="script.js"></script>
-		<script>
-		document.addEventListener('DOMContentLoaded', () => {
-		const pic        = document.getElementById('profile-pic');
-		const PNG_SRC    = 'me_square.png';
-		const GIF_SRC    = 'me_triangle.gif';     // put the new GIF next to the HTML
-		const GIF_MS     = 12000;                  // number frames × 0.08 s per frame
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marvin Koss</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Familjen+Grotesk:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,400..700&family=Archivo:wght@500;600;700&family=Sora:wght@500;600&family=Hanken+Grotesk:wght@500;600;700&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#161616; --ink-soft:#4a4a4a; --paper:#ffffff;
+    --accent:#555; --margin:48px;
+    --serif:"EB Garamond", Georgia, "Times New Roman", serif;
+    /* name font: swap the first family below. Loaded options:
+       "Familjen Grotesk", "Bricolage Grotesque", "Archivo", "Sora", "Hanken Grotesk" */
+    --sans:"Familjen Grotesk", "Archivo", "Helvetica Neue", Arial, sans-serif;
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0; background:#000; color:var(--ink); overflow-x:hidden;
+    font-family:var(--serif);
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
 
-		// play once right after page load
-		playGifOnce();
+  /* one fixed name that morphs bottom-right/white -> top-left/black */
+  #name{
+    position:fixed; z-index:100; margin:0;
+    font-family:"IBM Plex Serif", Georgia, "Times New Roman", serif; font-weight:600;
+    text-transform:uppercase;
+    font-size:clamp(1.9rem,5.2vw,3rem); line-height:1;
+    letter-spacing:.045em; white-space:nowrap; cursor:pointer;
+    color:#fff; user-select:none; will-change:left,top,color;
+    /*text-decoration:underline; text-underline-offset:7px; text-decoration-thickness:1px;*/
+  }
+  #name:hover{ opacity:.82; }
 
-		// play again every time the mouse hovers
-		pic.addEventListener('mouseenter', playGifOnce);
+  /* hero */
+  #hero{ position:relative; height:100vh; height:100svh; width:100%; overflow:hidden; background:#000; }
+  #sim{ position:absolute; inset:0; display:block; cursor:crosshair;
+    -webkit-tap-highlight-color:transparent; touch-action:pan-y; }
+  #hero::after{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(120% 120% at 50% 45%, transparent 58%, rgba(0,0,0,.55) 100%);
+  }
 
-		function playGifOnce () {
-			// restart the GIF by re‑assigning its src
-			pic.src = GIF_SRC;
-			// swap back to PNG when the last frame SHOULD be done
-			setTimeout(() => { pic.src = PNG_SRC; }, GIF_MS);
-		}
-		});
-		</script>
+  /* white sheets */
+  .sheet{ position:relative; background:var(--paper); min-height:100vh; min-height:100svh; padding:150px var(--margin) 120px; }
+  .col{ max-width:1080px; margin-left:clamp(44px,12vw,220px); margin-right:auto; }
+  #about{ padding-top:clamp(150px,22vh,300px); padding-bottom:clamp(90px,14vh,200px); }
 
+  .intro{ display:flex; align-items:flex-end; gap:38px; margin:0 0 3rem; }
+  .lede{
+    flex:1 1 auto; max-width:760px;
+    font-size:clamp(1.35rem,2.4vw,1.7rem); line-height:1.5;
+    color:var(--ink); margin:0; font-weight:400;
+  }
 
+  a{ color:var(--ink); text-decoration:none; border-bottom:1px solid rgba(22,22,22,.28);
+     transition:color .18s ease, border-color .18s ease; }
+  a:hover{ color:var(--accent); border-color:var(--accent); }
+
+  .eyebrow{ font-size:.82rem; text-transform:uppercase; letter-spacing:.22em;
+            color:var(--ink-soft); margin:3.2rem 0 1.4rem; border:none; }
+
+  .projects{ list-style:none; margin:0 0 3.5rem; padding:0; max-width:720px; }
+  .projects li{ padding:.85rem 0; border-bottom:1px solid rgba(22,22,22,.10);
+    font-size:1.22rem; display:flex; flex-wrap:wrap; align-items:baseline; gap:.5rem .9rem; }
+  .projects li:first-child{ border-top:1px solid rgba(22,22,22,.10); }
+  .projects .pname a{ border:none; font-size:1.28rem; }
+  .projects .pname a:hover{ border:none; }
+  .projects .pdesc{ color:var(--ink-soft); font-style:italic; font-size:1.02rem; }
+
+  .elsewhere{ font-size:1.05rem; color:var(--ink-soft); max-width:720px; }
+  .elsewhere a{ margin-right:1.4rem; }
+
+  /* cv */
+  .cv-head{ display:flex; align-items:baseline; justify-content:space-between; gap:1rem; margin:0 0 2.6rem; }
+  .cv-head h2{ font-weight:500; font-size:clamp(1.6rem,3vw,2.1rem); margin:0; letter-spacing:.01em; }
+  .cv-section{ margin:0 0 2.4rem; }
+  .cv-section h3{ font-size:.8rem; text-transform:uppercase; letter-spacing:.22em;
+    color:var(--ink-soft); font-weight:600; margin:0 0 .9rem; padding-bottom:.5rem;
+    border-bottom:1px solid rgba(22,22,22,.12); }
+  .cv-section ul{ list-style:none; margin:0; padding:0; }
+  .cv-section li{ font-size:1.08rem; line-height:1.5; margin:0 0 .75rem; color:var(--ink); }
+  .cv-section li .yr{ color:var(--ink-soft); font-variant-numeric:tabular-nums; margin-right:.55rem;
+    display:inline-block; min-width:5.4em; }
+  .cv-section li .role{ font-weight:500; }
+  .cv-section li .note{ color:var(--ink-soft); font-style:italic; }
+  .cv-inline .yr{ min-width:auto; }
+
+  #about-pic{ flex:0 0 auto; width:clamp(190px,17vw,250px); aspect-ratio:1/1; object-fit:cover;
+    border:1px solid #c2c2c2; padding:6px; background:#fff; }
+  @media (max-width:760px){
+    .intro{ flex-direction:column; align-items:flex-start; gap:0; }
+    #about-pic{ width:160px; margin-bottom:1.6rem; }
+    .lede{ max-width:none; }
+    .col{ margin-left:auto; }
+  }
+  @media (max-width:600px){
+    :root{ --margin:22px; }
+    .sheet{ padding-top:118px; }
+    #name{ font-size:clamp(1.55rem,8.4vw,2.1rem); letter-spacing:.03em;
+           text-underline-offset:5px; }
+    .lede{ font-size:1.28rem; }
+    .projects li{ font-size:1.12rem; }
+    .projects .pname a{ font-size:1.16rem; }
+    .cv-head{ flex-wrap:wrap; gap:.4rem; }
+    .cv-section li{ font-size:1.04rem; }
+    .cv-section li .yr{ display:block; min-width:auto; margin-bottom:.1rem; }
+    .elsewhere a{ display:inline-block; margin:0 1.3rem .4rem 0; }
+  }
+</style>
+</head>
+<body>
+
+  <h1 id="name">Marvin Koss</h1>
+
+  <!-- ============ HERO ============ -->
+  <section id="hero">
+    <canvas id="sim"></canvas>
+  </section>
+
+  <!-- ============ ABOUT ============ -->
+  <section id="about" class="sheet">
+    <div class="col">
+      <div class="intro">
+        <img id="about-pic" src="me_square.png" alt="Marvin Koss">
+        <p class="lede">
+        I am a researcher in mathematics interested in continual
+        learning, AI alignment and neuroscience. You can find my CV
+          <a href="#cv" id="cv-link">here</a>.
+        </p>
+      </div>
+
+      <p class="eyebrow">Projects</p>
+      <ul class="projects">
+        <li><span class="pname"><a href="https://accrue.build">CLUE</a></span>
+            <span class="pdesc">a continual learning method</span></li>
+        <li><span class="pname"><a href="galvani">GALVANI</a></span>
+            <span class="pdesc">from connectomes to neural dynamics</span></li>
+        <li><span class="pname"><a href="slides/bnn_workshop.slides.html">BNNs</a></span>
+            <span class="pdesc">an intro to Bayesian Neural Networks</span></li>
+      </ul>
+
+      <p class="elsewhere">
+        <a href="https://github.com/marvosyntactical/">GitHub</a>
+        <a href="https://marvosyntactical.substack.com">Blog</a>
+        <a href="mailto:kossATclDOTuniDASHheidelbergDOTde">Email</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ CV (full) ============ -->
+  <section id="cv" class="sheet">
+    <div class="col">
+      <div class="cv-head">
+        <h2>CV</h2>
+        <a href="cv.pdf">PDF</a>
+      </div>
+
+      <div class="cv-section">
+        <h3>Education</h3>
+        <ul>
+          <li><span class="yr">2024–</span> <span class="role">M.Sc. Scientific Computing</span>, Ruprecht-Karls-Universität Heidelberg <span class="note">— GPA 1.7</span></li>
+          <li><span class="yr">2022–2024</span> <span class="role">B.Sc. Mathematics</span>, Heidelberg <span class="note">— GPA 2.1</span></li>
+          <li><span class="yr">since 2017</span> <span class="role">B.A. Computational Linguistics</span>, Heidelberg <span class="note">— curr. GPA 1.3</span></li>
+          <li><span class="yr">2016–2017</span> <span class="role">Computer Science</span>, Universität Siegen <span class="note">— transferred to Heidelberg</span></li>
+          <li><span class="yr">2008–2016</span> <span class="role">Abitur</span>, Gymnasium Oedeme, Lüneburg <span class="note">— 2.1</span></li>
+        </ul>
+      </div>
+
+      <div class="cv-section">
+        <h3>Academic Employment</h3>
+        <ul>
+          <li><span class="yr">2025/26</span> <span class="role">Research Assistant</span>, <a href="https://www.klinikum.uni-heidelberg.de/en/zentrum-fuer-psychosoziale-medizin-zpm/klinik-fuer-allgemeine-psychiatrie/ueber-uns/sektionen/kognitive-neuropsychiatrie/">Section Cognitive Neuropsychiatry, UKHD</a> <span class="note">— preprocessing pipeline for structural fMRI in an aging study</span></li>
+          <li><span class="yr">2026</span> <span class="role">Independent Research</span>, <a href="https://fr8manifes.to">FR8</a> Cohort 2, Helsinki <span class="note">— developed <a href="https://accrue.build">CLUE</a>, a continual-learning method mitigating catastrophic forgetting</span></li>
+          <li><span class="yr">2024–25</span> <span class="role">Research Assistant</span>, <a href="https://www.cl.uni-heidelberg.de">ICL</a> <span class="note">— membership-inference-resistant time-series forecasting; proof of model collapse</span></li>
+	  <li><span class="yr">2024–25</span> <span class="role">Research Assistant</span>, <a href="https://typo.iwr.uni-heidelberg.de/home">IWR</a> <span class="note">— proofreading graduate-level lecture notes (<a href="https://arxiv.org/pdf/2407.18384">book</a>)</span></li>
+          <li><span class="yr">2024</span> <span class="role">Research Assistant</span>, IWR <span class="note">— developing a novel particle-based optimizer (<a href="https://github.com/marvosyntactical/swarms/blob/main/swarm.py">code</a>)</span></li>
+          <li><span class="yr">2023</span> <span class="role">Research Assistant</span>, IWR <span class="note">— analysing a novel particle-based optimizer from a mean-field perspective (<a href="https://onlinelibrary.wiley.com/doi/pdf/10.1002/mma.70343">paper</a>)</span></li>
+          <li><span class="yr">2020–22</span> <span class="role">Research Assistant</span>, <a href="https://csg.ziti.uni-heidelberg.de/members/">CSG, ZITI</a> <span class="note">— neural-network quantization <a href="https://github.com/marvosyntactical/tqcore/tree/wrapped">tool</a> for the <a href="https://www.deepchip.org/">DeepChip</a> project; UQ with BNNs (<a href="slides/synthetic_benchmark.slides.html">slides</a>)</span></li>
+          <li><span class="yr">2019–20</span> <span class="role">Webmaster</span>, ICL <span class="note">— site maintenance; development of the <a href="https://hch19.cl.uni-heidelberg.de/">HCH19</a> site</span></li>
+        </ul>
+      </div>
+
+      <div class="cv-section">
+        <h3>Publications</h3>
+        <ul>
+          <li>On the mean-field limit of consensus-based methods <a href="https://onlinelibrary.wiley.com/doi/pdf/10.1002/mma.70343">(paper)</a></li>
+        </ul>
+      </div>
+
+      <div class="cv-section">
+        <h3>Academic Teaching</h3>
+        <ul>
+          <li><span class="yr">SS 2018</span> <span class="role">TA — Formal Mathematical Foundations for Computational Linguists</span> <span class="note">— teaching mathematical basics and proof techniques; grading</span></li>
+          <li><span class="yr">WS 2018</span> <span class="role">TA — Formal and Computational Semantics</span> <span class="note">— tutorials, lectures, Python <a href="https://github.com/marvosyntactical/fs2018ex3viz">assignments</a>, grading</span></li>
+        </ul>
+      </div>
+
+      <div class="cv-section">
+        <h3>Example Coursework Projects</h3>
+        <ul>
+          <li><span class="role">B.Sc. Thesis</span> — Mean-field Particle Swarm Optimization (<a href="https://github.com/marvosyntactical/bama/blob/main/bsc_thesis.pdf">pdf</a>) <span class="note">— sup. JProf. Dr. Jakob Zech</span></li>
+          <li><span class="role">B.A. Thesis</span> — Extended Key-Value Retrieval Networks (<a href="https://github.com/marvosyntactical/joeynmt">code</a>) <span class="note">— sup. Prof. Dr. A. Sokolov</span></li>
+          <li><span class="role">Project</span> — Pragmatic Modelling of Utterances Using First-Order Logic Semantic Representations (<a href="https://github.com/marvosyntactical/inter_fere">code</a>) <span class="note">— sup. Dr. M. Herweg</span></li>
+          <li><span class="role">Project</span> — Hierarchical Dirichlet Processes for WSI <span class="note">— sup. Dr. V. Nastase, Dr. M. Herweg</span></li>
+        </ul>
+      </div>
+
+      <div class="cv-section">
+        <h3>Other Employment</h3>
+        <ul>
+          <li><span class="yr">2023</span> <span class="role">Working Student</span>, Sovanta <span class="note">— extending an image-to-text pipeline</span></li>
+          <li><span class="yr">2023–24</span> <span class="role">Private Tutor</span>, Lerncenter HD <span class="note">— high school level math coaching</span></li>
+        </ul>
+      </div>
+
+      <div class="cv-section">
+        <h3>Volunteer Work</h3>
+        <ul>
+          <li>Heidelberg <a href="http://fsco.li/">CoLi Fachschaft</a></li>
+          <li>Helper at ESSLLI 2018, Bulgaria</li>
+        </ul>
+      </div>
+
+      <div class="cv-section">
+        <h3>Languages</h3>
+        <ul>
+          <li>German (native)</li>
+          <li>English (fluent, C1)</li>
+          <li>Russian (basics)</li>
+        </ul>
+      </div>
+
+      <div class="cv-section">
+        <h3>Programming</h3>
+        <ul>
+          <li><span class="role">Python</span> <span class="note">— 9 years: numpy, pytorch, pyro, sklearn, keras, spaCy, nltk, tensorflow, HF transformers</span></li>
+          <li><span class="role">C++</span> <span class="note">— basic (<a href="https://github.com/marvosyntactical/simoss">example</a>)</span>, <span class="role">SQL</span>, <span class="role">Java</span> <span class="note">— basic</span></li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+<script>
+/* ========= morphing name: hero bottom-right (white) -> about top-right (black) ========= */
+(function(){
+  const name=document.getElementById('name'), hero=document.getElementById('hero');
+  let M=48,w=0,h=0;
+  function readM(){ M=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--margin'))||48; }
+  function measure(){ readM(); const r=name.getBoundingClientRect(); w=r.width; h=r.height; update(); }
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  function update(){
+    const heroH=hero.offsetHeight||innerHeight;
+    const t=Math.max(0,Math.min(1,scrollY/heroH));
+    const ax=innerWidth-w-M, ay=innerHeight-h-M;        // hero: bottom-right
+    const bx=innerWidth-w-M, by=Math.max(M*0.6,20);      // about: top-right
+    name.style.left=lerp(ax,bx,t)+'px';
+    name.style.top =lerp(ay,by,t)+'px';
+    const c=Math.round(lerp(255,22,t)); name.style.color=`rgb(${c},${c},${c})`;
+    name.style.textShadow=`0 1px 16px rgba(0,0,0,${(0.72*(1-t)).toFixed(3)})`;
+  }
+  name.addEventListener('click',()=>{
+    const heroH=hero.offsetHeight||innerHeight;
+    (scrollY<heroH*0.5?document.getElementById('about'):hero).scrollIntoView({behavior:'smooth'});
+  });
+  addEventListener('scroll',update,{passive:true});
+  addEventListener('resize',measure);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(measure);
+  measure();
+})();
+
+/* ========= neuron sim ========= */
+(function(){
+  /* =====================================================================
+     GREYSCALE Y-WEB  (+ sparse offscreen field)
+     - a firing is a single-pass BFS wave that sweeps the ENTIRE connected
+       network; never cut off by a timer.
+     - cursor proximity ALWAYS drives a cascade from the nearest vertex:
+       moving the cursor supersedes the frontier so ripples follow it;
+       holding still lets a wave complete, then immediately re-ignites, so
+       a stationary cursor gives repeating full-Y sweeps.
+     - spike count is capped (front width / sweep speed).
+     - brightness = decaying memory: edges light as the front passes, fade.
+     ===================================================================== */
+  const canvas=document.getElementById('sim'), ctx=canvas.getContext('2d');
+  const MOB = Math.min(innerWidth, innerHeight) < 640;
+  let DPR=Math.max(1,Math.min(MOB?1.5:2,devicePixelRatio||1)), W=0,H=0;
+
+  let CAP = MOB ? 72 : 130;
+  let bandN = 0, lastBeat = 0;
+
+  const V=[];          // {fx,fy,x,y,bd,shown,wave}
+  const E=[];          // {a,b,lit}
+  let   adj=[];        // adj[i] = [[j,ei],...]
+  const P=[];          // active pulses {from,to,ei,wave,t0,dur}
+  let   queue=[], qHead=0;
+  let   currentWave=0, frontPulses=0;
+  const mouse={x:0,y:0,active:false}; let wasActive=false;
+  let lx=0,ly=0, waveSeq=0, cool=0, lastIgX=-1e9, lastIgY=-1e9, t0=performance.now();
+
+  const K_BAND=4, K_FIELD=4, FIELD_N = MOB ? 120 : 280;
+  const PULL_R=()=>Math.min(W,H)*0.26, PULL_MAX=0.22;
+  const R_IGN=()=>Math.min(W,H)*0.14, R_PROX=()=>Math.min(W,H)*0.78;  // wide -> gradual, not spotlight
+  const SPEED=340, BUILD_MS=3000;
+  const DIM=0.0, LITW=0.86, PROXW=0.0, LIT_TAU=1.8, CROSS_LIT=0.72, SIM_DIM=1.0;
+  const Q=12, COOL_MIN=0.20, COOL_MAX=0.38;
+  const rnd=(a,b)=>a+Math.random()*(b-a);
+  const baseX=v=>v.fx*W, baseY=v=>v.fy*H;
+
+  function d2(ax,ay,bx,by){ const dx=ax-bx,dy=ay-by; return dx*dx+dy*dy; }
+  function nearestAll(x,y,k,exclude){
+    const d=[]; for(let i=0;i<V.length;i++){ if(i===exclude)continue; d.push([i,d2(x,y,V[i].x,V[i].y)]); }
+    d.sort((p,q)=>p[1]-q[1]); return d.slice(0,k).map(e=>e[0]);
+  }
+  function nearestShown(x,y,k,exclude){
+    const d=[]; for(let i=0;i<V.length;i++){ if(i===exclude||!V[i].shown)continue; d.push([i,d2(x,y,V[i].x,V[i].y)]); }
+    d.sort((p,q)=>p[1]-q[1]); return d.slice(0,k).map(e=>e[0]);
+  }
+  function connected(i,j){ if(!adj[i])return false; for(const e of adj[i]) if(e[0]===j) return true; return false; }
+  function link(i,j){ if(i===j||connected(i,j))return; const ei=E.length;
+    E.push({a:i,b:j,lit:0}); adj[i].push([j,ei]); adj[j].push([i,ei]); }
+
+  function seed(){
+    const minWH=Math.min(W,H);
+    // Y anchors + cubic control points (fraction coords): curved, splayed, asymmetric
+    const P0=[-0.07,1.09], J=[0.47,0.53];
+    const SC1=[0.16,0.86], SC2=[0.26,0.62];                  // stem: visible bow (off-chord)
+    const AU=[0.71,-0.10], UC1=[0.39,0.23], UC2=[0.62,0.01]; // upper prong: bows outward, up
+    const AR=[1.12,0.39],  RC1=[0.64,0.73], RC2=[0.96,0.50]; // right prong: bows outward, right
+    const ROWS=6, BW=0.060*minWH, ALONG=(MOB?0.040:0.023)*minWH, gap=BW/(ROWS-1);
+
+    function poly(A,C1,C2,B){
+      const N0=140, xs=[],ys=[],L=[0];
+      for(let st=0;st<=N0;st++){ const t=st/N0, mt=1-t;
+        const fx=mt*mt*mt*A[0]+3*mt*mt*t*C1[0]+3*mt*t*t*C2[0]+t*t*t*B[0];
+        const fy=mt*mt*mt*A[1]+3*mt*mt*t*C1[1]+3*mt*t*t*C2[1]+t*t*t*B[1];
+        const x=fx*W, y=fy*H; xs.push(x); ys.push(y);
+        if(st>0) L.push(L[L.length-1]+Math.hypot(x-xs[st-1],y-ys[st-1]));
+      }
+      return {xs,ys,L,len:L[L.length-1]};
+    }
+    // resample the curve at equal arc-length so thickness stays even on bends
+    function place(pl,startBD,total,taper){
+      const len=pl.len, stations=Math.max(2,Math.round(len/ALONG)); let si=0;
+      for(let st=0; st<=stations; st++){
+        const arc=st/stations*len;
+        while(si<pl.L.length-2 && pl.L[si+1]<arc) si++;
+        const i2=Math.min(si+1,pl.xs.length-1), seg=(pl.L[i2]-pl.L[si])||1, f=(arc-pl.L[si])/seg;
+        const cx=pl.xs[si]+(pl.xs[i2]-pl.xs[si])*f, cy=pl.ys[si]+(pl.ys[i2]-pl.ys[si])*f;
+        let tx=pl.xs[i2]-pl.xs[si], ty=pl.ys[i2]-pl.ys[si]; const tl=Math.hypot(tx,ty)||1; tx/=tl; ty/=tl;
+        const nx=-ty, ny=tx, bw=BW*(1-taper*(st/stations));
+        for(let r=0;r<ROWS;r++){
+          const u=(r/(ROWS-1)-0.5)*bw + rnd(-0.35,0.35)*gap, al=rnd(-0.4,0.4)*ALONG;
+          const x=cx+nx*u+tx*al, y=cy+ny*u+ty*al;
+          V.push({fx:x/W, fy:y/H, x, y, bd:(startBD+arc)/total, shown:false, wave:-1}); adj.push([]);
+        }
+      }
+    }
+
+    const stem=poly(P0,SC1,SC2,J), armU=poly(J,UC1,UC2,AU), armR=poly(J,RC1,RC2,AR);
+    const total=stem.len+Math.max(armU.len,armR.len);
+    place(stem,0,total,0.08); place(armU,stem.len,total,0.36); place(armR,stem.len,total,0.22);
+
+    bandN=V.length;
+    for(let i=0;i<bandN;i++){
+      const d=[]; for(let j=0;j<bandN;j++){ if(i===j)continue; d.push([j,d2(V[i].x,V[i].y,V[j].x,V[j].y)]); }
+      d.sort((a,b)=>a[1]-b[1]); for(let k=0;k<K_BAND;k++) link(i,d[k][0]);
+    }
+    // denser surrounding field, partly offscreen
+    for(let f=0;f<FIELD_N;f++){
+      const fx=rnd(-0.10,1.14), fy=rnd(-0.10,1.14); V.push({fx,fy,x:fx*W,y:fy*H,bd:0,shown:true,wave:-1}); adj.push([]);
+    }
+    for(let i=bandN;i<V.length;i++)
+      for(const j of nearestAll(V[i].x,V[i].y,K_FIELD,i)) link(i,j);
+  }
+
+  function expand(i,wave,parent){
+    for(const [j,ei] of adj[i])
+      if(j!==parent && V[j].shown && V[j].wave!==wave) queue.push({from:i,to:j,ei,wave});
+  }
+  function ignite(i,now){
+    waveSeq++; currentWave=waveSeq; queue.length=0; qHead=0; frontPulses=0;
+    V[i].wave=currentWave; expand(i,currentWave,-1);
+  }
+
+  function step(now,dt){
+    const tx=mouse.active?mouse.x:W*0.5, ty=mouse.active?mouse.y:H*0.5;
+    lx+=(tx-lx)*Math.min(1,dt*3); ly+=(ty-ly)*Math.min(1,dt*3);
+
+    const bt=Math.min(1,(now-t0)/BUILD_MS), ease=1-Math.pow(1-bt,3), PR2=PULL_R()**2;
+    for(const v of V){
+      const bX=baseX(v), bY=baseY(v);
+      if(!v.shown){ if(v.bd<=ease*1.02) v.shown=true; v.x=bX; v.y=bY; continue; }
+      const dd=d2(bX,bY,lx,ly), s=PR2/(PR2+dd*3.2);
+      v.x+=((bX+(lx-bX)*PULL_MAX*s)-v.x)*Math.min(1,dt*(1.0+5*s));
+      v.y+=((bY+(ly-bY)*PULL_MAX*s)-v.y)*Math.min(1,dt*(1.0+5*s));
+    }
+
+    const ldec=Math.exp(-dt/LIT_TAU);
+    for(const e of E){ if(e.lit>0.001) e.lit*=ldec; else e.lit=0; }
+
+    // ignition: from the cursor (raw), supersede on move OR repeat on completion
+    const waveDone=(qHead>=queue.length) && frontPulses===0;
+    cool-=dt;
+    if(mouse.active && cool<=0){
+      let idx=-1,best=Infinity;
+      for(let i=0;i<V.length;i++){ if(!V[i].shown)continue; const dd=d2(V[i].x,V[i].y,mouse.x,mouse.y); if(dd<best){best=dd;idx=i;} }
+      const ri=R_IGN();
+      if(idx>=0 && best<ri*ri){
+        const moved=d2(mouse.x,mouse.y,lastIgX,lastIgY) > (ri*0.4)*(ri*0.4);
+        if(waveDone || moved){ ignite(idx,now); lastIgX=mouse.x; lastIgY=mouse.y; cool=rnd(COOL_MIN,COOL_MAX); }
+      }
+    }
+
+    // mobile heartbeat: no hover, so pulse the network periodically
+    if(MOB && !mouse.active && waveDone && bandN>0 && now-lastBeat>3600){
+      const i=(Math.random()*bandN)|0; if(V[i]&&V[i].shown){ ignite(i,now); lastBeat=now; }
+    }
+
+    // launch pulses up to the spike cap
+    while(P.length<CAP && qHead<queue.length){
+      const t=queue[qHead++];
+      if(V[t.to].wave===t.wave){ if(E[t.ei].lit<CROSS_LIT) E[t.ei].lit=CROSS_LIT; continue; }
+      V[t.to].wave=t.wave; E[t.ei].lit=1;
+      const a=V[t.from], b=V[t.to], L=Math.hypot(b.x-a.x,b.y-a.y);
+      P.push({from:t.from,to:t.to,ei:t.ei,wave:t.wave,t0:now,dur:Math.min(380,Math.max(120,L/SPEED*1000))});
+      if(t.wave===currentWave) frontPulses++;
+    }
+    if(qHead>=queue.length && qHead>0){ queue.length=0; qHead=0; }
+
+    for(let k=P.length-1;k>=0;k--){
+      const p=P[k];
+      if(now-p.t0>=p.dur){
+        if(p.wave===currentWave){ frontPulses--; expand(p.to,p.wave,p.from); }
+        P.splice(k,1);
+      }
+    }
+  }
+
+  const segs=Array.from({length:Q},()=>[]);
+  function draw(now){
+    ctx.clearRect(0,0,W,H);
+    for(let b=0;b<Q;b++) segs[b].length=0;
+    for(const e of E){ const a=V[e.a], c=V[e.b]; if(!a.shown||!c.shown) continue;
+      let al=LITW*e.lit*SIM_DIM; if(al<0.010) continue; if(al>1) al=1;
+      let b=(al*Q)|0; if(b>=Q) b=Q-1; segs[b].push(a.x,a.y,c.x,c.y);
+    }
+    ctx.lineCap='round'; ctx.lineWidth=1;
+    for(let b=0;b<Q;b++){ const arr=segs[b]; if(!arr.length) continue;
+      ctx.strokeStyle=`rgba(255,255,255,${(b+0.5)/Q})`; ctx.beginPath();
+      for(let i=0;i<arr.length;i+=4){ ctx.moveTo(arr[i],arr[i+1]); ctx.lineTo(arr[i+2],arr[i+3]); }
+      ctx.stroke();
+    }
+    ctx.globalCompositeOperation='lighter';
+    const bloom=P.length<=90;
+    for(const p of P){
+      const a=V[p.from], c=V[p.to]; if(!a.shown||!c.shown) continue;
+      const t=Math.min(1,Math.max(0,(now-p.t0)/p.dur)), amp=Math.sin(Math.PI*t); if(amp<=0.03) continue;
+      const TL=0.6, g=ctx.createLinearGradient(a.x,a.y,c.x,c.y);
+      g.addColorStop(Math.max(0,t-TL),'rgba(255,255,255,0)');
+      g.addColorStop(Math.max(0,t-TL*0.2),`rgba(255,255,255,${amp*0.45})`);
+      g.addColorStop(t,`rgba(255,255,255,${amp*0.95})`);
+      g.addColorStop(Math.min(1,t+0.012),'rgba(255,255,255,0)');
+      ctx.strokeStyle=g; ctx.lineWidth=2.2; ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(c.x,c.y); ctx.stroke();
+      if(bloom){ const hx=a.x+(c.x-a.x)*t, hy=a.y+(c.y-a.y)*t, rr=8*amp+2;
+        const rg=ctx.createRadialGradient(hx,hy,0,hx,hy,rr);
+        rg.addColorStop(0,`rgba(255,255,255,${0.42*amp})`); rg.addColorStop(1,'rgba(255,255,255,0)');
+        ctx.fillStyle=rg; ctx.beginPath(); ctx.arc(hx,hy,rr,0,7); ctx.fill(); }
+    }
+    ctx.globalCompositeOperation='source-over';
+  }
+
+  let last=performance.now();
+  function frame(now){ let dt=(now-last)/1000; last=now; if(dt>0.05)dt=0.05;
+    if(scrollY < H + 40){ step(now,dt); draw(now); }   // idle when hero off-screen
+    requestAnimationFrame(frame); }
+
+  function resize(){
+    const r=document.getElementById('hero').getBoundingClientRect();
+    W=r.width; H=r.height; DPR=Math.max(1,Math.min(MOB?1.5:2,devicePixelRatio||1));
+    canvas.width=W*DPR; canvas.height=H*DPR; canvas.style.width=W+'px'; canvas.style.height=H+'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+  function setMouse(e){ const tp=e.touches?e.touches[0]:e, r=canvas.getBoundingClientRect();
+    mouse.x=tp.clientX-r.left; mouse.y=tp.clientY-r.top;
+    if(!wasActive){ lx=mouse.x; ly=mouse.y; wasActive=true; }   // snap, no center lag
+    mouse.active=true; }
+  canvas.addEventListener('mousemove',setMouse);
+  canvas.addEventListener('mouseleave',()=>{ mouse.active=false; wasActive=false; });
+  canvas.addEventListener('touchstart',e=>{ setMouse(e); },{passive:true});
+  canvas.addEventListener('touchmove',e=>setMouse(e),{passive:true});
+  function endTouch(){ mouse.active=false; wasActive=false; }
+  canvas.addEventListener('touchend',endTouch);
+  canvas.addEventListener('touchcancel',endTouch);
+  canvas.addEventListener('click',e=>{
+    const r=canvas.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top;
+    const i=V.length; V.push({fx:x/W,fy:y/H,x,y,bd:0,shown:true,wave:-1}); adj.push([]);
+    for(const j of nearestShown(x,y,Math.random()<0.5?2:3,i)) link(i,j);
+    ignite(i,performance.now()); lastIgX=x; lastIgY=y;
+  });
+  addEventListener('resize',resize);
+
+  resize(); lx=W*0.5; ly=H*0.5; seed(); t0=performance.now();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
 </html>
