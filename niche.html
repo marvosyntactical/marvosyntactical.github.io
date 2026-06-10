@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>NICHE — evolving kernels</title>
+<style>
+  :root{
+    --ink: rgba(228,233,224,.92);
+    --ink-dim: rgba(228,233,224,.38);
+    --ink-faint: rgba(228,233,224,.14);
+    --accent: #9fb46a;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html,body{ height:100%; overflow:hidden; background:#070806; }
+  canvas{ position:fixed; inset:0; width:100%; height:100%; display:block; cursor:crosshair; touch-action:none; }
+  .ui{
+    position:fixed; z-index:2; color:var(--ink);
+    font:10px/1.7 ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+    letter-spacing:.14em; text-transform:uppercase;
+    -webkit-user-select:none; user-select:none; transition:opacity .5s ease;
+  }
+  body.hidden-ui .ui{ opacity:0; pointer-events:none; }
+  #hdr{ top:22px; left:24px; }
+  #hdr h1{ font-size:12px; font-weight:600; letter-spacing:.36em; }
+  #hdr h1 b{ color:var(--accent); font-weight:600; }
+  #hdr p{ color:var(--ink-dim); margin-top:4px; max-width:32ch; }
+  #stats{ top:24px; right:24px; text-align:right; color:var(--ink-dim); }
+  #stats b{ color:var(--ink); font-weight:400; }
+  #legend{ bottom:22px; left:24px; }
+  #legend .bar{ width:150px; height:5px; border-radius:3px; margin-bottom:6px; }
+  #legend .bar{ background:linear-gradient(90deg,#1f573d,#4a7338,#8c8c42,#cBa95c); }
+  #legend .lab{ display:flex; justify-content:space-between; width:150px; color:var(--ink-faint); }
+  #hints{ bottom:22px; right:24px; text-align:right; color:var(--ink-dim); }
+  #hints span{ color:var(--ink-faint); }
+  #overlay{ position:fixed; inset:0; z-index:3; display:none; align-items:center; justify-content:center;
+    text-align:center; color:var(--ink); background:rgba(7,8,6,.72);
+    font:11px/2 ui-monospace,Menlo,Consolas,monospace; letter-spacing:.18em; text-transform:uppercase; }
+  #overlay.show{ display:flex; }
+  @media (max-width:640px){ #hints,#stats{ display:none; } }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="ui" id="hdr">
+  <h1>NICHE<b>·</b></h1>
+  <!--<p id="sub">particle-lenia agents · kernels evolving, competing for space</p>-->
+</div>
+<div class="ui" id="stats">
+  <div><b id="pop">—</b> alive</div>
+  <div><b id="turn">—</b> turnover/s</div>
+  <div><b id="fps">—</b> fps</div>
+</div>
+<div class="ui" id="legend">
+  <div class="bar"></div>
+  <div class="lab"><span>tight kernel</span><span>broad kernel</span></div>
+</div>
+<div class="ui" id="hints">
+  drag <span>carve space</span> · shift-drag <span>gather</span><br>
+  tap <span>drop invader lineage</span><br>
+  r <span>reseed</span> · c <span>clear</span> · space <span>pause</span> · h <span>hide</span>
+</div>
+<div id="overlay"><div id="overlayMsg"></div></div>
+
+<script>
+'use strict';
+(() => {
+const canvas = document.getElementById('c');
+const gl = canvas.getContext('webgl2', { antialias:false, alpha:false, premultipliedAlpha:false });
+function fail(m){ const o=document.getElementById('overlay'); document.getElementById('overlayMsg').innerHTML=m; o.classList.add('show'); }
+if (!gl){ fail('webgl2 unavailable<br>this demo needs a webgl2 browser'); return; }
+const hasFloat = gl.getExtension('EXT_color_buffer_float');
+const trailInternal = hasFloat ? gl.RGBA16F : gl.RGBA8;
+const trailType     = hasFloat ? gl.HALF_FLOAT : gl.UNSIGNED_BYTE;
+const isCoarse = matchMedia('(pointer:coarse)').matches;
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---- sim constants (validated headless: stable active matter, kernel diversity,
+        spatial territories spatialCorr~0.66, recovers from near-extinction) ---- */
+const DENSITY=0.36;
+const N      = isCoarse ? 480 : 700;
+const L      = Math.sqrt(N/DENSITY);
+const INIT_N = Math.floor(N*0.5);
+
+const krLo=3.0, krHi=5.0, sgK=0.85, wK=0.024, cRep=1.0;   // GENOME = kernel ring radius kr
+const muG=0.55, sgG=0.15;                                  // global growth target
+const DT=0.1, VMAX=4.0; let TEMP=1.1;
+const cMeta=0.50, cCrowd=0.25, eBirth=3.5, eCap=4.5; let MUT=0.35;
+const HAZARD=0.0025, FLOOR=Math.floor(N*0.12);
+const RCUT=krHi+3*sgK;
+
+const px=new Float32Array(N), py=new Float32Array(N);
+const vx=new Float32Array(N), vy=new Float32Array(N);
+const kr=new Float32Array(N);
+const en=new Float32Array(N), age=new Float32Array(N);
+const alive=new Uint8Array(N);
+const U=new Float32Array(N), Sat=new Float32Array(N), Gp=new Float32Array(N), crowd=new Float32Array(N);
+const free=new Int32Array(N); let nFree=0, nAlive=0;
+
+let seed=987654321>>>0;
+const rnd=()=>{ seed=(seed*1664525+1013904223)>>>0; return seed/4294967296; };
+
+const GC=Math.max(3,Math.floor(L/Math.max(RCUT,1))), CS=L/GC;
+const head=new Int32Array(GC*GC), next=new Int32Array(N);
+
+function spawn(s,x,y,k,e){ alive[s]=1; nAlive++;
+  px[s]=((x%L)+L)%L; py[s]=((y%L)+L)%L;
+  kr[s]=Math.min(krHi,Math.max(krLo,k)); en[s]=e; vx[s]=0; vy[s]=0; age[s]=0; }
+function seedWorld(){
+  alive.fill(0); nAlive=0; nFree=0;
+  for(let i=N-1;i>=0;i--) free[nFree++]=i;
+  for(let i=0;i<INIT_N;i++){ const s=free[--nFree];
+    spawn(s, L*0.5+(rnd()-0.5)*L*0.55, L*0.5+(rnd()-0.5)*L*0.55, krLo+rnd()*(krHi-krLo), 1+rnd()); }
+}
+// dense viable spore (bootstraps field): recovery + invader lineages
+function spore(x,y,k,count){ let p=0; while(p<count && nFree>0){ const s=free[--nFree];
+  spawn(s, x+(rnd()-0.5)*krHi*1.5, y+(rnd()-0.5)*krHi*1.5, k+(rnd()-0.5)*0.3, 2); p++; } }
+seedWorld();
+
+let births=0, deaths=0;
+function stepSim(){
+  const hL=L*0.5, frac=nAlive/N, hzn=HAZARD*frac*frac;
+  head.fill(-1);
+  for(let i=0;i<N;i++) if(alive[i]){ let cx=(px[i]/CS|0)%GC; if(cx<0)cx+=GC; let cy=(py[i]/CS|0)%GC; if(cy<0)cy+=GC;
+    const c=cy*GC+cx; next[i]=head[c]; head[c]=i; }
+
+  // pass A: each agent perceives field U through ITS OWN kernel radius (asymmetric -> active matter)
+  for(let i=0;i<N;i++) if(alive[i]){
+    let cx=(px[i]/CS|0)%GC; if(cx<0)cx+=GC; let cy=(py[i]/CS|0)%GC; if(cy<0)cy+=GC;
+    const xi=px[i], yi=py[i], ki=kr[i]; let u=0, cw=0;
+    for(let oy=-1;oy<=1;oy++) for(let ox=-1;ox<=1;ox++){ const gx=(cx+ox+GC)%GC, gy=(cy+oy+GC)%GC;
+      for(let j=head[gy*GC+gx]; j!==-1; j=next[j]){ if(j===i) continue;
+        let dx=xi-px[j], dy=yi-py[j];
+        if(dx>hL)dx-=L;else if(dx<-hL)dx+=L; if(dy>hL)dy-=L;else if(dy<-hL)dy+=L;
+        const d2=dx*dx+dy*dy; if(d2>RCUT*RCUT||d2<1e-9) continue;
+        const d=Math.sqrt(d2); const z=(d-ki)/sgK; u+=Math.exp(-z*z)*wK;
+        if(d<1.0) cw+=1.0-d;
+      } }
+    U[i]=u; crowd[i]=cw;
+  }
+  for(let i=0;i<N;i++) if(alive[i]){ const z=(U[i]-muG)/sgG; const g=Math.exp(-z*z);
+    Sat[i]=g; Gp[i]=g*(-2*(U[i]-muG)/(sgG*sgG)); }
+
+  // pass B: active force = G'(U_i)*grad_pi U_i (own kernel) + symmetric soft repulsion
+  for(let i=0;i<N;i++) if(alive[i]){
+    let cx=(px[i]/CS|0)%GC; if(cx<0)cx+=GC; let cy=(py[i]/CS|0)%GC; if(cy<0)cy+=GC;
+    const xi=px[i], yi=py[i], ki=kr[i], gpi=Gp[i]; let fx=0, fy=0;
+    for(let oy=-1;oy<=1;oy++) for(let ox=-1;ox<=1;ox++){ const gx=(cx+ox+GC)%GC, gy=(cy+oy+GC)%GC;
+      for(let j=head[gy*GC+gx]; j!==-1; j=next[j]){ if(j===i) continue;
+        let dx=xi-px[j], dy=yi-py[j];
+        if(dx>hL)dx-=L;else if(dx<-hL)dx+=L; if(dy>hL)dy-=L;else if(dy<-hL)dy+=L;
+        const d2=dx*dx+dy*dy; if(d2>RCUT*RCUT||d2<1e-9) continue;
+        const d=Math.sqrt(d2); const inv=1/d, ux=dx*inv, uy=dy*inv;
+        const z=(d-ki)/sgK; const pk=Math.exp(-z*z)*wK; const pkp=pk*(-2*z/sgK);
+        const Sf=gpi*pkp; fx+=Sf*ux; fy+=Sf*uy;
+        if(d<1.0){ const rep=cRep*(1.0-d); fx+=rep*ux; fy+=rep*uy; }
+      } }
+    const nf=Math.sqrt(fx*fx+fy*fy); if(nf>VMAX){ const s=VMAX/nf; fx*=s; fy*=s; }
+    vx[i]=fx; vy[i]=fy;
+  }
+
+  if(mouse.down){
+    const mx=mouse.x*L, my=mouse.y*L, rad=0.16*L, rr=rad*rad, sgn=mouse.gather?-1:1;
+    for(let i=0;i<N;i++) if(alive[i]){
+      let dx=px[i]-mx, dy=py[i]-my;
+      if(dx>hL)dx-=L;else if(dx<-hL)dx+=L; if(dy>hL)dy-=L;else if(dy<-hL)dy+=L;
+      const d2=dx*dx+dy*dy; if(d2<rr&&d2>1e-6){ const d=Math.sqrt(d2); const w=(1-d/rad)*3.0*sgn; vx[i]+=dx/d*w; vy[i]+=dy/d*w; }
+    }
+  }
+
+  for(let i=0;i<N;i++) if(alive[i]){
+    px[i]+=(vx[i]+(rnd()-0.5)*TEMP)*DT; py[i]+=(vy[i]+(rnd()-0.5)*TEMP)*DT;
+    px[i]=((px[i]%L)+L)%L; py[i]=((py[i]%L)+L)%L;
+    en[i]+=(Sat[i]-cMeta-cCrowd*crowd[i])*DT;
+  }
+  for(let i=0;i<N;i++) if(alive[i]){ age[i]+=DT;
+    if(en[i]>eCap) en[i]=eCap;
+    if(en[i]<=0||rnd()<hzn){ alive[i]=0; nAlive--; free[nFree++]=i; deaths++; continue; }
+    if(en[i]>eBirth&&nFree>0){ const s=free[--nFree]; en[i]*=0.5; births++;
+      const a=rnd()*6.2831853, rr=0.5+rnd();
+      spawn(s, px[i]+Math.cos(a)*rr, py[i]+Math.sin(a)*rr, kr[i]+(rnd()-0.5)*MUT, en[i]); }
+  }
+  if(nAlive<FLOOR) spore(rnd()*L,rnd()*L,krLo+rnd()*(krHi-krLo),FLOOR-nAlive);
+}
+
+/* ---- earthy-green palette mapped from kernel radius kr ---- */
+const STOPS=[
+  [0.00,[0.12,0.34,0.24]],   // pine
+  [0.34,[0.27,0.45,0.21]],   // fern
+  [0.64,[0.56,0.56,0.26]],   // moss / olive
+  [1.00,[0.80,0.66,0.37]],   // dry gold-tan
+];
+function paletteRGB(t, out, o){
+  let k=0; while(k<STOPS.length-1 && t>STOPS[k+1][0]) k++;
+  const a=STOPS[k], b=STOPS[Math.min(k+1,STOPS.length-1)];
+  const f=(b[0]>a[0])?(t-a[0])/(b[0]-a[0]):0;
+  out[o]  =a[1][0]+(b[1][0]-a[1][0])*f;
+  out[o+1]=a[1][1]+(b[1][1]-a[1][1])*f;
+  out[o+2]=a[1][2]+(b[1][2]-a[1][2])*f;
+}
+
+/* ---- rendering ---- */
+const QUAD_VS=`#version 300 es
+out vec2 vUv;
+void main(){ vec2 p=vec2((gl_VertexID<<1)&2, gl_VertexID&2); vUv=p; gl_Position=vec4(p*2.0-1.0,0.,1.); }`;
+const FADE_FS=`#version 300 es
+precision highp float; out vec4 o; uniform float uFade;
+void main(){ o=vec4(0.,0.,0.,uFade); }`;
+const GLOW_VS=`#version 300 es
+layout(location=0) in vec2 aPos; layout(location=1) in vec3 aCol; layout(location=2) in float aSize;
+out vec3 vCol;
+void main(){ vCol=aCol; gl_Position=vec4(aPos,0.,1.); gl_PointSize=aSize; }`;
+const GLOW_FS=`#version 300 es
+precision highp float; in vec3 vCol; out vec4 o;
+void main(){ vec2 pc=gl_PointCoord*2.0-1.0; float r2=dot(pc,pc); if(r2>1.0) discard;
+  float a=exp(-r2*3.2); o=vec4(vCol*a, a); }`;
+const DISPLAY_FS=`#version 300 es
+precision highp float; in vec2 vUv; out vec4 o;
+uniform sampler2D uTrail; uniform float uExposure; uniform float uTime;
+float hash(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
+void main(){
+  vec3 t=texture(uTrail,vUv).rgb;
+  float lum=dot(t,vec3(0.2126,0.7152,0.0722));
+  float Lc=1.0-exp(-lum*uExposure);                 // compress luminance only
+  vec3 col=t*(Lc/max(lum,1e-4));                     // preserve chroma -> no white blowout
+  col=pow(max(col,0.0),vec3(0.92));
+  float d=distance(vUv,vec2(0.5));
+  col*=1.0-0.42*smoothstep(0.40,0.95,d);             // vignette
+  col+=(hash(gl_FragCoord.xy+fract(uTime))-0.5)*0.010;
+  o=vec4(col+vec3(0.013,0.016,0.012),1.0);
+}`;
+function sh(t,s){ const o=gl.createShader(t); gl.shaderSource(o,s); gl.compileShader(o);
+  if(!gl.getShaderParameter(o,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)+'\n'+s); return o; }
+function prog(v,f){ const p=gl.createProgram(); gl.attachShader(p,sh(gl.VERTEX_SHADER,v)); gl.attachShader(p,sh(gl.FRAGMENT_SHADER,f)); gl.linkProgram(p);
+  if(!gl.getProgramParameter(p,gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p)); return p; }
+let pFade,pGlow,pDisplay;
+try{ pFade=prog(QUAD_VS,FADE_FS); pGlow=prog(GLOW_VS,GLOW_FS); pDisplay=prog(QUAD_VS,DISPLAY_FS); }
+catch(e){ fail('shader compile failed — see console'); console.error(e); return; }
+const uFade=gl.getUniformLocation(pFade,'uFade');
+const uExposure=gl.getUniformLocation(pDisplay,'uExposure');
+const uTime=gl.getUniformLocation(pDisplay,'uTime');
+const uTrail=gl.getUniformLocation(pDisplay,'uTrail');
+const quadVao=gl.createVertexArray();
+
+const STRIDE=6;
+const particleData=new Float32Array(N*STRIDE);
+const pBuf=gl.createBuffer();
+const pVao=gl.createVertexArray();
+gl.bindVertexArray(pVao);
+gl.bindBuffer(gl.ARRAY_BUFFER,pBuf);
+gl.bufferData(gl.ARRAY_BUFFER,particleData.byteLength,gl.DYNAMIC_DRAW);
+gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0,2,gl.FLOAT,false,STRIDE*4,0);
+gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1,3,gl.FLOAT,false,STRIDE*4,2*4);
+gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2,1,gl.FLOAT,false,STRIDE*4,5*4);
+gl.bindVertexArray(null);
+
+let TW=2,TH=2,DPR=1,trailTex=null,trailFbo=null,pointScale=12;
+function buildTrail(){
+  if(trailTex) gl.deleteTexture(trailTex);
+  if(trailFbo) gl.deleteFramebuffer(trailFbo);
+  trailTex=gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D,trailTex);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  gl.texImage2D(gl.TEXTURE_2D,0,trailInternal,TW,TH,0,gl.RGBA,trailType,null);
+  trailFbo=gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER,trailFbo);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,trailTex,0);
+  gl.clearColor(0,0,0,1); gl.clear(gl.COLOR_BUFFER_BIT);
+}
+function resize(){
+  DPR=Math.min(window.devicePixelRatio||1,1.25);
+  let w=Math.max(2,Math.floor(innerWidth*DPR)), h=Math.max(2,Math.floor(innerHeight*DPR));
+  const cap=2048, s=Math.min(1,cap/Math.max(w,h)); w=Math.floor(w*s); h=Math.floor(h*s);
+  if(w===TW&&h===TH) return;
+  TW=w; TH=h; canvas.width=w; canvas.height=h;
+  pointScale=Math.max(5,(Math.min(TW,TH)/L)*1.25);
+  buildTrail();
+}
+resize(); addEventListener('resize',resize);
+
+function worldToClip(x,y,out,o){
+  const aspect=TW/TH; let nx=x/L*2-1, ny=y/L*2-1;
+  if(aspect>=1) nx/=aspect; else ny*=aspect;
+  out[o]=nx; out[o+1]=ny;
+}
+
+const mouse={x:.5,y:.5,down:false,gather:false,moved:0};
+function ptr(e){ const r=canvas.getBoundingClientRect(); const aspect=TW/TH;
+  let nx=(e.clientX-r.left)/r.width*2-1, ny=(1-(e.clientY-r.top)/r.height)*2-1;
+  if(aspect>=1) nx*=aspect; else ny/=aspect;
+  mouse.x=(nx+1)/2; mouse.y=(ny+1)/2; }
+canvas.addEventListener('pointerdown',e=>{ ptr(e); mouse.down=true; mouse.gather=e.shiftKey||e.button===2; mouse.moved=0; canvas.setPointerCapture(e.pointerId); });
+canvas.addEventListener('pointermove',e=>{ if(mouse.down){ mouse.moved+=Math.abs(e.movementX)+Math.abs(e.movementY); ptr(e); } });
+canvas.addEventListener('pointerup',e=>{ mouse.down=false;
+  if(mouse.moved<6){ spore(mouse.x*L, mouse.y*L, krLo+rnd()*(krHi-krLo), Math.min(80,nFree)); } });
+canvas.addEventListener('contextmenu',e=>e.preventDefault());
+
+let paused=reducedMotion;
+if(reducedMotion){ fail('reduced motion detected — press space to run'); }
+addEventListener('keydown',e=>{
+  if(e.key===' '){ e.preventDefault(); paused=!paused; document.getElementById('overlay').classList.remove('show'); }
+  else if(e.key==='r'||e.key==='R'){ seedWorld(); clearTrail(); }
+  else if(e.key==='c'||e.key==='C') clearTrail();
+  else if(e.key==='h'||e.key==='H') document.body.classList.toggle('hidden-ui');
+});
+function clearTrail(){ gl.bindFramebuffer(gl.FRAMEBUFFER,trailFbo); gl.clearColor(0,0,0,1); gl.clear(gl.COLOR_BUFFER_BIT); }
+
+const popEl=document.getElementById('pop'), turnEl=document.getElementById('turn'), fpsEl=document.getElementById('fps');
+let last=performance.now(), fpsAcc=0, fpsN=0, fpsT=0, turnAcc=0, turnT=0, t=0;
+const KSPAN=krHi-krLo;
+
+function frame(now){
+  requestAnimationFrame(frame);
+  const dt=Math.min(0.05,(now-last)/1000); last=now; t+=dt;
+  fpsAcc+=dt; fpsN++; fpsT+=dt;
+  if(fpsT>0.5){ fpsEl.textContent=Math.round(fpsN/fpsAcc); fpsAcc=0; fpsN=0; fpsT=0; }
+
+  if(!paused){
+    births=0; deaths=0; stepSim();
+    turnAcc+=births; turnT+=dt;
+    if(turnT>0.5){ turnEl.textContent=Math.round(turnAcc/turnT); popEl.textContent=nAlive; turnAcc=0; turnT=0; }
+  }
+
+  let n=0;
+  for(let i=0;i<N;i++) if(alive[i]){
+    const o=n*STRIDE;
+    worldToClip(px[i],py[i],particleData,o);
+    paletteRGB((kr[i]-krLo)/KSPAN, particleData, o+2);
+    const bright=0.14+0.52*Sat[i];
+    particleData[o+2]*=bright; particleData[o+3]*=bright; particleData[o+4]*=bright;
+    particleData[o+5]=pointScale*(0.62+0.7*Sat[i])*(0.72+0.28*en[i]/eCap);
+    n++;
+  }
+  gl.bindBuffer(gl.ARRAY_BUFFER,pBuf);
+  gl.bufferSubData(gl.ARRAY_BUFFER,0,particleData.subarray(0,n*STRIDE));
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER,trailFbo);
+  gl.viewport(0,0,TW,TH);
+  gl.useProgram(pFade); gl.uniform1f(uFade, paused?0.0:0.14);
+  gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+  gl.bindVertexArray(quadVao); gl.drawArrays(gl.TRIANGLES,0,3);
+
+  gl.useProgram(pGlow); gl.blendFunc(gl.ONE,gl.ONE);
+  gl.bindVertexArray(pVao); gl.drawArrays(gl.POINTS,0,n);
+  gl.disable(gl.BLEND);
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+  gl.viewport(0,0,canvas.width,canvas.height);
+  gl.useProgram(pDisplay);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,trailTex);
+  gl.uniform1i(uTrail,0); gl.uniform1f(uExposure,1.15); gl.uniform1f(uTime,t);
+  gl.bindVertexArray(quadVao); gl.drawArrays(gl.TRIANGLES,0,3);
+}
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
