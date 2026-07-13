@@ -97,7 +97,7 @@ footer{height:4rem}
     <p>$$\frac{\partial \rho}{\partial t} \;=\; \nabla\!\cdot\!\big(\rho\,\nabla V\big)\;+\;T\,\Delta \rho,$$</p>
     <p>and it describes what happens to any system that is pulled in some direction while being randomly kicked around: pollen in water, a neuron's membrane voltage, a chemical reaction, an interest rate, a star drifting through a cluster, a weight in a neural network under noisy gradients. Coarse-grain almost anything and this is what you get.</p>
     <p>What I want to lay out in this post is that this equation is secretly doing something more significant. There is a quantity \(F\), the Helmholtz free energy, that turns out to be one of the most reusable objects in all of science, showing up in thermodynamics, in Bayesian statistics, in neuroscience, and in the diffusion models currently flooding the internet. And the assertion \(\partial_t\rho = \nabla\!\cdot\!(\rho\,\nabla\,\delta F/\delta\rho)\) says that diffusion <em>is</em> the descent of \(F\), performed as steeply as possible, in a geometry we are going to learn about below.</p>
-    <p>The essay has three parts. First we meet the Fokker–Planck equation and see why it is nearly universal. Then we meet the free energy, and see why <em>it</em> is nearly universal. Then we prove they are the same thing, with a theorem worth this ode. The essay also has four interactive figures; you can click underlined terms to open derivations and definition, so not much is asserted here that we do not show.</p>
+    <p>The essay has three parts. First we meet the Fokker–Planck equation and see why it is nearly universal. Then we meet the free energy, and see why <em>it</em> is nearly universal. Then we prove they are the same thing, with a theorem worth this ode. The essay also has ten interactive figures; you can click underlined terms to open derivations and definition, so not much is asserted here that we do not show.</p>
   </div>
 </section>
 
@@ -333,6 +333,20 @@ footer{height:4rem}
       <p>The temperature, invisible in the standard ELBO because it is set to one, is precisely the knob that trades fidelity against spread. Raising it is what \(\beta\)-VAEs do; lowering it is what temperature-scaled sampling does at generation time. In statistical mechanics this dial was known for a century before it was rediscovered as a hyperparameter.</p>
     </div>
     <p>The same functional then reappears, still wearing its own name, in two more places worth flagging.</p>
+  </div>
+
+  <figure class="sim" id="fig5">
+    <div class="sim-frame"><div class="split"><div><canvas height="320" data-role="left"></canvas></div><div><canvas height="320" data-role="right"></canvas></div></div></div>
+    <div class="controls"><button class="ui" data-role="run">run descent</button>
+      <button class="ui" data-role="reseed">new starting guess</button>
+      <span><label>temperature T</label><input type="range" data-role="temp" min="0.15" max="1.2" step="0.01" value="0.35"><span class="readout" data-role="tval">0.35</span></span>
+      <span class="legend"><span><i class="sw" style="border-color:#1f8a63"></i>ordinary gradient</span>
+      <span><i class="sw" style="border-color:#2b5fad"></i>natural gradient</span></span></div>
+    <p class="fig-note" data-role="note">Left: the free energy over the two-parameter Gaussian family, as an honest landscape. Right: the best Gaussian so far (solid) against the true equilibrium (dashed). The vertical gap between the ball and the floor of the landscape is exactly \(T\cdot\mathrm{KL}\): the variational gap.</p>
+    <figcaption><span class="figno">Figure 3.</span> Variational inference, drawn. \(F\) restricted to Gaussians \(q=\mathcal N(\mu,\sigma)\) is a function of two numbers, so we can simply look at it.</figcaption>
+  </figure>
+
+  <div class="measure">
     <p><em>Active inference.</em> The free-energy principle in theoretical neuroscience posits that a brain (or any self-maintaining system) minimizes a variational free energy of exactly the form \(F = E - S\), where the "energy" is the mismatch between predictions and sensations, and the entropy keeps beliefs from collapsing into overconfidence. Perception is minimizing \(F\) by changing beliefs; action is minimizing the same \(F\) by changing the sensations themselves. Whatever one makes of the framework's ambitions, the mathematical object at its center is the one on this page, and the reason it can be at the center is Theorem 2: minimizing free energy is the only thing a system that cannot compute \(Z\) can actually do.</p>
     <p><em>Diffusion models.</em> The generative models producing most of the AI images in the world are trained by minimizing a bound that is, again, this functional, and they sample by descending it. We will be able to say something much sharper than that in Part III, once we know what the descent <em>is</em>, so we leave the claim as a promissory note.</p>
 
@@ -370,7 +384,7 @@ footer{height:4rem}
       </span>
     </div>
     <p class="fig-note" data-role="note">Left: the density descending toward equilibrium. Right: the ledger of \(F=E-TS\), with the KL divergence to equilibrium beneath it. The black curve is a Lyapunov function, which is a formal way of saying it is the arrow of time.</p>
-    <figcaption><span class="figno">Figure 3.</span> The free energy as Lyapunov function.</figcaption>
+    <figcaption><span class="figno">Figure 4.</span> The free energy as Lyapunov function.</figcaption>
   </figure>
 
   <div class="measure">
@@ -378,7 +392,7 @@ footer{height:4rem}
       <button class="pop" data-target="pp-kramers" aria-expanded="false">metastability</button>, probability trapped in the wrong valley, waiting for a kick large enough to cross. Then quench a hot, spread-out system and watch energy and entropy violently exchange roles while their weighted sum glides down as though nothing happened. The equation permits no drama the free energy has not already priced.</p>
     <div class="popbody" id="pp-kramers"><span class="ttl">metastability and Kramers' law</span>
       <p>To leave a well of depth \(\Delta V\), a particle must be carried uphill by noise alone. The probability of such a fluctuation is Boltzmann-suppressed, and Kramers showed in 1940 that the mean escape time grows like \(\tau \sim e^{\Delta V / T}\), with a prefactor set by the curvatures at the well bottom and at the saddle.</p>
-      <p>This single exponential is why chemistry has rates at all, why proteins fold on human timescales rather than cosmological ones, why magnetic memories are stable for years, and why simulated annealing must cool slowly. It also predicts the plateau in Figure 3: on the plateau, the free energy is waiting for an exponentially rare event, and the length of the wait is not a numerical artifact but the physics.</p>
+      <p>This single exponential is why chemistry has rates at all, why proteins fold on human timescales rather than cosmological ones, why magnetic memories are stable for years, and why simulated annealing must cool slowly. It also predicts the plateau in Figure 4: on the plateau, the free energy is waiting for an exponentially rare event, and the length of the wait is not a numerical artifact but the physics.</p>
     </div>
   </div>
 </section>
@@ -424,6 +438,18 @@ footer{height:4rem}
     </div>
     <p>Now compare the two rulers on one example, because the contrast is the reason any of this works. Take two narrow spikes, far apart, with no overlap. Their KL divergence is infinite, and moving one spike slightly closer does not change it at all: KL cannot see the approach. Their \(W_2\) distance is the distance between the spikes, and shrinks smoothly as they approach. If we want a geometry in which "moving mass a little" is a small step, KL is useless and \(W_2\) is exactly right. Diffusion moves mass. It therefore lives in \(W_2\).</p>
 
+  </div>
+
+  <figure class="sim" id="fig6">
+    <div class="sim-frame"><canvas height="300"></canvas></div>
+    <div class="controls"><span><label>separation d</label><input type="range" data-role="sep" min="0.2" max="6" step="0.02" value="3"><span class="readout" data-role="sval">3.00</span></span>
+      <span><label>width &sigma;</label><input type="range" data-role="sig" min="0.06" max="1.2" step="0.01" value="0.6"><span class="readout" data-role="wval">0.60</span></span>
+      <button class="ui" data-role="compact" aria-pressed="false">compact support</button></div>
+    <p class="fig-note" data-role="note">Slide the width down at fixed separation. \(W_2\) does not move: the mass still has to travel exactly \(d\). KL explodes, because the overlap vanishes. KL measures disagreement; \(W_2\) measures distance.</p>
+    <figcaption><span class="figno">Figure 5.</span> Two rulers on the same pair of distributions.</figcaption>
+  </figure>
+
+  <div class="measure">
     <h3>The theorem</h3>
     <p>Now we can state what the three-line computation means.
       <button class="pop" data-target="pp-otto" aria-expanded="false">Otto's formal Riemannian structure</button> takes the Benamou–Brenier picture seriously: the tangent space at \(\rho\) consists of velocity fields \(v\) acting through the continuity equation, with squared norm \(\int \rho|v|^2\). Compute the gradient of \(F\) in that geometry and the answer is \(-\nabla\,\delta F/\delta\rho\). Steepest descent then reads</p>
@@ -447,6 +473,41 @@ footer{height:4rem}
     <p>$$\rho_{k+1} \;=\; \underset{\rho}{\arg\min}\;\Big\{\,\underbrace{\frac{1}{2\tau}\,W_2^2(\rho,\rho_k)}_{\text{cost of moving}} \;+\; \underbrace{F[\rho]}_{\text{free energy}}\Big\}.$$</p>
     <p>Each step lowers the free energy, but pays for transport. As \(\tau\to 0\), this converges to the Fokker–Planck equation. Diffusion, one of the most fundamental irreversible processes in nature, is a system repeatedly asking: <em>how do I most cheaply become a little more like equilibrium?</em></p>
 
+  </div>
+
+  <figure class="sim" id="fig7">
+    <div class="sim-frame"><div class="split"><div><canvas height="300" data-role="left"></canvas></div><div><canvas height="300" data-role="right"></canvas></div></div></div>
+    <div class="controls"><span><label>step size &tau;</label><input type="range" data-role="tau" min="0.02" max="0.6" step="0.01" value="0.30"><span class="readout" data-role="tval">0.30</span></span>
+      <button class="ui" data-role="restart">restart</button>
+      <button class="ui" data-role="slow" aria-pressed="false">slow motion</button>
+      <span class="legend"><span><i class="sw" style="border-color:#999"></i>\(\rho_k\)</span>
+      <span><i class="sw" style="border-color:#2b5fad"></i>candidate</span>
+      <span><i class="sw" style="border-color:#111;border-top-style:dotted"></i>true PDE</span></span></div>
+    <p class="fig-note" data-role="note">Each JKO step is a minimization, and we are watching it happen: the blue candidate deforms until the sum of transport cost and free energy stops falling, then it is accepted and becomes the next \(\rho_k\). Shrink \(\tau\) and the staircase converges onto the dotted PDE solution.</p>
+    <figcaption><span class="figno">Figure 6.</span> The JKO scheme, actually running. Solved exactly in quantile coordinates, where \(W_2\) is an ordinary \(L^2\) distance.</figcaption>
+  </figure>
+
+  <div class="measure">
+
+    <h3>Three metrics, one free energy</h3>
+    <p>We can now test the claim that the metric is the whole story, by running the <em>same</em> free energy down <em>three</em> different geometries, from the same starting heap, on the same landscape. All three are honest gradient flows of \(F\). All three converge to the same Boltzmann minimizer, since the minimizer is a property of \(F\) alone and knows nothing about metrics. Only the paths differ, and the paths differ wildly.</p>
+    <p>The first is the naive one: treat densities as vectors and use the ordinary \(L^2\) distance, \(\|\rho-\sigma\|^2 = \int|\rho-\sigma|^2\). The flow is \(\partial_t\rho = -(\delta F/\delta\rho - \lambda)\), the constant \(\lambda\) enforcing conservation of mass. The second is the
+      <button class="pop" data-target="pp-fisherrao" aria-expanded="false">Fisher–Rao</button> metric, the natural geometry of statistics, whose flow is \(\partial_t\rho = -\rho\big(\delta F/\delta\rho - \mathbb E_\rho[\delta F/\delta\rho]\big)\). The third is Wasserstein, which is Fokker–Planck. Start all three from a bump that is <em>exactly zero</em> outside the left well, and watch what each one does about the barrier.</p>
+    <div class="popbody" id="pp-fisherrao"><span class="ttl">Fisher–Rao, and why it cannot cross a barrier</span>
+      <p>The Fisher–Rao metric measures the distance between distributions by how distinguishable they are from samples, \(\|\dot\rho\|^2_{FR} = \int \dot\rho^2/\rho\). It is the metric behind the Cramér–Rao bound, and its gradient flow is <em>multiplicative</em>: mass is reweighted, never moved. If you know evolutionary game theory, you have met this flow before: it is the replicator equation, with \(-\delta F/\delta\rho\) playing the role of fitness. In statistics, it is Bayesian updating, which likewise only reweights hypotheses it already entertained.</p>
+      <p>Hence the pathology on display in the figure. Where \(\rho=0\), the update is \(0\times(\dots)=0\), so the density stays exactly zero forever. A Fisher–Rao flow can never populate a region it started empty in, no matter how deep the valley there. It is the "zero prior, zero posterior" problem, written as a PDE, and it is the exact opposite failure from \(L^2\), which populates distant regions instantly. Wasserstein is the only one of the three that has to walk.</p>
+    </div>
+  </div>
+
+  <figure class="sim" id="fig8">
+    <div class="sim-frame"><canvas height="420"></canvas></div>
+    <div class="controls"><button class="ui" data-role="restart">restart</button>
+      <span><label>temperature T</label><input type="range" data-role="temp" min="0.15" max="0.9" step="0.01" value="0.40"><span class="readout" data-role="tval">0.40</span></span></div>
+    <p class="fig-note" data-role="note">Watch the barrier. Under \(L^2\), the right well fills before the barrier does: mass teleports. Under Fisher–Rao, the right well never fills at all, because mass can only be reweighted where it already is. Only under Wasserstein does anything actually cross.</p>
+    <figcaption><span class="figno">Figure 7.</span> The same functional, descended in three geometries. The metric is not a technicality; it is the physics.</figcaption>
+  </figure>
+
+  <div class="measure">
     <h3>The payoff: noise, rewritten as transport</h3>
     <p>The velocity field the theorem hands us is worth staring at:</p>
     <p>$$v \;=\; -\nabla \frac{\delta F}{\delta\rho} \;=\; \underbrace{-\nabla V}_{\text{drift}} \;\underbrace{-\;T\,\nabla \log \rho}_{\text{the noise, as a velocity}}.$$</p>
@@ -464,15 +525,15 @@ footer{height:4rem}
       </span>
     </div>
     <p class="fig-note" data-role="note">Green particles roll dice at every instant. Blue particles never do: they follow \(v=-\nabla(V+T\log\rho)\), drawn as arrows. Their histograms trace the same curve, because both are portraits of the same descent. Individual paths are unrelated; the density is identical.</p>
-    <figcaption><span class="figno">Figure 4.</span> Two microscopic stories, one gradient flow. The deterministic crowd is the probability flow ODE.</figcaption>
+    <figcaption><span class="figno">Figure 8.</span> Two microscopic stories, one gradient flow. The deterministic crowd is the probability flow ODE.</figcaption>
   </figure>
 
   <div class="measure">
     <p>The quantity \(\nabla\log\rho\) has a name: the
-      <button class="pop" data-target="pp-score" aria-expanded="false">score</button>. And now the promissory note from Part II comes due. A diffusion model is trained by taking data, adding noise until it becomes a featureless Gaussian, and learning the score of the noised density with a neural network. Generation then runs the blue crowd of Figure 4 <em>backwards</em>: start from noise, follow the learned velocity field, and arrive at an image. The training objective is a bound on the free energy of Part II; the sampler is the gradient flow of Part III, integrated in reverse. When we said the free energy is central to diffusion models, this is the precise sense: <em>they learn the geometry of the descent, and then climb it.</em></p>
+      <button class="pop" data-target="pp-score" aria-expanded="false">score</button>. And now the promissory note from Part II comes due. A diffusion model is trained by taking data, adding noise until it becomes a featureless Gaussian, and learning the score of the noised density with a neural network. Generation then runs the blue crowd of Figure 8 <em>backwards</em>: start from noise, follow the learned velocity field, and arrive at an image. The training objective is a bound on the free energy of Part II; the sampler is the gradient flow of Part III, integrated in reverse. When we said the free energy is central to diffusion models, this is the precise sense: <em>they learn the geometry of the descent, and then climb it.</em></p>
     <div class="popbody" id="pp-score"><span class="ttl">the score, and the probability flow ODE</span>
       <p>The score of a density is \(s(x) = \nabla\log\rho(x)\), the gradient of the log-density. It points toward higher probability, it does not require knowing the normalizing constant \(Z\) (since \(\nabla\log(\rho/Z) = \nabla\log\rho\)), and that last property is the entire reason it is learnable: score matching estimates \(s\) from samples alone, never touching the intractable \(Z\).</p>
-      <p>Given the score, the two crowds in Figure 4 are the two standard samplers. The green one is Langevin dynamics (annealed Langevin sampling). The blue one is the <em>probability flow ODE</em>: a deterministic trajectory whose density matches the stochastic process exactly, which is what makes deterministic samplers like DDIM possible, and what makes latent interpolation and exact likelihood computation possible in diffusion models. The equivalence of the two crowds is not a numerical coincidence in our simulation; it is the reason both samplers exist.</p>
+      <p>Given the score, the two crowds in Figure 8 are the two standard samplers. The green one is Langevin dynamics (annealed Langevin sampling). The blue one is the <em>probability flow ODE</em>: a deterministic trajectory whose density matches the stochastic process exactly, which is what makes deterministic samplers like DDIM possible, and what makes latent interpolation and exact likelihood computation possible in diffusion models. The equivalence of the two crowds is not a numerical coincidence in our simulation; it is the reason both samplers exist.</p>
     </div>
     <p>One last look at the H-theorem, now with the geometry switched on. The dissipation rate is</p>
     <p>$$-\frac{\mathrm dF}{\mathrm dt} \;=\; \int \rho\,|v|^2\,\mathrm dx \;=\; \big\|\dot\rho\big\|^2_{W_2},$$</p>
@@ -484,15 +545,67 @@ footer{height:4rem}
 
 <section>
   <div class="measure">
+    <h2><span class="no">Part IV</span>When the crowd builds its own landscape</h2>
+    <p>Everything so far assumed the landscape \(V\) was given from outside and stayed put. Let us break that, in the gentlest possible way: let each particle be attracted to the average position of all the others. The landscape a particle feels is now</p>
+    <p>$$V_{\text{eff}}(x)\;=\;V(x)\;+\;\frac{\theta}{2}\big(x - m\big)^2,\qquad m \;=\; \int x\,\rho(x)\,\mathrm dx,$$</p>
+    <p>which depends on \(\rho\), so the Fokker–Planck equation has become <em>nonlinear in its own solution</em>. This is the
+      <button class="pop" data-target="pp-mckean" aria-expanded="false">McKean–Vlasov equation</button>, and the whole machine survives the change: it is still a Wasserstein gradient flow, of the free energy</p>
+    <div class="popbody" id="pp-mckean"><span class="ttl">McKean–Vlasov, and the mean-field limit</span>
+      <p>Take \(n\) particles, each feeling the landscape plus a pairwise interaction with all the others, so that \(\mathrm dX^i = \big(\!-\nabla V(X^i) - \tfrac1n\sum_j \nabla W(X^i - X^j)\big)\mathrm dt + \sqrt{2T}\,\mathrm dW^i\). As \(n\to\infty\), any fixed particle sees not its neighbours but the <em>density</em> of its neighbours, and its own law satisfies the nonlinear equation above. This is <em>propagation of chaos</em>: initially independent particles stay asymptotically independent, and the many-body problem collapses into one equation for one density.</p>
+      <p>This is the mathematics of flocking, of chemotaxis, of opinion dynamics, of mean-field games, and (with \(W\) an attraction toward the mean) of the Desai–Zwanzig model simulated here. It is also the setting of consensus-based optimization, where a swarm of noisy particles is pulled toward a weighted average of itself in order to minimize a nonconvex objective.</p>
+    </div>
+    <p>$$F[\rho] \;=\; \underbrace{\int V\rho}_{\text{energy}} \;+\; \underbrace{\frac12\iint W(x-y)\,\rho(x)\rho(y)}_{\text{interaction}} \;-\; \underbrace{T\,S[\rho]}_{\text{entropy}},\qquad W(x-y)=\frac{\theta}{2}(x-y)^2 .$$</p>
+    <p>One line of Part II now fails, and its failure is the entire point. Theorem 1 proved the minimizer of \(F\) is <em>unique</em>, and the proof rested on \(F\) being convex: energy is linear in \(\rho\), entropy is strictly convex, done. The interaction term is <em>quadratic</em> in \(\rho\), and it is not convex. Take away convexity and the theorem's conclusion evaporates: below a critical temperature there are two minimizers, mirror images of each other, and the system has to pick one.</p>
+  </div>
+
+  <figure class="sim" id="fig9">
+    <div class="sim-frame"><div class="split"><div><canvas height="320" data-role="left"></canvas></div><div><canvas height="320" data-role="right"></canvas></div></div></div>
+    <div class="controls"><span><label>temperature T</label><input type="range" data-role="temp" min="0.15" max="1.6" step="0.01" value="1.30"><span class="readout" data-role="tval">1.30</span></span>
+      <span><label>coupling &theta;</label><input type="range" data-role="theta" min="0" max="0.6" step="0.01" value="0.30"><span class="readout" data-role="thval">0.30</span></span>
+      <button class="ui" data-role="restart">re-randomize</button></div>
+    <p class="fig-note" data-role="note">Start hot and cool slowly through \(T_c\). The symmetric state loses stability and the crowd commits to a well, choosing at random which one. Re-randomize and it may choose the other. This is spontaneous symmetry breaking, and the pitchfork on the right is the phase diagram.</p>
+    <figcaption><span class="figno">Figure 9.</span> A phase transition in a browser. The landscape now contains a term that depends on where everybody else is.</figcaption>
+  </figure>
+
+  <div class="measure">
+    <p>What we are watching in the figure is the oldest story in statistical mechanics. At high temperature entropy dominates, the crowd is spread across both wells, and the mean sits at the centre by symmetry. Cool through \(T_c\) and that symmetric state stops being a minimum and becomes a maximum: the crowd's own attraction outweighs its thermal spreading, any accidental imbalance amplifies itself, and the population collapses into one well or the other. The choice is made by noise, and the symmetry of the equations survives only as the fact that both outcomes are equally likely.</p>
+    <p>This is the Curie point of a ferromagnet, the condensation of a gas, the onset of consensus in a population of agents, and the moment a swarm optimizer commits to a basin. It is also a warning, in the specific technical sense that our beautiful theorems are conditional: everything in Part III still holds here (the flow is still steepest descent of \(F\) in \(W_2\)), and yet the conclusion we most wanted, "the system converges to the unique Boltzmann state", is simply false. The gradient flow structure survives nonconvexity. Uniqueness does not.</p>
+  </div>
+</section>
+
+<hr>
+
+<section>
+  <div class="measure">
     <h2><span class="no">Coda</span>The fine print, and the road onward</h2>
     <p>An honest ode names what the beloved cannot do. Part I already fenced the Fokker–Planck equation: jumps, memory, and quantum negativity are outside it, each corresponding to a broken hypothesis. Part III has a fence of its own, and it is tighter.</p>
-    <p>Everything in Part III required the drift to be a <em>gradient</em>, \(b = -\nabla V\). If the drift has a rotational component that is not the gradient of anything, the Fokker–Planck equation is still perfectly valid, but it is <em>not</em> the gradient flow of any free energy. Such systems settle into a
-      <button class="pop" data-target="pp-ness" aria-expanded="false">nonequilibrium steady state</button> with probability circulating forever in closed loops, no Lyapunov function descends, and detailed balance fails. Most systems in nature, and every living one, are of this kind. The beautiful geometry we built lives on a strict, and rather special, slice of an already restricted universe. Knowing exactly how special is the price of understanding it.</p>
+    <p>Everything in Part III required the drift to be a <em>gradient</em>, \(b = -\nabla V\). Drop that, allow a rotational component that is not the gradient of anything, and we must be careful about what actually breaks, because the naive guess is wrong. The free energy does <em>not</em> stop falling. For any Markov process with a stationary density \(\rho_\infty\), the relative entropy \(\mathrm{KL}(\rho_t\,\|\,\rho_\infty)\) is still a Lyapunov function, and one can check that the rotational part contributes <em>exactly zero</em> to \(\mathrm dF/\mathrm dt\).</p>
+    <p>What breaks is the geometry. The flow is no longer <em>steepest</em> descent: it picks up a component that transports probability sideways, orthogonally to \(\nabla\,\delta F/\delta\rho\) in the Wasserstein metric, doing no work on \(F\) whatsoever. The dynamics is a gradient flow <em>plus</em> a rotation, and only the first half is what Part III described. At the stationary state the descent has stopped but the rotation has not, so probability circulates forever in closed loops: a
+      <button class="pop" data-target="pp-ness" aria-expanded="false">nonequilibrium steady state</button>, in which detailed balance fails, time-reversal symmetry is broken, and entropy is produced at a constant nonzero rate for as long as the system is kept running. Most systems in nature, and every living one, are of this kind.</p>
+    <p>The figure below makes the sharpest version of the point. Both panels have <em>identical</em> stationary densities, identical histograms, identical free energies, and identical everything a static measurement could see. One of them is at equilibrium. The other is a hurricane. A density cannot tell you whether it is at rest; only the currents can.</p>
     <div class="popbody" id="pp-ness"><span class="ttl">nonequilibrium steady states</span>
-      <p>Decompose a general drift as \(b = -\nabla V + b_\perp\), where \(b_\perp\) is divergence-free with respect to the stationary density. The stationary state then has a nonvanishing flux \(J = \rho\, b_\perp \ne 0\) with \(\nabla\!\cdot\!J = 0\): probability circulates. Time-reversal symmetry is broken, entropy is produced at a constant nonzero rate forever, and the system is maintained away from equilibrium by whatever drives \(b_\perp\).</p>
-      <p>The modern theory (stochastic thermodynamics, fluctuation theorems, the Hatano–Sasa and Gallavotti–Cohen relations) extends parts of the free-energy story to this setting, but there is no single scalar functional playing the role \(F\) plays here. Losing the gradient structure loses the geometry.</p>
+      <p>Decompose a general drift as \(b = -\nabla V + b_\perp\), where \(b_\perp\) is divergence-free with respect to the stationary density: \(\nabla\!\cdot\!(\rho_\infty b_\perp)=0\). Two consequences follow, and they pull in opposite directions.</p>
+      <p><em>The good news.</em> The stationary density is <em>unchanged</em>: it is still \(\rho_\infty \propto e^{-V/T}\). And \(F\) still decreases, because the rotational term contributes \(\int \rho_\infty\, b_\perp\cdot\nabla h = -\int h\,\nabla\!\cdot\!(\rho_\infty b_\perp) = 0\) (writing \(h=\rho/\rho_\infty\), integrating by parts). Zero, exactly. The rotation is orthogonal to the descent.</p>
+      <p><em>The bad news.</em> The stationary state now carries a nonvanishing current \(J = \rho_\infty b_\perp \neq 0\) with \(\nabla\!\cdot\!J = 0\): probability circulates. The dynamics is no longer a gradient flow of anything, so the identification of the whole evolution with steepest descent, which is the theorem of this essay, is lost. And entropy is produced at rate \(\sigma = \frac1T\int \rho_\infty |b_\perp|^2 > 0\), forever, which must be paid for by whatever drives \(b_\perp\). This is the "housekeeping heat" of stochastic thermodynamics.</p>
+      <p>The modern theory (fluctuation theorems, the Hatano–Sasa and Gallavotti–Cohen relations) extends parts of the story to this setting, but no single scalar functional plays the role \(F\) plays here. Losing the gradient structure loses the geometry.</p>
     </div>
-    <p>What remains is a road. <em>Curvature controls speed:</em> if \(V\) is uniformly convex with curvature at least \(\lambda\), the Bakry–Émery theory gives exponential decay of the KL curve at rate \(2\lambda\), through logarithmic Sobolev inequalities that are secretly statements about the curvature of Wasserstein space. Flatten the landscape in Figure 3 and watch convergence stall; that is geometry, not numerics. <em>Bridges:</em> condition a diffusion on its endpoints and one gets the Schrödinger bridge, an entropic relaxation of optimal transport, solved in practice by the Sinkhorn algorithm and converging to the \(W_2\) geodesic as the noise vanishes; stochastic and deterministic transport are two ends of one dial. <em>Interaction:</em> let the particles feel each other and the free energy grows an interaction term, the equation becomes nonlinear, and the same JKO scheme generates the mathematics of flocking, chemotaxis, and mean-field games. <em>Control:</em> ask how to change a landscape so as to move a system while dissipating as little as possible, and the optimal protocols turn out to be Wasserstein geodesics; the thermodynamics of small systems is transport geometry in disguise.</p>
+  </div>
+
+  <figure class="sim" id="fig10">
+    <div class="sim-frame"><div class="split"><div><canvas height="330" data-role="left"></canvas></div><div><canvas height="330" data-role="right"></canvas></div></div></div>
+    <div class="controls">
+      <span><label>rotation &omega;</label><input type="range" data-role="omega" min="0" max="3" step="0.02" value="1.6"><span class="readout" data-role="oval">1.60</span></span>
+      <span><label>temperature T</label><input type="range" data-role="temp" min="0.15" max="1.0" step="0.01" value="0.50"><span class="readout" data-role="tval">0.50</span></span>
+      <button class="ui" data-role="restart">re-seed</button>
+      <button class="ui" data-role="showj" aria-pressed="true">show currents</button>
+    </div>
+    <p class="fig-note" data-role="note">Left: gradient drift. Right: the same drift plus a rotation \(\omega J\nabla V\), which is divergence-free against \(\rho_\infty\) and therefore leaves the equilibrium density untouched. Compare the measured variances: they agree. Compare the currents: one is dead, the other turns forever.</p>
+    <figcaption><span class="figno">Figure 10.</span> Two systems, one density, and only one of them is at equilibrium.</figcaption>
+  </figure>
+
+  <div class="measure">
+
+    <p>What remains is a road. <em>Curvature controls speed:</em> if \(V\) is uniformly convex with curvature at least \(\lambda\), the Bakry–Émery theory gives exponential decay of the KL curve at rate \(2\lambda\), through logarithmic Sobolev inequalities that are secretly statements about the curvature of Wasserstein space. Flatten the landscape in Figure 4 and watch convergence stall; that is geometry, not numerics. <em>Bridges:</em> condition a diffusion on its endpoints and one gets the Schrödinger bridge, an entropic relaxation of optimal transport, solved in practice by the Sinkhorn algorithm and converging to the \(W_2\) geodesic as the noise vanishes; stochastic and deterministic transport are two ends of one dial. <em>Interaction:</em> let the particles feel each other and the free energy grows an interaction term, the equation becomes nonlinear, and the same JKO scheme generates the mathematics of flocking, chemotaxis, and mean-field games. <em>Control:</em> ask how to change a landscape so as to move a system while dissipating as little as possible, and the optimal protocols turn out to be Wasserstein geodesics; the thermodynamics of small systems is transport geometry in disguise.</p>
     <p>Praise, then, for an equation that holds lawless trajectories and lawful distributions in one hand, that contains the heat equation, the Boltzmann distribution, and the arrow of time as special cases, that was written down in 1914 for electrons in a radiation field and now spends its days painting pictures, and that waited eighty years to be recognized as geometry. Few objects in mathematics work this hard while looking this calm.</p>
   </div>
 </section>
@@ -966,5 +1079,690 @@ function frame(){
 requestAnimationFrame(frame);
 })();}
 </script>
+<script>
+(function(){
+'use strict';
+var INK='#111111', GRAY='#999999', LINE='#dddddd', BLUE='#2b5fad', GREEN='#1f8a63', MID='#777';
+var sp2=null;
+function rnd(){ if(sp2!==null){var v=sp2; sp2=null; return v;}
+  var u,v,s; do{u=Math.random()*2-1;v=Math.random()*2-1;s=u*u+v*v;}while(s>=1||s===0);
+  var f=Math.sqrt(-2*Math.log(s)/s); sp2=v*f; return u*f; }
+function fit(c){
+  var dpr=Math.min(window.devicePixelRatio||1,2);
+  var w=Math.round(c.clientWidth*dpr), h=Math.round(c.clientHeight*dpr);
+  if(c.width!==w||c.height!==h){ c.width=w; c.height=h; }
+  var x=c.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); return x;
+}
+function xpx(x,w,pad){ return pad+(x-X0)/(X1-X0)*(w-2*pad); }
+function curve(ctx,w,pad,ys,yOf,n){
+  ctx.beginPath();
+  for(var i=0;i<n;i++){ var px=xpx(X0+(i+0.5)*(X1-X0)/n,w,pad), py=yOf(ys[i]);
+    i?ctx.lineTo(px,py):ctx.moveTo(px,py); }
+}
+function lab(ctx,t,x,y,col){ ctx.font='11px Palatino, Georgia, serif'; ctx.fillStyle=col||GRAY; ctx.fillText(t,x,y); }
+function maxOf(a){ var m=0; for(var i=0;i<a.length;i++) if(a[i]>m) m=a[i]; return m; }
+
+// ---------- quantile machinery (exact 1D optimal transport) ----------
+function toQuantile(rho,M){
+  var cdf=new Float64Array(N+1), c=0, i;
+  for(i=0;i<N;i++){ c+=rho[i]*DX; cdf[i+1]=c; }
+  for(i=0;i<=N;i++) cdf[i]/=c;
+  var X=new Float64Array(M); i=0;
+  for(var j=0;j<M;j++){
+    var q=(j+0.5)/M;
+    while(i<N-1 && cdf[i+1]<q) i++;
+    var lo=cdf[i], hi=cdf[i+1], f=(hi>lo)?(q-lo)/(hi-lo):0.5;
+    X[j]=X0+(i+f)*DX;
+  }
+  return X;
+}
+function fromQuantile(X,M,out){
+  out.fill(0);
+  var dq=1/M;
+  for(var j=0;j<M-1;j++){
+    var a=X[j], b=X[j+1]; if(b<=a) continue;
+    var dens=dq/(b-a);
+    var i0=Math.max(0,Math.floor((a-X0)/DX)), i1=Math.min(N-1,Math.floor((b-X0)/DX));
+    for(var i=i0;i<=i1;i++){
+      var cl=Math.max(a,X0+i*DX), cr=Math.min(b,X0+(i+1)*DX);
+      if(cr>cl) out[i]+=dens*(cr-cl)/DX;
+    }
+  }
+  var m=0; for(var k=0;k<N;k++) m+=out[k]*DX;
+  if(m>0) for(k=0;k<N;k++) out[k]/=m;
+}
+function w2(rho,pi,M){
+  var A=toQuantile(rho,M), B=toQuantile(pi,M), s=0;
+  for(var j=0;j<M;j++){ var d=A[j]-B[j]; s+=d*d/M; }
+  return Math.sqrt(s);
+}
+function interp(arr,x){
+  var u=(x-X0)/DX-0.5, i=Math.floor(u);
+  if(i<0) return arr[0]; if(i>=N-1) return arr[N-1];
+  var f=u-i; return arr[i]*(1-f)+arr[i+1]*f;
+}
+
+// ================= FIGURE 3: free energy over the Gaussian family =================
+function FigGauss(){
+  var s=this, fig=document.getElementById('fig5');
+  s.fig=fig; s.active=false;
+  s.cL=fig.querySelector('canvas[data-role=left]'); s.cR=fig.querySelector('canvas[data-role=right]');
+  s.note=fig.querySelector('[data-role=note]');
+  s.V=buildPreset('double'); s.T=0.35;
+  s.gibbs=new Float64Array(N); s.Finf=computeGibbs(s.V,s.T,s.gibbs);
+  s.NM=110; s.NS=76; s.M0=1.6; s.M1=8.4; s.S0=0.13; s.S1=2.3;
+  s.grid=new Float64Array(s.NM*s.NS);
+  s.running=true;
+  s.F=function(mu,sig){
+    var E=0, k=1/(sig*Math.sqrt(2*Math.PI));
+    for(var i=0;i<N;i++){ var d=(XS[i]-mu)/sig; E+=s.V[i]*k*Math.exp(-0.5*d*d)*DX; }
+    return E - s.T*0.5*Math.log(2*Math.PI*Math.E*sig*sig);
+  };
+  s.grad=function(mu,sig){
+    var gm=0, gs=0, k=1/(sig*Math.sqrt(2*Math.PI));
+    for(var i=0;i<N;i++){
+      var d=XS[i]-mu, u=d/sig, w=k*Math.exp(-0.5*u*u)*DX*s.V[i];
+      gm+=w*d/(sig*sig);
+      gs+=w*(d*d-sig*sig)/(sig*sig*sig);
+    }
+    return [gm, gs - s.T/sig];
+  };
+  s.rebuild=function(){
+    s.Finf=computeGibbs(s.V,s.T,s.gibbs);
+    var lo=1e9, hi=-1e9;
+    for(var a=0;a<s.NM;a++) for(var b=0;b<s.NS;b++){
+      var mu=s.M0+(s.M1-s.M0)*a/(s.NM-1), sg=s.S0+(s.S1-s.S0)*b/(s.NS-1);
+      var f=s.F(mu,sg); s.grid[b*s.NM+a]=f;
+      if(f<lo)lo=f; if(f>hi)hi=f;
+    }
+    s.lo=lo; s.hi=hi;
+    var off=document.createElement('canvas'); off.width=s.NM; off.height=s.NS;
+    var ic=off.getContext('2d'), im=ic.createImageData(s.NM,s.NS);
+    for(var b2=0;b2<s.NS;b2++) for(var a2=0;a2<s.NM;a2++){
+      var v=(s.grid[b2*s.NM+a2]-lo)/(hi-lo);
+      var t=Math.pow(v,0.45);
+      var band=(Math.sin(v*46)>0.86)?0.86:1.0;   // iso-lines
+      var p=((s.NS-1-b2)*s.NM+a2)*4;
+      im.data[p]  =Math.round((255-160*t)*band);
+      im.data[p+1]=Math.round((255-135*t)*band);
+      im.data[p+2]=Math.round((255- 60*t)*band);
+      im.data[p+3]=255;
+    }
+    ic.putImageData(im,0,0); s.img=off;
+  };
+  s.reseed=function(){
+    var m=s.M0+0.6+Math.random()*(s.M1-s.M0-1.2), g=0.35+Math.random()*1.3;
+    s.e={mu:m,sig:g,tr:[]}; s.n={mu:m,sig:g,tr:[]};
+  };
+  s.rebuild(); s.reseed();
+  s.step=function(){
+    if(s.dirty){ s.dirty=false; s.rebuild(); }
+    if(!s.running) return;
+    for(var it=0;it<3;it++){
+      var ge=s.grad(s.e.mu,s.e.sig);
+      s.e.mu-=0.030*ge[0]; s.e.sig-=0.030*ge[1];
+      var gn=s.grad(s.n.mu,s.n.sig), v=s.n.sig*s.n.sig;
+      s.n.mu-=0.030*v*gn[0]; s.n.sig-=0.030*0.5*v*gn[1];
+      [s.e,s.n].forEach(function(p){
+        p.mu=Math.min(s.M1,Math.max(s.M0,p.mu));
+        p.sig=Math.min(s.S1,Math.max(s.S0,p.sig));
+      });
+    }
+    s.e.tr.push([s.e.mu,s.e.sig]); s.n.tr.push([s.n.mu,s.n.sig]);
+    if(s.e.tr.length>900){s.e.tr.shift(); s.n.tr.shift();}
+  };
+  s.draw=function(){
+    var ctx=fit(s.cL), w=s.cL.clientWidth, h=s.cL.clientHeight, P=30;
+    ctx.clearRect(0,0,w,h);
+    ctx.imageSmoothingEnabled=true;
+    ctx.drawImage(s.img,P,6,w-P-8,h-P-6);
+    var px=function(mu){ return P+(mu-s.M0)/(s.M1-s.M0)*(w-P-8); };
+    var py=function(sg){ return 6+(s.S1-sg)/(s.S1-s.S0)*(h-P-6); };
+    function path(tr,col){
+      if(tr.length<2) return;
+      ctx.beginPath();
+      for(var i=0;i<tr.length;i++){ var a=px(tr[i][0]), b=py(tr[i][1]); i?ctx.lineTo(a,b):ctx.moveTo(a,b); }
+      ctx.strokeStyle=col; ctx.lineWidth=1.7; ctx.stroke();
+    }
+    path(s.e.tr,GREEN); path(s.n.tr,BLUE);
+    [[s.e,GREEN],[s.n,BLUE]].forEach(function(z){
+      ctx.fillStyle=z[1]; ctx.beginPath();
+      ctx.arc(px(z[0].mu),py(z[0].sig),4,0,6.29); ctx.fill();
+    });
+    ctx.strokeStyle=LINE; ctx.strokeRect(P,6,w-P-8,h-P-6);
+    lab(ctx,'\u03bc \u2192',w-46,h-8); lab(ctx,'\u03c3',6,16);
+    lab(ctx,'\u03c3='+s.S1.toFixed(1),2,14); lab(ctx,'\u03c3='+s.S0.toFixed(2),2,h-P+2);
+    lab(ctx,'darker = lower F',P+6,h-P+16);
+    // right: densities
+    var c2=fit(s.cR), w2c=s.cR.clientWidth, h2=s.cR.clientHeight, pad=12;
+    c2.clearRect(0,0,w2c,h2);
+    var dmax=Math.max(maxOf(s.gibbs),0.9)*1.1;
+    var yOf=function(d){ return h2-24-(d/dmax)*(h2-46); };
+    c2.setLineDash([5,4]); curve(c2,w2c,pad,s.gibbs,yOf,N);
+    c2.strokeStyle=GRAY; c2.lineWidth=1.3; c2.stroke(); c2.setLineDash([]);
+    function gauss(p,col){
+      var k=1/(p.sig*Math.sqrt(2*Math.PI)), ys=new Float64Array(N);
+      for(var i=0;i<N;i++){ var d=(XS[i]-p.mu)/p.sig; ys[i]=k*Math.exp(-0.5*d*d); }
+      curve(c2,w2c,pad,ys,yOf,N); c2.strokeStyle=col; c2.lineWidth=1.8; c2.stroke();
+    }
+    gauss(s.e,GREEN); gauss(s.n,BLUE);
+    var kl=(s.F(s.n.mu,s.n.sig)-s.Finf)/s.T;
+    lab(c2,'true equilibrium (dashed)',pad+4,16);
+    lab(c2,'variational gap  KL(q || \u03c1\u221e) = '+kl.toFixed(3)+' nats',pad+4,h2-6,INK);
+  };
+  var q=function(r){ return fig.querySelector('[data-role='+r+']'); };
+  q('run').addEventListener('click',function(){
+    s.running=!s.running;
+    this.classList.toggle('toggled',s.running);
+    this.textContent=s.running?'pause descent':'run descent';
+  });
+  q('run').classList.add('toggled'); q('run').textContent='pause descent';
+  q('reseed').addEventListener('click',function(){ s.reseed(); });
+  var tm=q('temp'), tv=q('tval');
+  tm.addEventListener('input',function(){
+    s.T=parseFloat(tm.value); tv.textContent=s.T.toFixed(2); s.dirty=true;
+  });
+}
+// ================= FIGURE 5: KL vs W2 =================
+function FigRulers(){
+  var s=this, fig=document.getElementById('fig6');
+  s.fig=fig; s.active=false; s.c=fig.querySelector('canvas');
+  s.rho=new Float64Array(N); s.pi=new Float64Array(N);
+  s.sep=3; s.sig=0.6; s.compact=false;
+  s.build=function(){
+    var c1=5-s.sep/2, c2=5+s.sep/2, m1=0, m2=0, i;
+    for(i=0;i<N;i++){
+      if(s.compact){
+        var u1=(XS[i]-c1)/(1.7*s.sig), u2=(XS[i]-c2)/(1.7*s.sig);
+        s.rho[i]=Math.abs(u1)<1?Math.pow(1-u1*u1,2):0;
+        s.pi[i] =Math.abs(u2)<1?Math.pow(1-u2*u2,2):0;
+      } else {
+        s.rho[i]=Math.exp(-0.5*Math.pow((XS[i]-c1)/s.sig,2));
+        s.pi[i] =Math.exp(-0.5*Math.pow((XS[i]-c2)/s.sig,2));
+      }
+      m1+=s.rho[i]*DX; m2+=s.pi[i]*DX;
+    }
+    for(i=0;i<N;i++){ s.rho[i]/=m1; s.pi[i]/=m2; }
+    var kl=0, inf=false;
+    for(i=0;i<N;i++){
+      if(s.rho[i]>1e-12){
+        if(s.pi[i]<1e-300){ inf=true; break; }
+        kl+=s.rho[i]*Math.log(s.rho[i]/s.pi[i])*DX;
+      }
+    }
+    s.kl=inf?Infinity:kl; s.w2=w2(s.rho,s.pi,200);
+  };
+  s.build();
+  s.step=function(){};
+  s.draw=function(){
+    var ctx=fit(s.c), w=s.c.clientWidth, h=s.c.clientHeight, pad=12;
+    ctx.clearRect(0,0,w,h);
+    var top=h*0.62;
+    var dmax=Math.max(maxOf(s.rho),maxOf(s.pi))*1.12;
+    var yOf=function(d){ return top-14-(d/dmax)*(top-34); };
+    curve(ctx,w,pad,s.rho,yOf,N);
+    ctx.lineTo(xpx(X1,w,pad),top-14); ctx.lineTo(xpx(X0,w,pad),top-14); ctx.closePath();
+    ctx.fillStyle='rgba(31,138,99,0.12)'; ctx.fill();
+    curve(ctx,w,pad,s.rho,yOf,N); ctx.strokeStyle=GREEN; ctx.lineWidth=1.8; ctx.stroke();
+    curve(ctx,w,pad,s.pi,yOf,N);
+    ctx.lineTo(xpx(X1,w,pad),top-14); ctx.lineTo(xpx(X0,w,pad),top-14); ctx.closePath();
+    ctx.fillStyle='rgba(43,95,173,0.12)'; ctx.fill();
+    curve(ctx,w,pad,s.pi,yOf,N); ctx.strokeStyle=BLUE; ctx.lineWidth=1.8; ctx.stroke();
+    // arrow of separation
+    var a=xpx(5-s.sep/2,w,pad), b=xpx(5+s.sep/2,w,pad), yy=top-6;
+    ctx.strokeStyle=MID; ctx.lineWidth=1; ctx.beginPath();
+    ctx.moveTo(a,yy); ctx.lineTo(b,yy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(a,yy-3); ctx.lineTo(a,yy+3); ctx.moveTo(b,yy-3); ctx.lineTo(b,yy+3); ctx.stroke();
+    lab(ctx,'d = '+s.sep.toFixed(2),(a+b)/2-18,yy-6);
+    // bars
+    var bx=110, bw=w-bx-60;
+    function bar(y,label,val,frac,col,txt){
+      lab(ctx,label,10,y+4,INK);
+      ctx.fillStyle='#eee'; ctx.fillRect(bx,y-8,bw,11);
+      ctx.fillStyle=col; ctx.fillRect(bx,y-8,Math.max(1,Math.min(1,frac))*bw,11);
+      lab(ctx,txt,bx+bw+8,y+3,INK);
+    }
+    var klTxt = (s.kl===Infinity)?'\u221e':s.kl.toFixed(2);
+    var klFrac= (s.kl===Infinity)?1:Math.min(1,Math.log10(1+s.kl)/2.2);
+    bar(top+22,'KL(\u03c1 || \u03c0)',s.kl,klFrac,'#b03a3a',klTxt+' nats');
+    bar(top+48,'W\u2082(\u03c1, \u03c0)',s.w2,Math.min(1,s.w2/6.2),BLUE,s.w2.toFixed(2));
+    lab(ctx,'KL bar is on a log scale, and still runs off the end.',10,top+70);
+  };
+  var q=function(r){ return fig.querySelector('[data-role='+r+']'); };
+  var sep=q('sep'), sv=q('sval'), sg=q('sig'), wv=q('wval'), cp=q('compact');
+  sep.addEventListener('input',function(){ s.sep=parseFloat(sep.value); sv.textContent=s.sep.toFixed(2); s.build(); });
+  sg.addEventListener('input',function(){ s.sig=parseFloat(sg.value); wv.textContent=s.sig.toFixed(2); s.build(); });
+  cp.addEventListener('click',function(){
+    s.compact=!s.compact; this.classList.toggle('toggled',s.compact);
+    this.setAttribute('aria-pressed',String(s.compact)); s.build();
+    var note=fig.querySelector('[data-role=note]');
+    note.innerHTML = s.compact
+      ? 'Now the bumps have compact support, so once they stop overlapping the KL divergence is exactly infinite, and stays infinite however close they get. It has no way to say "warmer". W\u2082 still reports the distance, and still shrinks smoothly as they approach. A gradient flow needs the second ruler.'
+      : 'Slide the width down at fixed separation. W\u2082 does not move: the mass still has to travel exactly d. KL explodes, because the overlap vanishes. KL measures disagreement; W\u2082 measures distance.';
+  });
+}
+// ================= FIGURE 6: the JKO scheme, running =================
+function FigJKO(){
+  var s=this, fig=document.getElementById('fig7');
+  s.fig=fig; s.active=false;
+  s.cL=fig.querySelector('canvas[data-role=left]'); s.cR=fig.querySelector('canvas[data-role=right]');
+  s.V=buildPreset('double'); s.dV=gradArr(s.V); s.T=0.35; s.tau=0.30; s.M=140;
+  s.W=makeWork(); s.slow=false;
+  s.rhoK=new Float64Array(N); s.rhoC=new Float64Array(N); s.ref=new Float64Array(N);
+  s.gibbs=new Float64Array(N); s.Finf=computeGibbs(s.V,s.T,s.gibbs);
+  s.reset=function(){
+    gaussSpike(s.rhoK,2.4,0.34); gaussSpike(s.ref,2.4,0.34);
+    s.Xk=toQuantile(s.rhoK,s.M); s.X=Float64Array.from(s.Xk);
+    s.it=0; s.step_=0; s.hist=[]; s.t=0;
+    fromQuantile(s.X,s.M,s.rhoC);
+  };
+  s.reset();
+  s.Vf=function(x){ return interp(s.V,x); };
+  s.dVf=function(x){ return interp(s.dV,x); };
+  s.obj=function(X){
+    var dq=1/s.M, W=0, E=0, S=0, j;
+    for(j=0;j<s.M;j++){ var d=X[j]-s.Xk[j]; W+=dq*d*d; E+=dq*s.Vf(X[j]); }
+    for(j=0;j<s.M-1;j++){ var g=Math.max(X[j+1]-X[j],1e-9); S+=dq*Math.log(g/dq); }
+    return {W2:Math.sqrt(W), prox:W/(2*s.tau), F:E-s.T*S, J:W/(2*s.tau)+E-s.T*S};
+  };
+  s.newton=function(){
+    var M=s.M, dq=1/M, gmin=2e-4, X=s.X, T=s.T, tau=s.tau, j;
+    var g=new Float64Array(M-1);
+    for(j=0;j<M-1;j++) g[j]=Math.max(X[j+1]-X[j],gmin);
+    var gr=new Float64Array(M), di=new Float64Array(M), up=new Float64Array(M), lo=new Float64Array(M);
+    for(j=0;j<M;j++){
+      var G=(X[j]-s.Xk[j])/tau + s.dVf(X[j]), D=1/tau;
+      if(j<M-1){ G+=T/g[j]; D+=T/(g[j]*g[j]); up[j]=-T/(g[j]*g[j]); }
+      if(j>0){ G-=T/g[j-1]; D+=T/(g[j-1]*g[j-1]); lo[j]=-T/(g[j-1]*g[j-1]); }
+      gr[j]=G; di[j]=D;
+    }
+    var r=new Float64Array(M);
+    for(j=0;j<M;j++) r[j]=-gr[j];
+    for(j=1;j<M;j++){ var m=lo[j]/di[j-1]; di[j]-=m*up[j-1]; r[j]-=m*r[j-1]; }
+    var d=new Float64Array(M);
+    d[M-1]=r[M-1]/di[M-1];
+    for(j=M-2;j>=0;j--) d[j]=(r[j]-up[j]*d[j+1])/di[j];
+    var mx=0; for(j=0;j<M;j++) mx=Math.max(mx,Math.abs(d[j]));
+    var st=(mx>0.3)?0.3/mx:1;
+    for(j=0;j<M;j++) X[j]+=st*d[j];
+    if(X[0]<X0+1e-6) X[0]=X0+1e-6;
+    for(j=1;j<M;j++) if(X[j]<X[j-1]+gmin) X[j]=X[j-1]+gmin;
+    if(X[M-1]>X1-1e-6){ X[M-1]=X1-1e-6;
+      for(j=M-2;j>=0;j--) if(X[j]>X[j+1]-gmin) X[j]=X[j+1]-gmin; }
+    return mx;
+  };
+  s.step=function(){
+    var per=s.slow?1:6, done=false;
+    for(var k=0;k<per;k++){
+      var mx=s.newton(); s.it++;
+      s.hist.push(s.obj(s.X).J);
+      if(s.hist.length>120) s.hist.shift();
+      if(mx<1e-7 || s.it>=(s.slow?70:90)){ done=true; break; }
+    }
+    fromQuantile(s.X,s.M,s.rhoC);
+    if(done){
+      s.Xk=Float64Array.from(s.X);
+      fromQuantile(s.Xk,s.M,s.rhoK);
+      stepPDE(s.ref,s.V,s.T,s.tau,s.W);
+      s.t+=s.tau; s.step_++; s.it=0; s.hist=[];
+      if(s.t>9) s.reset();
+    }
+  };
+  s.draw=function(){
+    var ctx=fit(s.cL), w=s.cL.clientWidth, h=s.cL.clientHeight, pad=12;
+    ctx.clearRect(0,0,w,h);
+    var vmax=Math.max(maxOf(s.V),1);
+    ctx.beginPath();
+    for(var i=0;i<N;i++){ var px=xpx(XS[i],w,pad), py=10+(s.V[i]/vmax)*(h*0.22);
+      i?ctx.lineTo(px,py):ctx.moveTo(px,py); }
+    ctx.strokeStyle='rgba(17,17,17,0.22)'; ctx.lineWidth=1; ctx.stroke();
+    var dmax=Math.max(maxOf(s.rhoK),maxOf(s.rhoC),maxOf(s.ref),0.3)*1.1;
+    var yOf=function(d){ return h-16-(d/dmax)*(h-52); };
+    curve(ctx,w,pad,s.rhoK,yOf,N);
+    ctx.lineTo(xpx(X1,w,pad),h-16); ctx.lineTo(xpx(X0,w,pad),h-16); ctx.closePath();
+    ctx.fillStyle='rgba(0,0,0,0.07)'; ctx.fill();
+    curve(ctx,w,pad,s.rhoK,yOf,N); ctx.strokeStyle=GRAY; ctx.lineWidth=1.4; ctx.stroke();
+    ctx.setLineDash([2,3]); curve(ctx,w,pad,s.ref,yOf,N);
+    ctx.strokeStyle=INK; ctx.lineWidth=1.2; ctx.stroke(); ctx.setLineDash([]);
+    curve(ctx,w,pad,s.rhoC,yOf,N); ctx.strokeStyle=BLUE; ctx.lineWidth=2; ctx.stroke();
+    lab(ctx,'step '+s.step_+'   \u03c4 = '+s.tau.toFixed(2)+'   t = '+s.t.toFixed(2),pad+2,h-3,INK);
+    // right: the inner minimization
+    var c2=fit(s.cR), w2c=s.cR.clientWidth, h2=s.cR.clientHeight;
+    c2.clearRect(0,0,w2c,h2);
+    var o=s.obj(s.X);
+    lab(c2,'the objective being minimized, right now:',10,18,INK);
+    lab(c2,'transport cost   W\u2082\u00b2/2\u03c4  =  '+o.prox.toFixed(3),18,42,INK);
+    lab(c2,'free energy      F[\u03c1]     =  '+o.F.toFixed(3),18,60,INK);
+    c2.strokeStyle=LINE; c2.beginPath(); c2.moveTo(18,68); c2.lineTo(200,68); c2.stroke();
+    lab(c2,'total                        =  '+o.J.toFixed(3),18,84,INK);
+    lab(c2,'Newton iteration '+s.it,18,104);
+    var H=s.hist;
+    if(H.length>2){
+      var lo=Math.min.apply(null,H), hi=Math.max.apply(null,H);
+      var x0=30, x1=w2c-14, y0=h2-24, y1=126, sp=Math.max(hi-lo,1e-6);
+      c2.strokeStyle=LINE; c2.beginPath(); c2.moveTo(x0,y1); c2.lineTo(x0,y0); c2.lineTo(x1,y0); c2.stroke();
+      c2.beginPath();
+      for(var j=0;j<H.length;j++){
+        var px2=x0+(j/(H.length-1))*(x1-x0), py2=y0-(H[j]-lo)/sp*(y0-y1);
+        j?c2.lineTo(px2,py2):c2.moveTo(px2,py2);
+      }
+      c2.strokeStyle=BLUE; c2.lineWidth=1.6; c2.stroke();
+      lab(c2,'objective falling within one JKO step',x0+4,y1-6);
+    }
+  };
+  var q=function(r){ return fig.querySelector('[data-role='+r+']'); };
+  var tau=q('tau'), tv=q('tval');
+  tau.addEventListener('input',function(){ s.tau=parseFloat(tau.value); tv.textContent=s.tau.toFixed(2); });
+  tau.addEventListener('change',function(){ s.reset(); });
+  q('restart').addEventListener('click',function(){ s.reset(); });
+  q('slow').addEventListener('click',function(){
+    s.slow=!s.slow; this.classList.toggle('toggled',s.slow); this.setAttribute('aria-pressed',String(s.slow));
+  });
+}
+// ================= FIGURE 7: three metrics =================
+function FigMetrics(){
+  var s=this, fig=document.getElementById('fig8');
+  s.fig=fig; s.active=false; s.c=fig.querySelector('canvas');
+  s.V=new Float64Array(N);
+  for(var i=0;i<N;i++){ var u=(XS[i]-5)/2.1; s.V[i]=0.9*Math.pow(u*u-1,2); }
+  shiftClamp(s.V,3.8);
+  s.T=0.40; s.W=makeWork();
+  s.a=new Float64Array(N); s.b=new Float64Array(N); s.c3=new Float64Array(N);
+  s.trk={L2:[],FR:[],W2:[]};
+  s.reset=function(){
+    [s.a,s.b,s.c3].forEach(function(r){
+      r.fill(0); var m=0;
+      for(var i=0;i<N;i++){ var u=(XS[i]-2.4)/0.9;
+        if(Math.abs(u)<1){ r[i]=Math.pow(1-u*u,2); m+=r[i]*DX; } }
+      for(i=0;i<N;i++) r[i]/=m;
+    });
+    s.trk={L2:[],FR:[],W2:[]}; s.t=0;
+  };
+  s.reset();
+  s.barrier=Math.round(N/2);
+  s.step=function(){
+    var dt=0.003, i, k;
+    for(k=0;k<5;k++){
+      var mu=new Float64Array(N);
+      for(i=0;i<N;i++) mu[i]=s.V[i]+s.T*(Math.log(Math.max(s.a[i],1e-6))+1);
+      var lam=0; for(i=0;i<N;i++) lam+=mu[i]/N;
+      for(i=0;i<N;i++) s.a[i]=Math.max(s.a[i]-dt*(mu[i]-lam),0);
+      var m1=0; for(i=0;i<N;i++) m1+=s.a[i]*DX;
+      for(i=0;i<N;i++) s.a[i]/=m1;
+      var mu2=new Float64Array(N), avg=0;
+      for(i=0;i<N;i++) mu2[i]=s.V[i]+s.T*(Math.log(Math.max(s.b[i],1e-300))+1);
+      for(i=0;i<N;i++) if(s.b[i]>0) avg+=s.b[i]*mu2[i]*DX;
+      for(i=0;i<N;i++) if(s.b[i]>0) s.b[i]=s.b[i]*Math.exp(-dt*(mu2[i]-avg));
+      var m2=0; for(i=0;i<N;i++) m2+=s.b[i]*DX;
+      for(i=0;i<N;i++) s.b[i]/=m2;
+      stepPDE(s.c3,s.V,s.T,dt,s.W);
+      s.t+=dt;
+    }
+    function right(r){ var m=0; for(var i=s.barrier;i<N;i++) m+=r[i]*DX; return m; }
+    s.trk.L2.push(right(s.a)); s.trk.FR.push(right(s.b)); s.trk.W2.push(right(s.c3));
+    if(s.trk.L2.length>900){ ['L2','FR','W2'].forEach(function(k){ s.trk[k]=s.trk[k].filter(function(_,i){return i%2===0;}); }); }
+  };
+  s.draw=function(){
+    var ctx=fit(s.c), w=s.c.clientWidth, h=s.c.clientHeight, pad=12;
+    ctx.clearRect(0,0,w,h);
+    var rowH=(h-96)/3, vmax=maxOf(s.V);
+    var rows=[[s.a,'L\u00b2  (teleports)','#b03a3a'],[s.b,'Fisher\u2013Rao  (reweights, never crosses)',GREEN],[s.c3,'Wasserstein = Fokker\u2013Planck  (transports)',BLUE]];
+    rows.forEach(function(r,k){
+      var y0=8+k*rowH, y1=y0+rowH-12;
+      var dmax=Math.max(maxOf(r[0]),0.35)*1.15;
+      var yOf=function(d){ return y1-(d/dmax)*(y1-y0-12); };
+      ctx.beginPath();
+      for(var i=0;i<N;i++){ var px=xpx(XS[i],w,pad), py=y1-(s.V[i]/vmax)*(y1-y0-14)*0.42;
+        i?ctx.lineTo(px,py):ctx.moveTo(px,py); }
+      ctx.strokeStyle='rgba(17,17,17,0.16)'; ctx.lineWidth=1; ctx.stroke();
+      var bx=xpx(5,w,pad);
+      ctx.setLineDash([2,3]); ctx.strokeStyle='rgba(17,17,17,0.18)';
+      ctx.beginPath(); ctx.moveTo(bx,y0); ctx.lineTo(bx,y1); ctx.stroke(); ctx.setLineDash([]);
+      curve(ctx,w,pad,r[0],yOf,N);
+      ctx.lineTo(xpx(X1,w,pad),y1); ctx.lineTo(xpx(X0,w,pad),y1); ctx.closePath();
+      ctx.fillStyle=r[2]+'22'; ctx.fill();
+      curve(ctx,w,pad,r[0],yOf,N); ctx.strokeStyle=r[2]; ctx.lineWidth=1.7; ctx.stroke();
+      ctx.strokeStyle=LINE; ctx.beginPath(); ctx.moveTo(pad,y1); ctx.lineTo(w-pad,y1); ctx.stroke();
+      lab(ctx,r[1],pad+3,y0+11,r[2]);
+    });
+    var gy0=h-80, gy1=h-16, gx0=40, gx1=w-14;
+    ctx.strokeStyle=LINE; ctx.beginPath();
+    ctx.moveTo(gx0,gy0); ctx.lineTo(gx0,gy1); ctx.lineTo(gx1,gy1); ctx.stroke();
+    lab(ctx,'mass past the barrier',gx0+4,gy0+11,INK);
+    lab(ctx,'0.5',12,gy0+4); lab(ctx,'0',22,gy1);
+    var n=s.trk.W2.length;
+    if(n>2){
+      [['L2','#b03a3a'],['FR',GREEN],['W2',BLUE]].forEach(function(z){
+        var arr=s.trk[z[0]];
+        ctx.beginPath();
+        for(var i=0;i<arr.length;i++){
+          var px=gx0+(i/(n-1))*(gx1-gx0), py=gy1-Math.min(arr[i]/0.5,1)*(gy1-gy0);
+          i?ctx.lineTo(px,py):ctx.moveTo(px,py);
+        }
+        ctx.strokeStyle=z[1]; ctx.lineWidth=1.6; ctx.stroke();
+      });
+    }
+    lab(ctx,'time \u2192',gx1-40,gy1+12);
+  };
+  var q=function(r){ return fig.querySelector('[data-role='+r+']'); };
+  q('restart').addEventListener('click',function(){ s.reset(); });
+  var tm=q('temp'), tv=q('tval');
+  tm.addEventListener('input',function(){ s.T=parseFloat(tm.value); tv.textContent=s.T.toFixed(2); });
+  tm.addEventListener('change',function(){ s.reset(); });
+}
+// ================= FIGURE 9: mean-field phase transition =================
+function FigPhase(){
+  var s=this, fig=document.getElementById('fig9');
+  s.fig=fig; s.active=false;
+  s.cL=fig.querySelector('canvas[data-role=left]'); s.cR=fig.querySelector('canvas[data-role=right]');
+  s.V0=buildPreset('double'); s.T=1.30; s.theta=0.30; s.W=makeWork();
+  s.rho=new Float64Array(N); s.Veff=new Float64Array(N); s.gibbs=new Float64Array(N);
+  s.mTrace=[];
+  s.reset=function(){
+    var m=0, i;
+    for(i=0;i<N;i++){ s.rho[i]=Math.exp(-Math.pow((XS[i]-5)/2.6,2))*(1+0.04*(Math.random()-0.5)); m+=s.rho[i]*DX; }
+    for(i=0;i<N;i++) s.rho[i]/=m;
+    s.mTrace=[];
+  };
+  s.reset();
+  s.selfCon=function(T,theta,m0){
+    var m=m0;
+    for(var it=0;it<150;it++){
+      var vmin=1e9, Z=0, acc=0, i;
+      var w=new Float64Array(N);
+      for(i=0;i<N;i++){ w[i]=s.V0[i]+0.5*theta*(XS[i]-m)*(XS[i]-m); if(w[i]<vmin) vmin=w[i]; }
+      for(i=0;i<N;i++){ var p=Math.exp(-(w[i]-vmin)/T); Z+=p*DX; acc+=XS[i]*p*DX; }
+      var mn=acc/Z;
+      if(Math.abs(mn-m)<1e-9){ m=mn; break; }
+      m=0.6*m+0.4*mn;
+    }
+    return m;
+  };
+  s.buildPitchfork=function(){
+    s.pf=[];
+    for(var k=0;k<64;k++){
+      var T=0.15+(1.6-0.15)*k/63;
+      s.pf.push([T, s.selfCon(T,s.theta,7.8)-5, s.selfCon(T,s.theta,2.2)-5]);
+    }
+  };
+  s.buildPitchfork();
+  s.step=function(){
+    for(var k=0;k<3;k++){
+      var m=0, i;
+      for(i=0;i<N;i++) m+=XS[i]*s.rho[i]*DX;
+      for(i=0;i<N;i++) s.Veff[i]=s.V0[i]+0.5*s.theta*(XS[i]-m)*(XS[i]-m);
+      stepPDE(s.rho,s.Veff,s.T,0.02,s.W);
+      s.m=m;
+    }
+    computeGibbs(s.Veff,s.T,s.gibbs);
+    s.mTrace.push(s.m-5);
+    if(s.mTrace.length>420) s.mTrace.shift();
+  };
+  s.draw=function(){
+    var ctx=fit(s.cL), w=s.cL.clientWidth, h=s.cL.clientHeight, pad=12;
+    ctx.clearRect(0,0,w,h);
+    var vmax=maxOf(s.Veff)||1;
+    ctx.beginPath();
+    for(var i=0;i<N;i++){ var px=xpx(XS[i],w,pad), py=10+(s.Veff[i]/vmax)*(h*0.26);
+      i?ctx.lineTo(px,py):ctx.moveTo(px,py); }
+    ctx.strokeStyle='rgba(17,17,17,0.3)'; ctx.lineWidth=1.2; ctx.stroke();
+    lab(ctx,'V + \u03b8(x\u2212m)\u00b2/2  (the landscape the crowd makes)',pad+3,12);
+    var dmax=Math.max(maxOf(s.rho),maxOf(s.gibbs),0.3)*1.12;
+    var yOf=function(d){ return h-40-(d/dmax)*(h-90); };
+    ctx.setLineDash([5,4]); curve(ctx,w,pad,s.gibbs,yOf,N);
+    ctx.strokeStyle=GRAY; ctx.lineWidth=1.2; ctx.stroke(); ctx.setLineDash([]);
+    curve(ctx,w,pad,s.rho,yOf,N);
+    ctx.lineTo(xpx(X1,w,pad),h-40); ctx.lineTo(xpx(X0,w,pad),h-40); ctx.closePath();
+    ctx.fillStyle='rgba(43,95,173,0.14)'; ctx.fill();
+    curve(ctx,w,pad,s.rho,yOf,N); ctx.strokeStyle=BLUE; ctx.lineWidth=1.9; ctx.stroke();
+    var mx=xpx(s.m,w,pad);
+    ctx.strokeStyle='#b03a3a'; ctx.lineWidth=1.4;
+    ctx.beginPath(); ctx.moveTo(mx,h-46); ctx.lineTo(mx,h-32); ctx.stroke();
+    lab(ctx,'m',mx-3,h-20,'#b03a3a');
+    lab(ctx,'order parameter  m \u2212 5 = '+(s.m-5).toFixed(3),pad+3,h-5,INK);
+    var c2=fit(s.cR), w2c=s.cR.clientWidth, h2=s.cR.clientHeight, P=34;
+    c2.clearRect(0,0,w2c,h2);
+    var px2=function(T){ return P+(T-0.15)/(1.6-0.15)*(w2c-P-10); };
+    var py2=function(m){ return h2/2 - m/2.6*(h2/2-16); };
+    c2.strokeStyle=LINE; c2.beginPath();
+    c2.moveTo(P,10); c2.lineTo(P,h2-20); c2.moveTo(P,py2(0)); c2.lineTo(w2c-10,py2(0)); c2.stroke();
+    [1,2].forEach(function(idx){
+      c2.beginPath();
+      for(var k=0;k<s.pf.length;k++){
+        var a=px2(s.pf[k][0]), b=py2(s.pf[k][idx]);
+        k?c2.lineTo(a,b):c2.moveTo(a,b);
+      }
+      c2.strokeStyle=BLUE; c2.lineWidth=1.8; c2.stroke();
+    });
+    c2.fillStyle='#b03a3a';
+    c2.beginPath(); c2.arc(px2(s.T),py2(s.m-5),4.5,0,6.29); c2.fill();
+    lab(c2,'m*',6,py2(2.2)); lab(c2,'0',22,py2(0)+4);
+    lab(c2,'T \u2192',w2c-32,h2-6);
+    lab(c2,'the pitchfork: equilibrium m* against temperature',P+4,14,INK);
+    lab(c2,'\u03b8 = '+s.theta.toFixed(2),w2c-70,28,INK);
+  };
+  var q=function(r){ return fig.querySelector('[data-role='+r+']'); };
+  var tm=q('temp'), tv=q('tval'), th=q('theta'), thv=q('thval');
+  tm.addEventListener('input',function(){ s.T=parseFloat(tm.value); tv.textContent=s.T.toFixed(2); });
+  th.addEventListener('input',function(){ s.theta=parseFloat(th.value); thv.textContent=s.theta.toFixed(2); });
+  th.addEventListener('change',function(){ s.buildPitchfork(); });
+  q('restart').addEventListener('click',function(){ s.reset(); });
+}
+// ================= FIGURE 10: 2D nonequilibrium steady state =================
+function FigNESS(){
+  var s=this, fig=document.getElementById('fig10');
+  s.fig=fig; s.active=false;
+  s.cL=fig.querySelector('canvas[data-role=left]'); s.cR=fig.querySelector('canvas[data-role=right]');
+  s.T=0.5; s.om=1.6; s.showJ=true;
+  s.a=1.0; s.b=2.5; s.L=2.4; s.NB=13;
+  s.M=1500;
+  s.mk=function(){
+    return {x:new Float64Array(s.M), y:new Float64Array(s.M),
+            jx:new Float64Array(s.NB*s.NB), jy:new Float64Array(s.NB*s.NB),
+            cnt:new Float64Array(s.NB*s.NB), vx:0.3, vy:0.3};
+  };
+  s.P=[s.mk(), s.mk()];
+  s.reset=function(){
+    s.P.forEach(function(p){
+      for(var k=0;k<s.M;k++){ p.x[k]=1.1+0.35*rnd(); p.y[k]=-0.9+0.35*rnd(); }
+      p.jx.fill(0); p.jy.fill(0); p.cnt.fill(0);
+    });
+  };
+  s.reset();
+  s.advance=function(p,om){
+    var dt=0.006, sg=Math.sqrt(2*s.T*dt), k, sub;
+    for(sub=0;sub<3;sub++){
+      for(k=0;k<s.M;k++){
+        var gx=s.a*p.x[k], gy=s.b*p.y[k];
+        var bx=-gx-om*gy, by=-gy+om*gx;
+        var nx=p.x[k]+bx*dt+sg*rnd(), ny=p.y[k]+by*dt+sg*rnd();
+        if(nx>s.L)nx=s.L; if(nx<-s.L)nx=-s.L;
+        if(ny>s.L)ny=s.L; if(ny<-s.L)ny=-s.L;
+        if(sub===2){
+          var bi=Math.floor((nx+s.L)/(2*s.L)*s.NB), bj=Math.floor((ny+s.L)/(2*s.L)*s.NB);
+          if(bi>=0&&bi<s.NB&&bj>=0&&bj<s.NB){
+            var id=bj*s.NB+bi;
+            p.jx[id]=p.jx[id]*0.99+0.01*bx; p.jy[id]=p.jy[id]*0.99+0.01*by;
+            p.cnt[id]=p.cnt[id]*0.99+0.01;
+          }
+        }
+        p.x[k]=nx; p.y[k]=ny;
+      }
+    }
+    var mx=0,my=0,vx=0,vy=0;
+    for(k=0;k<s.M;k++){ mx+=p.x[k]; my+=p.y[k]; }
+    mx/=s.M; my/=s.M;
+    for(k=0;k<s.M;k++){ vx+=(p.x[k]-mx)*(p.x[k]-mx); vy+=(p.y[k]-my)*(p.y[k]-my); }
+    p.vx=p.vx*0.97+0.03*vx/s.M; p.vy=p.vy*0.97+0.03*vy/s.M;
+    p.sig=0;
+    for(k=0;k<s.M;k++){ p.sig+=(om*om)*(s.b*s.b*p.y[k]*p.y[k]+s.a*s.a*p.x[k]*p.x[k]); }
+    p.sig=p.sig/s.M/s.T;
+  };
+  s.step=function(){ s.advance(s.P[0],0); s.advance(s.P[1],s.om); };
+  s.panel=function(c,p,om,title){
+    var ctx=fit(c), w=c.clientWidth, h=c.clientHeight;
+    ctx.clearRect(0,0,w,h);
+    var R=Math.min(w,h-34)/2-6, cx=w/2, cy=(h-24)/2+4;
+    var px=function(x){ return cx+x/s.L*R; }, py=function(y){ return cy-y/s.L*R; };
+    ctx.strokeStyle='rgba(17,17,17,0.12)'; ctx.lineWidth=1;
+    [0.5,1.0,1.6].forEach(function(lv){
+      ctx.beginPath();
+      ctx.ellipse(cx,cy,px(Math.sqrt(2*lv/s.a))-cx,cy-py(Math.sqrt(2*lv/s.b)),0,0,6.29);
+      ctx.stroke();
+    });
+    ctx.fillStyle='rgba(31,138,99,0.42)';
+    for(var k=0;k<s.M;k++) ctx.fillRect(px(p.x[k])-1.1,py(p.y[k])-1.1,2.2,2.2);
+    if(s.showJ){
+      for(var bj=0;bj<s.NB;bj++) for(var bi=0;bi<s.NB;bi++){
+        var id=bj*s.NB+bi;
+        if(p.cnt[id]<0.25) continue;
+        var wx=-s.L+(bi+0.5)*(2*s.L/s.NB), wy=-s.L+(bj+0.5)*(2*s.L/s.NB);
+        var ux=p.jx[id]/p.cnt[id], uy=p.jy[id]/p.cnt[id];
+        var mag=Math.hypot(ux,uy);
+        if(mag<0.08) continue;
+        var sc=Math.min(mag,3)/3*16;
+        var ex=px(wx)+ux/mag*sc, ey=py(wy)-uy/mag*sc;
+        ctx.strokeStyle='rgba(43,95,173,0.85)'; ctx.lineWidth=1.3;
+        ctx.beginPath(); ctx.moveTo(px(wx),py(wy)); ctx.lineTo(ex,ey); ctx.stroke();
+        var ang=Math.atan2(ey-py(wy),ex-px(wx));
+        ctx.fillStyle='rgba(43,95,173,0.85)';
+        ctx.beginPath(); ctx.moveTo(ex,ey);
+        ctx.lineTo(ex-5*Math.cos(ang-0.4),ey-5*Math.sin(ang-0.4));
+        ctx.lineTo(ex-5*Math.cos(ang+0.4),ey-5*Math.sin(ang+0.4));
+        ctx.closePath(); ctx.fill();
+      }
+    }
+    lab(ctx,title,8,14,INK);
+    lab(ctx,'Var(x) = '+p.vx.toFixed(3)+'   Var(y) = '+p.vy.toFixed(3),8,h-20,INK);
+    lab(ctx,'entropy production = '+p.sig.toFixed(2)+' / unit time',8,h-5, p.sig>0.01?'#b03a3a':GRAY);
+  };
+  s.draw=function(){
+    s.panel(s.cL,s.P[0],0,'\u03c9 = 0   (equilibrium)');
+    s.panel(s.cR,s.P[1],s.om,'\u03c9 = '+s.om.toFixed(2)+'   (steady, not equilibrium)');
+  };
+  var q=function(r){ return fig.querySelector('[data-role='+r+']'); };
+  var om=q('omega'), ov=q('oval'), tm=q('temp'), tv=q('tval');
+  om.addEventListener('input',function(){ s.om=parseFloat(om.value); ov.textContent=s.om.toFixed(2); });
+  tm.addEventListener('input',function(){ s.T=parseFloat(tm.value); tv.textContent=s.T.toFixed(2); });
+  q('restart').addEventListener('click',function(){ s.reset(); });
+  q('showj').addEventListener('click',function(){
+    s.showJ=!s.showJ; this.classList.toggle('toggled',s.showJ); this.setAttribute('aria-pressed',String(s.showJ));
+  });
+  q('showj').classList.add('toggled');
+}
+var sims2=[new FigGauss(), new FigRulers(), new FigJKO(), new FigMetrics(), new FigPhase(), new FigNESS()];
+var io2=new IntersectionObserver(function(es){
+  es.forEach(function(e){
+    sims2.forEach(function(s){ if(s.fig===e.target) s.active=e.isIntersecting; });
+  });
+},{threshold:0.02});
+sims2.forEach(function(s){ io2.observe(s.fig); });
+(function loop(){
+  if(!document.hidden) sims2.forEach(function(s){ if(s.active){ s.step(); s.draw(); } });
+  requestAnimationFrame(loop);
+})();
+})();
+</script>
+
 </body>
 </html>
