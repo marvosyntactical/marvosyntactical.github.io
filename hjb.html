@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Control is Inference</title>
+<script>
+window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},svg:{fontCache:'global'},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};
+</script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+<style>
+:root{
+  --ink:#111;--gray:#666;--line:#ddd;--blue:#2b5fad;--green:#1f8a63;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font-family:var(--serif);
+  font-size:19px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.measure{max-width:42rem;margin:0 auto;padding:0 1.25rem}
+p{margin:0 0 1.05em}
+a{color:var(--blue)}
+::selection{background:#dbe7f6}
+
+header{padding:4.5rem 1rem 1.2rem;text-align:center}
+.eyebrow{letter-spacing:.4em;font-size:.85rem;color:var(--gray);text-transform:uppercase;margin-bottom:.5rem}
+h1.title{font-weight:400;font-style:italic;margin:0;font-size:clamp(2.1rem,6vw,3.6rem);line-height:1.1}
+.hero-eq{margin:2rem 0 .4rem;font-size:clamp(1rem,2.5vw,1.4rem)}
+
+h2{font-weight:400;font-size:1.5rem;margin:3.4rem 0 .3rem;font-style:italic}
+h2 .no{font-style:normal;color:var(--gray);font-size:.8rem;letter-spacing:.22em;
+  text-transform:uppercase;display:block;margin-bottom:.45rem;font-family:var(--serif)}
+h3{font-weight:400;font-style:italic;font-size:1.13rem;margin:2.2rem 0 .6rem;color:#333}
+hr{border:0;border-top:1px solid var(--line);max-width:42rem;margin:3rem auto}
+mjx-container[jax="SVG"][display="true"]{margin:1.25em 0!important;overflow-x:auto;overflow-y:hidden;padding:2px 0}
+
+/* ---- gwern-style expandable notes ---- */
+.pop{
+  font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;
+  border-bottom:1px solid #9db8dd;text-decoration:none;line-height:inherit;
+}
+.pop:hover{border-bottom-color:var(--blue);background:#f0f5fb}
+.pop::after{content:"\2009\25B8";font-size:.68em;color:var(--blue);vertical-align:.12em}
+.pop[aria-expanded=true]::after{content:"\2009\25BE"}
+.pop[aria-expanded=true]{background:#f0f5fb;border-bottom-color:var(--blue)}
+.popbody{
+  display:none;margin:1.1em 0 1.4em;padding:.85em 1.1em .3em;
+  border-left:2px solid var(--blue);background:#f7f9fc;
+  font-size:.93rem;line-height:1.58;
+}
+.popbody.open{display:block}
+.popbody .ttl{font-style:italic;color:var(--blue);font-size:.8rem;letter-spacing:.1em;
+  text-transform:uppercase;display:block;margin-bottom:.5em}
+.popbody p{margin:0 0 .8em}
+.popbody mjx-container[jax="SVG"][display="true"]{margin:.85em 0!important}
+
+/* ---- figures ---- */
+figure.sim{max-width:54rem;margin:2.2rem auto;padding:0 1.25rem}
+.sim-frame{border:1px solid var(--line);border-radius:3px;background:#fff;padding:10px}
+.sim-frame canvas{display:block;width:100%;touch-action:none}
+.sim-frame .split{display:flex;gap:10px}
+.sim-frame .split>div{flex:1;min-width:0}
+@media (max-width:760px){.sim-frame .split{flex-direction:column}}
+figcaption{font-size:.85rem;color:var(--gray);margin-top:.6rem;line-height:1.5}
+figcaption .figno{font-style:italic}
+.controls{display:flex;flex-wrap:wrap;gap:.8rem 1.5rem;align-items:center;margin-top:.8rem;font-size:.9rem}
+.controls label{color:var(--gray);font-size:.82rem;letter-spacing:.05em;margin-right:.4em}
+button.ui{font-family:var(--serif);font-size:.88rem;background:#fff;border:1px solid var(--ink);
+  color:var(--ink);padding:.3rem .9rem;cursor:pointer;border-radius:2px}
+button.ui:hover{background:var(--ink);color:#fff}
+button.ui.toggled{background:var(--blue);border-color:var(--blue);color:#fff}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+select{font-family:var(--serif);font-size:.9rem;border:1px solid var(--line);padding:.28rem .45rem;background:#fff;border-radius:2px}
+input[type=range]{accent-color:var(--blue);width:150px;vertical-align:middle}
+.readout{font-style:italic;color:var(--gray);min-width:3.2em;display:inline-block}
+.fig-note{font-style:italic;color:#444;font-size:.92rem;margin-top:.7rem;
+  border-left:2px solid var(--green);padding-left:.8rem;min-height:2.4em;transition:opacity .25s}
+.fig-note.dim{opacity:0}
+.legend{display:inline-flex;gap:1em;flex-wrap:wrap}
+.legend span{white-space:nowrap}
+.sw{display:inline-block;width:1.4em;height:0;border-top:2px solid;vertical-align:middle;margin-right:.3em}
+footer{height:4rem}
+</style>
+
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">an ode, continued</div>
+  <h1 class="title">Control is Inference</h1>
+  <div class="hero-eq">$$V(x,t) \;=\; -\,\lambda\,\log \psi(x,t)$$</div>
+</header>
+
+<section>
+  <div class="measure">
+    <p>In <a href="fpe.html">the previous essay</a> we spent a long time with the Fokker–Planck equation, the law obeyed by the probability density of anything that drifts and jitters, and we ended on a theorem: diffusion is the steepest descent of a free energy, in the geometry of optimal transport. That essay was about <em>prediction</em>. Given where the crowd is now, where will it be?</p>
+    <p>This essay is about the other question, the one engineers and animals actually care about: given where I want to <em>end up</em>, what should I <em>do</em>? That is a control problem, and control problems are governed by an equation we have not met, the Hamilton–Jacobi–Bellman equation, which is nonlinear, backward in time, and famously hard. The line above the title says what this essay will prove about it: for a large and natural class of problems, one logarithm turns the hard nonlinear equation of <em>wanting</em> into the easy linear equation of <em>expecting</em>. Solving for the optimal action becomes computing a conditional expectation. Planning becomes inference.</p>
+    <p>That slogan gets said often and vaguely. Our job is to earn it: to state exactly which problems it holds for, to derive the transform in full, to watch it run, and to name the price. Along the way the main characters of the previous essay will keep walking on stage uninvited: the score \(\nabla\log\) of something will turn out to be the optimal action, the value function will turn out to be a free energy \(-\lambda\log Z\), and the optimal policy will turn out to be a Boltzmann distribution. As before, underlined terms expand into derivations and definitions, and the figures are the argument.</p>
+  </div>
+</section>
+
+<hr>
+
+<section>
+  <div class="measure">
+    <h2><span class="no">Part I</span>The other Kolmogorov equation</h2>
+    <p>We need one recap and one new object. The recap: our system is the Langevin diffusion \(\mathrm dX_t = b(X_t)\,\mathrm dt + \sqrt{2T}\,\mathrm dW_t\), with drift \(b=-\nabla V\), and everything about it is encoded in its
+      <button class="pop" data-target="pp-gen" aria-expanded="false">generator</button></p>
+    <div class="popbody" id="pp-gen"><span class="ttl">the generator, recapped</span>
+      <p>For a Markov process, \((\mathcal L\varphi)(x) = \lim_{s\downarrow 0}\frac{\mathbb E_x[\varphi(X_s)]-\varphi(x)}{s}\): the instantaneous rate of change of the expectation of an observable \(\varphi\), started at \(x\). For our diffusion, Itô's lemma gave \(\mathcal L = b\cdot\nabla + T\Delta\). The generator determines the process completely; every question below is a question about this one operator.</p>
+      <p>In the previous essay we used its <em>adjoint</em>: probability densities evolve by \(\partial_t\rho = \mathcal L^{*}\rho\), and writing \(\mathcal L^{*}\) out is the Fokker–Planck equation. Kolmogorov called that the <em>forward</em> equation, because it evolves the present forward. The name implies a sibling.</p>
+    </div>
+    <p>$$\mathcal L \;=\; b\cdot\nabla \;+\; T\,\Delta,$$</p>
+    <p>the operator whose adjoint drives the Fokker–Planck equation. We called Fokker–Planck by its probabilist's name once, Kolmogorov's <em>forward</em> equation, and moved on. The name was a loaded gun. Forward of what? There is a backward equation, it is the one this essay lives in, and it answers a different kind of question.</p>
+    <p>Fix a future time \(T_{\!f}\) and a payoff \(\Phi\) to be evaluated then, and define</p>
+    <p>$$u(x,t) \;=\; \mathbb E\big[\,\Phi(X_{T_{\!f}}) \,\big|\, X_t = x\,\big],$$</p>
+    <p>the expected payoff <em>given that we stand at \(x\) at time \(t\)</em>. This is a function of the present, about the future. A short
+      <button class="pop" data-target="pp-kbe" aria-expanded="false">tower-property argument</button> shows it satisfies the <em>Kolmogorov backward equation</em>,</p>
+    <div class="popbody" id="pp-kbe"><span class="ttl">deriving the backward equation</span>
+      <p>Condition on the first instant. Standing at \(x\) at time \(t\), the process spends \(\mathrm ds\) diffusing to \(X_{t+\mathrm ds}\), after which the expected payoff is \(u(X_{t+\mathrm ds}, t+\mathrm ds)\). The tower property of conditional expectation says these must agree:</p>
+      <p>$$u(x,t) \;=\; \mathbb E_x\big[u(X_{t+\mathrm ds},\, t+\mathrm ds)\big].$$</p>
+      <p>Expand the right side to first order: the time argument contributes \(\partial_t u\,\mathrm ds\), and the space argument contributes \(\mathbb E_x[u(X_{t+\mathrm ds},t)] - u(x,t) = (\mathcal Lu)\,\mathrm ds\), by the definition of the generator. The zeroth-order terms cancel, and what remains is \(\partial_t u + \mathcal Lu = 0\).</p>
+      <p>Note the logical difference from the forward derivation. There, we pushed a density through time and needed the adjoint. Here the generator acts <em>directly</em>, no integration by parts, no adjoint: the backward equation is the generator's native habitat, and Fokker–Planck is its mirror image.</p>
+    </div>
+    <p>$$\frac{\partial u}{\partial t} \;+\; \mathcal L u \;=\; 0, \qquad u(x, T_{\!f}) = \Phi(x),$$</p>
+    <p>with the data given at the <em>end</em> and the equation solved toward the present. The two Kolmogorov equations are exact duals: the forward one evolves <em>what is</em> (a density, flowing out of the past), the backward one evolves <em>what to expect</em> (a value, flowing out of the future), and the pairing between them,
+      <button class="pop" data-target="pp-dual" aria-expanded="false">\(\int u(x,t)\,\rho(x,t)\,\mathrm dx\)</button>, is constant in time, because it equals the one number both equations are bookkeeping for: \(\mathbb E[\Phi(X_{T_{\!f}})]\). The first figure puts this conservation law on screen, and it is worth a minute of scrubbing to feel how strange and clean it is: two curves, moving in opposite temporal directions for opposite reasons, whose overlap never moves.</p>
+    <div class="popbody" id="pp-dual"><span class="ttl">the duality, in two lines</span>
+      <p>Differentiate the pairing and substitute both equations:</p>
+      <p>$$\frac{\mathrm d}{\mathrm dt}\!\int u\,\rho \;=\; \int (\partial_t u)\,\rho + \int u\,(\partial_t\rho) \;=\; -\!\int (\mathcal Lu)\,\rho + \int u\,(\mathcal L^{*}\rho) \;=\; 0,$$</p>
+      <p>the last step being the definition of the adjoint. Probabilistically the constant is obvious: \(\int u(x,t)\rho(x,t)\,\mathrm dx = \mathbb E\big[\mathbb E[\Phi(X_{T_f})|X_t]\big] = \mathbb E[\Phi(X_{T_f})]\), which does not depend on the intermediate time \(t\) we chose to condition at. The tower property, drawn as a conservation law.</p>
+      <p>In the figure, the discretization is chosen so this holds to machine precision: the backward solver is the exact matrix transpose of the forward solver from the previous essay. Duality is not approximated; it is inherited.</p>
+    </div>
+  </div>
+
+  <figure class="sim" id="fig1">
+    <div class="sim-frame"><canvas height="330"></canvas></div>
+    <div class="controls">
+      <button class="ui" data-role="draw" aria-pressed="true">draw the payoff &Phi;</button>
+      <span><label>time</label><input type="range" data-role="tcur" min="0" max="1" step="0.002" value="0"><span class="readout" data-role="tlab">0.00</span></span>
+      <button class="ui" data-role="play" aria-pressed="true">pause</button>
+      <span><label>temperature T</label><input type="range" data-role="temp" min="0.1" max="1.2" step="0.01" value="0.4"><span class="readout" data-role="tval">0.40</span></span>
+      <span class="legend"><span><i class="sw" style="border-color:#2b5fad"></i>\(\rho(x,t)\) forward</span>
+      <span><i class="sw" style="border-color:#1f8a63"></i>\(u(x,t)\) backward</span></span>
+    </div>
+    <p class="fig-note" data-role="note">The blue density flows out of the past; the green expectation flows out of the future, from the payoff you draw. Scrub time and watch the readout: the overlap \(\int u\rho\) does not move, to thirteen decimal places, because both curves are accounts of the same number.</p>
+    <figcaption><span class="figno">Figure 1.</span> The two Kolmogorov equations, meeting in the middle. What is, and what to expect.</figcaption>
+  </figure>
+
+  <div class="measure">
+    <p>Before control enters, take stock of how much the backward equation already owns. Any question of the form "starting from here, what is the expected value of something later" is a backward equation: hitting probabilities, expected exit times, ruin probabilities, and the
+      <button class="pop" data-target="pp-fk" aria-expanded="false">Feynman–Kac formula</button>, which extends it to payoffs accumulated <em>along the way</em> and is, among other things, how options are priced (the Black–Scholes equation is a Kolmogorov backward equation in light disguise) and how quantum mechanics in imaginary time becomes a statement about Brownian paths. The forward equation of the previous essay told us what the world does. The backward equation is the natural home of every question about consequences, and consequences are what control is made of.</p>
+    <div class="popbody" id="pp-fk"><span class="ttl">Feynman–Kac</span>
+      <p>Add a running rate: let \(q(x)\ge 0\) be a cost accrued per unit time, and define</p>
+      <p>$$\psi(x,t) \;=\; \mathbb E\Big[\, e^{-\frac{1}{\lambda}\int_t^{T_f} q(X_s)\,\mathrm ds}\; e^{-\frac{1}{\lambda}\Phi(X_{T_f})} \,\Big|\, X_t=x \Big].$$</p>
+      <p>The same tower argument as before, with one extra factor of \(e^{-q\,\mathrm ds/\lambda}\approx 1 - q\,\mathrm ds/\lambda\) peeled off, gives</p>
+      <p>$$\partial_t \psi + \mathcal L\psi \;=\; \tfrac{q}{\lambda}\,\psi,$$</p>
+      <p>a backward equation with a killing term: paths pay rent \(q\) for the territory they occupy, and the expectation discounts them accordingly. Read in the other direction, this is the miracle the formula is famous for: the linear PDE on the left is <em>solved</em> by the path average on the right. Kac proved it after hearing Feynman lecture on path integrals; the imaginary-time Schrödinger equation is exactly this, with \(q\) the potential.</p>
+      <p>File the exact shape of this expression away. An exponential of a negated, accumulated cost, averaged over paths: we are going to meet it again as the solution of a control problem, and the whole essay turns on that meeting.</p>
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<section>
+  <div class="measure">
+    <h2><span class="no">Part II</span>Wanting things</h2>
+    <p>Now we stop spectating. Give the particle a motor: a control \(u_t\) we choose, added to the drift,</p>
+    <p>$$\mathrm dX_t \;=\; \big(b(X_t) + u_t\big)\,\mathrm dt \;+\; \sqrt{2T}\,\mathrm dW_t.$$</p>
+    <p>The noise stays; we do not get to switch off the weather, only to steer through it. And steering is priced. We fix a horizon \(T_{\!f}\), a terminal cost \(\Phi(x)\) saying where we would like to end up (low at the target), a running cost \(q(x)\ge0\) saying where we would rather not linger, and a quadratic price on effort. The problem is to choose the control policy minimizing the expected total,</p>
+    <p>$$C(x,t;u) \;=\; \mathbb E\Big[\, \Phi(X_{T_f}) \;+\; \int_t^{T_f}\Big( q(X_s) + \tfrac{\alpha}{2}\,|u_s|^2 \Big)\mathrm ds \,\Big|\, X_t = x\Big],$$</p>
+    <p>and the central object is the <em>value function</em> \(V(x,t) = \min_u C(x,t;u)\): the cost of the future, assuming we play it perfectly from here. (The clash of symbols with the landscape \(V\) of the previous essay is a century-old tradition; context will keep them apart, and the landscape mostly appears as the drift \(b=-\nabla V\).) The value function satisfies a PDE, by the same stand-at-the-first-instant argument that gave us the backward equation, upgraded with a decision:
+      <button class="pop" data-target="pp-dpp" aria-expanded="false">Bellman's principle</button> says that acting optimally over \([t,T_f]\) means acting optimally for one instant and then acting optimally from wherever that leaves us. Carrying out the expansion yields the
+      <button class="pop" data-target="pp-hjb" aria-expanded="false">Hamilton–Jacobi–Bellman equation</button>:</p>
+    <div class="popbody" id="pp-dpp"><span class="ttl">the dynamic programming principle</span>
+      <p>For any small \(\mathrm ds\),</p>
+      <p>$$V(x,t) \;=\; \min_{u}\;\mathbb E_x\Big[\big(q(x)+\tfrac{\alpha}{2}|u|^2\big)\mathrm ds \;+\; V\big(X_{t+\mathrm ds},\,t+\mathrm ds\big)\Big],$$</p>
+      <p>where the minimum is over the action taken during the instant. The claim is that no strategy can beat "pay for one step, then be optimal": if a better full strategy existed, its restriction past \(t+\mathrm ds\) would beat the optimal continuation, a contradiction. This innocuous-looking recursion is the entire method; every Bellman equation in reinforcement learning is a discrete-time instance of it.</p>
+      <p>Its power has a famous price, named by Bellman himself: to <em>use</em> the recursion one must know \(V\) everywhere the next state might land, so the state space must be represented in full. In dimension one, a grid of 240 cells; in dimension fifty, more cells than atoms. He called it the curse of dimensionality, and it is why exact dynamic programming is a 1D-and-toy-problems luxury, and why the reformulation of Part IV, which replaces the grid with sampled paths, is more than an aesthetic preference.</p>
+    </div>
+    <div class="popbody" id="pp-hjb"><span class="ttl">from Bellman's principle to the PDE</span>
+      <p>Expand \(\mathbb E_x[V(X_{t+\mathrm ds}, t+\mathrm ds)]\) to first order. The time argument gives \(\partial_t V\,\mathrm ds\). The space argument moves under the <em>controlled</em> generator, drift \(b+u\), so it gives \((b+u)\cdot\nabla V\,\mathrm ds + T\Delta V\,\mathrm ds\). Insert, cancel \(V(x,t)\), divide by \(\mathrm ds\):</p>
+      <p>$$-\partial_t V \;=\; \min_u\Big\{\, q + \tfrac{\alpha}{2}|u|^2 + (b+u)\cdot\nabla V \,\Big\} + T\,\Delta V .$$</p>
+      <p>The bracket is quadratic in \(u\), so the minimum is explicit: \(u^{*} = -\nabla V/\alpha\), the control pointing straight down the value landscape, harder when the slope is steeper and cheaper effort permits. Substituting it back turns \(\min_u\{\cdot\}\) into \(q + b\cdot\nabla V - \tfrac{1}{2\alpha}|\nabla V|^2\) and yields the boxed equation.</p>
+      <p>One honesty flag: value functions of degenerate or constrained problems can fail to be differentiable, and the modern meaning of "solves HJB" is the theory of <em>viscosity solutions</em> (Crandall–Lions), which makes everything above rigorous without smoothness. Our \(T>0\) diffusion smooths \(V\) enough that we will not need it, but the term is worth knowing: it is where the subject's analytic depth lives.</p>
+    </div>
+    <p>$$\boxed{\;-\,\frac{\partial V}{\partial t} \;=\; q \;+\; b\cdot\nabla V \;+\; T\,\Delta V \;-\; \frac{1}{2\alpha}\,\big|\nabla V\big|^{2}\;}\qquad V(x,T_f)=\Phi(x),$$</p>
+    <p>with the optimal control read off as \(u^{*} = -\nabla V/\alpha\): descend the value function, exactly as a passive particle descends the energy landscape. Compare this equation to the backward equation of Part I, term by term. Three of the four terms on the right are literally \(\mathcal LV + q\): the backward operator, plus rent. Wanting has added exactly one term, \(-|\nabla V|^2/2\alpha\), and that term ruins everything. It is nonlinear, so solutions do not superpose, Monte Carlo path averages no longer represent them, and the clean duality of Figure 1 is gone. One quadratic term separates expecting from wanting, and it separates a nineteenth-century linear theory from a twentieth-century nonlinear one.</p>
+    <p>Unless it can be made to disappear.</p>
+  </div>
+</section>
+
+<hr>
+
+<section>
+  <div class="measure">
+    <h2><span class="no">Part III</span>The logarithm that linearizes</h2>
+    <p>Here is the observation the essay is named after. In the previous essay, exponentials of things kept turning nonlinear objects into linear ones: the Boltzmann distribution \(e^{-V/T}\) solved a flux balance, and \(F=-T\log Z\) turned products into sums. Try the same move on the value function. Pick a constant \(\lambda>0\), to be fixed shortly, and substitute</p>
+    <p>$$V(x,t) \;=\; -\,\lambda\,\log\psi(x,t)$$</p>
+    <p>into the HJB equation.
+      <button class="pop" data-target="pp-hopf" aria-expanded="false">Carrying out the computation</button>, two second-order terms appear with \(|\nabla\psi|^2/\psi^2\) in them: one from the diffusion acting on the logarithm, one from the nonlinearity. They have opposite signs, and they cancel <em>identically</em> if and only if</p>
+    <div class="popbody" id="pp-hopf"><span class="ttl">the Hopf–Cole substitution, in full</span>
+      <p>From \(V=-\lambda\log\psi\): \(\;\partial_t V = -\lambda\,\partial_t\psi/\psi\), \(\;\nabla V = -\lambda\,\nabla\psi/\psi\), and</p>
+      <p>$$\Delta V \;=\; -\lambda\,\frac{\Delta\psi}{\psi} \;+\; \lambda\,\frac{|\nabla\psi|^2}{\psi^2}.$$</p>
+      <p>Substitute into \(-\partial_t V = q + b\cdot\nabla V + T\Delta V - \frac{1}{2\alpha}|\nabla V|^2\):</p>
+      <p>$$\lambda\frac{\partial_t\psi}{\psi} \;=\; q \;-\;\lambda\, b\cdot\frac{\nabla\psi}{\psi} \;-\;\lambda T\frac{\Delta\psi}{\psi} \;+\;\underbrace{\lambda T\,\frac{|\nabla\psi|^2}{\psi^2} \;-\; \frac{\lambda^2}{2\alpha}\frac{|\nabla\psi|^2}{\psi^2}}_{\text{cancels iff } \lambda = 2\alpha T}.$$</p>
+      <p>With \(\lambda=2\alpha T\), multiply through by \(-\psi/\lambda\):</p>
+      <p>$$\partial_t\psi \;+\; b\cdot\nabla\psi \;+\; T\Delta\psi \;=\; \frac{q}{\lambda}\,\psi,$$</p>
+      <p>which is \(\partial_t\psi + \mathcal L\psi = \frac{q}{\lambda}\psi\): the Feynman–Kac equation of Part I, verbatim, for the <em>uncontrolled</em> generator. The substitution is due to Hopf and Cole (who used it on Burgers' equation, which is what HJB becomes in one dimension with \(q=0\)); its use in control runs through Fleming, Holland, and, in the form presented here, Kappen's path-integral control and Todorov's linearly solvable MDPs.</p>
+    </div>
+    <p>$$\lambda \;=\; 2\,\alpha\, T .$$</p>
+    <p>Pause on what this condition says before enjoying what it buys. \(\alpha\) is the price of effort; \(T\) is the violence of the noise; the transform exists when the temperature of your uncertainty and the cost of your actions are locked to one another, channel by channel. In several dimensions the condition reads \(\alpha^{-1} \propto \Sigma\): <em>you can only be cheaply clever in the directions nature is already noisy in</em>. Where the wind blows, steering is affordable; in directions the noise never explores, control is priced out of the theory. This is the fine print under everything that follows, and we will return to it in the coda. Grant it, and the reward is total: with \(\lambda = 2\alpha T\), the HJB equation becomes, exactly,</p>
+    <p>$$\frac{\partial \psi}{\partial t} \;+\; \mathcal L\,\psi \;=\; \frac{q}{\lambda}\,\psi,\qquad \psi(x,T_f) = e^{-\Phi(x)/\lambda},$$</p>
+    <p>which is the Feynman–Kac equation from Part I, for the <em>passive</em> dynamics, with the costs demoted to a killing rate. The nonlinearity is gone. The equation of wanting was the equation of expecting all along, wearing a logarithm. The function \(\psi\), called the <em>desirability</em>, is a plain conditional expectation over uncontrolled paths, and the optimal control comes out as</p>
+    <p>$$u^{*}(x,t) \;=\; -\frac{\nabla V}{\alpha} \;=\; 2T\,\nabla \log \psi(x,t).$$</p>
+    <p>Look at that formula. In the previous essay, \(2T\)-scaled gradients of log-densities were the <em>score</em>, the velocity field along which diffusion transports probability, the thing generative models learn. Here the identical object reappears with a new meaning: <em>the optimal action is the score of the desirability</em>. Acting well is flowing up the gradient of the log-probability of a good future. The figure below solves the linear equation and lets the resulting controller drive.</p>
+  </div>
+
+  <figure class="sim" id="fig2">
+    <div class="sim-frame"><canvas height="360"></canvas></div>
+    <div class="controls">
+      <button class="ui" data-role="draw" aria-pressed="true">paint running cost q</button>
+      <button class="ui" data-role="clearq">clear q</button>
+      <span><label>control temperature &lambda;</label><input type="range" data-role="lam" min="0.15" max="2.5" step="0.01" value="0.8"><span class="readout" data-role="lval">0.80</span></span>
+      <button class="ui" data-role="reseed">re-seed</button>
+      <span class="legend"><span><i class="sw" style="border-color:#1f8a63"></i>controlled</span>
+      <span><i class="sw" style="border-color:#999"></i>passive</span>
+      <span><i class="sw" style="border-color:#2b5fad"></i>value \(V=-\lambda\log\psi\)</span></span>
+    </div>
+    <p class="fig-note" data-role="note">The target is the slot on the right; paint penalty zones anywhere and the linear equation re-solves instantly. The blue value function rolls in backward from the horizon, the arrows are its downhill direction \(u^*=2T\nabla\log\psi\), and the green crowd is driven by them while the grey crowd drifts. Lower \(\lambda\) to make effort cheap and the steering turns vicious.</p>
+    <figcaption><span class="figno">Figure 2.</span> A controller obtained without ever touching a nonlinear equation. The arrows are a score.</figcaption>
+  </figure>
+
+  <div class="measure">
+    <p>Two things are worth trying. Paint a wall of running cost between the start and the target and watch the value function route the crowd around it, discovering a detour nobody programmed. Then slide \(\lambda\). Since \(\lambda=2\alpha T\) at fixed noise, sliding it is repricing effort: small \(\lambda\) buys sharp, nearly deterministic steering toward the exact slot; large \(\lambda\) buys a lazy controller content to nudge. The slider will matter again in a moment, because \(\lambda\) is about to become a temperature in the statistical-mechanics sense, and "lazy versus sharp" is about to become "hot versus cold".</p>
+  </div>
+</section>
+
+<hr>
+
+<section>
+  <div class="measure">
+    <h2><span class="no">Part IV</span>Planning by reweighting futures</h2>
+    <p>The transform did more than linearize a PDE. Feynman–Kac says the linear equation's solution <em>is</em> a path average, so we can write the desirability with no PDE at all:</p>
+    <p>$$\psi(x,t) \;=\; \mathbb E_{\text{passive}}\Big[\, \exp\Big(\!-\tfrac{1}{\lambda}\Big[\Phi(X_{T_f}) + \!\int_t^{T_f}\! q(X_s)\,\mathrm ds\Big]\Big) \,\Big|\, X_t = x\Big],$$</p>
+    <p>an average over <em>uncontrolled</em> futures, each weighted by the exponential of its own badness. And the corresponding statement upstairs, at the level of whole trajectories, is the theorem that gives this essay its name in practice: the <em>optimally controlled process is the passive process, reweighted</em>. Precisely, the probability the optimal controller assigns to a path \(\tau\) is</p>
+    <p>$$p^{*}(\tau) \;=\; \frac{1}{Z}\; p_{\text{passive}}(\tau)\; e^{-\,\mathrm{cost}(\tau)/\lambda},$$</p>
+    <p>a
+      <button class="pop" data-target="pp-gibbspath" aria-expanded="false">Boltzmann distribution over futures</button>, with the path cost as energy and \(\lambda\) as temperature. Planning, in this class of problems, is therefore an algorithm anyone can implement in ten lines: dream a bundle of ordinary, uncontrolled futures; grade each one; keep them all, weighted by \(e^{-\mathrm{cost}/\lambda}\); act as the weighted ensemble does. No equation is solved. The figure does exactly this, next to the exact answer.</p>
+    <div class="popbody" id="pp-gibbspath"><span class="ttl">why the optimal path measure is a reweighting</span>
+      <p>Girsanov's theorem prices a change of drift: steering with \(u\) instead of drifting costs, in log-likelihood, \(\frac{1}{4T}\int |u|^2\,\mathrm dt\) (heuristically: each instant, a Gaussian increment of variance \(2T\,\mathrm dt\) must be displaced by \(u\,\mathrm dt\)). So for any controlled path law \(p_u\),</p>
+      <p>$$\mathrm{KL}\big(p_u \,\|\, p_{\text{passive}}\big) \;=\; \mathbb E_{p_u}\Big[\tfrac{1}{4T}\!\int |u|^2\,\mathrm dt\Big] \;=\; \frac{1}{\lambda}\,\mathbb E_{p_u}\Big[\tfrac{\alpha}{2}\!\int |u|^2\,\mathrm dt\Big],$$</p>
+      <p>using \(\lambda=2\alpha T\): <em>the control-effort cost is \(\lambda\) times a KL divergence</em>. The whole objective becomes</p>
+      <p>$$\mathbb E_{p_u}\big[\Phi + \textstyle\int q\big] \;+\; \lambda\,\mathrm{KL}\big(p_u\|p_{\text{passive}}\big),$$</p>
+      <p>an expected state-cost plus an entropic penalty for disagreeing with nature. Minimizing an expression of the form \(\mathbb E_p[\mathcal E] + \lambda\,\mathrm{KL}(p\|p_0)\) over all distributions is a problem the previous essay solved twice: the minimizer is the tilted distribution \(p^* \propto p_0\,e^{-\mathcal E/\lambda}\), and the minimal value is a free energy, \(-\lambda\log \mathbb E_{p_0}[e^{-\mathcal E/\lambda}]\). Applied to path space, that minimizer is the boxed reweighting, and that free energy is exactly \(V = -\lambda\log\psi\). The value function of optimal control <em>is</em> the Helmholtz free energy of a Boltzmann distribution over futures. The hero equations of the two essays are the same equation.</p>
+    </div>
+  </div>
+
+  <figure class="sim" id="fig3">
+    <div class="sim-frame"><canvas height="360"></canvas></div>
+    <div class="controls">
+      <span><label>control temperature &lambda;</label><input type="range" data-role="lam" min="0.15" max="2.5" step="0.01" value="0.7"><span class="readout" data-role="lval">0.70</span></span>
+      <button class="ui" data-role="redraw">dream new futures</button>
+      <span class="legend"><span><i class="sw" style="border-color:#999"></i>dreamed futures (opacity = weight)</span>
+      <span><i class="sw" style="border-color:#1f8a63;border-top-style:dashed"></i>their weighted mean</span>
+      <span><i class="sw" style="border-color:#2b5fad"></i>exact optimal mean</span></span>
+    </div>
+    <p class="fig-note" data-role="note">Three hundred passive rollouts through the double well, each drawn with opacity proportional to its Boltzmann weight \(e^{-\mathrm{cost}/\lambda}\). Most dreams are worthless and vanish; the few that cross the barrier carry the plan. The dashed green mean of the surviving dreams lies on top of the blue exact answer, and the ESS readout counts how many dreams are actually doing the work.</p>
+    <figcaption><span class="figno">Figure 3.</span> Planning as importance sampling of futures. This algorithm, with a receding horizon, drives real robots under the name MPPI.</figcaption>
+  </figure>
+
+  <div class="measure">
+    <p>Watch the
+      <button class="pop" data-target="pp-ess" aria-expanded="false">effective sample size</button> as you cool \(\lambda\). At high temperature every dreamed future contributes and the plan is mush. At low temperature the plan sharpens, but the weight concentrates onto a handful of paths, then onto one, and the estimate is balanced on a single lucky rollout. This is the practical Achilles' heel of the whole path-integral method, visible here as fading spaghetti: the variance of importance sampling explodes exactly when you most want precision. It is also, from the right angle, the rare-event problem of the previous essay's Kramers section, since the good futures are barrier crossings, and those are exponentially rare dreams.</p>
+    <div class="popbody" id="pp-ess"><span class="ttl">effective sample size</span>
+      <p>With normalized weights \(w_i\), \(\mathrm{ESS} = 1/\sum_i w_i^2\): it equals \(K\) when all \(K\) weights are uniform and \(1\) when one weight is everything. It is the standard diagnostic of importance sampling, and its collapse at low \(\lambda\) is not a numerical accident: the weights are \(e^{-\mathrm{cost}/\lambda}\), so their variance grows exponentially as \(\lambda\to 0\). Practical systems fight this with receding horizons (replan every few steps so errors cannot compound), by sampling around the previous plan instead of the passive dynamics, and by annealing \(\lambda\). All three tricks are visible in the MPPI literature, and all three are importance-sampling hygiene, which is the correct way to think about them.</p>
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<section>
+  <div class="measure">
+    <h2><span class="no">Part V</span>Control is inference, exactly</h2>
+    <p>Everything is now on the table for the slogan to become a theorem. Here is the inference problem. Take the <em>passive</em> dynamics as a prior over trajectories. Introduce a binary random variable \(\mathcal O\), read "things went well", whose likelihood given a trajectory is</p>
+    <p>$$p(\mathcal O = 1 \mid \tau) \;=\; \exp\big(-\,\mathrm{cost}(\tau)/\lambda\big),$$</p>
+    <p>so that cheap trajectories are likely to have gone well. Now do Bayes on path space: the posterior over trajectories given that things went well is prior times likelihood over evidence, which is</p>
+    <p>$$p(\tau \mid \mathcal O=1) \;=\; \frac{p_{\text{passive}}(\tau)\, e^{-\mathrm{cost}(\tau)/\lambda}}{Z} \;=\; p^{*}(\tau),$$</p>
+    <p>the optimal control law of Part IV, symbol for symbol. The controller of Figure 2 is not <em>like</em> a posterior; it is one. Its evidence \(Z\) is \(\psi\), its negative log-evidence is the value function, and the optimal action \(2T\nabla\log\psi\) is the score of the evidence. Every element of the control problem has an inference name, and the dictionary is exact:</p>
+    <p style="margin-left:1.5rem;border-left:2px solid var(--line);padding-left:1rem">
+      passive dynamics = prior &middot; cost = negative log-likelihood &middot; desirability = evidence &middot; value = negative log-evidence = free energy &middot; optimal control = score of the evidence &middot; temperature \(\lambda\) = how loosely "went well" is defined</p>
+    <p>There is one more face of the same theorem, and it is the most vivid one. Conditioning a Markov process on future information has a classical name, the
+      <button class="pop" data-target="pp-doob" aria-expanded="false">Doob \(h\)-transform</button>, and its content is that the conditioned process is again a Markov diffusion, with the drift modified by \(2T\nabla\log h\), where \(h\) is the probability of the conditioning event. Set the event to "\(\mathcal O=1\)" and \(h\) is \(\psi\): <em>the optimally controlled process and the conditioned process are the same process</em>. Steering perfectly toward a goal is indistinguishable, in law, from being a passive particle that happens to be told the goal was reached. The figure tests this the hard way, by rejection.</p>
+    <div class="popbody" id="pp-doob"><span class="ttl">the Doob h-transform</span>
+      <p>Let \(h(x,t)\) be the probability (or density) of some future event, given \(X_t = x\); as a conditional expectation of the future it solves the backward equation, \(\partial_t h + \mathcal Lh = 0\). Bayes' rule at the level of transition kernels says the conditioned process moves as</p>
+      <p>$$p^{h}(x\to y) \;\propto\; p(x\to y)\,\frac{h(y, t+\mathrm dt)}{h(x,t)},$$</p>
+      <p>and expanding this tilt for a diffusion over a short step shifts the mean of the Gaussian increment by \(2T\nabla\log h\,\mathrm dt\): drift picks up exactly the score of the event probability. Brownian bridges are the textbook case (\(h\) = the heat kernel pinned at the endpoint), and the Schrödinger bridges of the previous essay's coda are the two-sided version. The identity "optimal control = \(h\)-transform with \(h=\psi\)" is why classifier guidance works in diffusion models: adding \(\nabla\log p(\text{label}\,|\,x)\) to a learned score is performing an \(h\)-transform on the generative diffusion, which by this essay is optimally steering it, with the classifier as terminal cost. Guided generation is stochastic optimal control, executed at sampling time.</p>
+    </div>
+  </div>
+
+  <figure class="sim" id="fig4">
+    <div class="sim-frame"><canvas height="340"></canvas></div>
+    <div class="controls">
+      <span><label>time</label><input type="range" data-role="tcur" min="0" max="1" step="0.005" value="0.5"><span class="readout" data-role="tlab">0.50</span></span>
+      <button class="ui" data-role="play" aria-pressed="true">pause</button>
+      <button class="ui" data-role="rebuild">new sample</button>
+      <span class="legend"><span><i class="sw" style="border-color:#2b5fad"></i>conditioned (rejection)</span>
+      <span><i class="sw" style="border-color:#1f8a63"></i>controlled (score)</span></span>
+    </div>
+    <p class="fig-note" data-role="note">Blue: run thousands of passive particles, keep only those whose endpoint "went well", and histogram the survivors at time t. Green: the optimally controlled crowd of Figure 2, same t. The histograms coincide at every intermediate time, and the acceptance readout shows what the agreement costs: inference by rejection throws almost everything away, control produces the same law without discarding a single sample.</p>
+    <figcaption><span class="figno">Figure 4.</span> Conditioning and controlling, meeting in distribution. The h-transform, verified by brute force.</figcaption>
+  </figure>
+
+  <div class="measure">
+    <p>The dictionary keeps paying after the essay ends, and one entry deserves its own paragraph because half the audience uses it daily. Discretize the recursion of Bellman's principle under this framework and the hard minimum softens into a
+      <button class="pop" data-target="pp-soft" aria-expanded="false">log-sum-exp</button>:</p>
+    <div class="popbody" id="pp-soft"><span class="ttl">the soft Bellman equation, and where RL keeps a partition function</span>
+      <p>In a discrete-time, discrete-action version of this problem class, the value recursion comes out as</p>
+      <p>$$V(x) \;=\; -\lambda\,\log \sum_a \exp\!\Big(\!-\tfrac{1}{\lambda}\,Q(x,a)\Big),$$</p>
+      <p>with \(Q(x,a)\) the cost-to-go of taking \(a\) now and continuing well. This is the <em>soft Bellman equation</em> of maximum-entropy reinforcement learning (soft Q-learning, SAC). Read it with Part II of the previous essay in mind: the sum is a partition function over actions, \(V\) is \(-\lambda\log Z\), a free energy, and the optimal policy is the corresponding Boltzmann distribution, \(\pi^{*}(a|x)\propto e^{-Q(x,a)/\lambda}\), i.e. a softmax over the negated \(Q\)-values. As \(\lambda\to0\) the log-sum-exp hardens into a max and greedy control returns; at \(\lambda>0\) the agent keeps its options deliberately open, paying a little cost for a lot of entropy. Readers from game theory will recognize the same object under yet another name: the quantal response / logit equilibrium, where softmax-rational play is exactly Boltzmann play. One functional, five fields, one temperature dial.</p>
+    </div>
+    <p>every value function in maximum-entropy RL is a free energy, every softmax policy is a Boltzmann distribution, and the "temperature" hyperparameter of those algorithms is the same \(\lambda\) that has been on a slider in every figure above. The previous essay ended by observing that its two universal objects, the Fokker–Planck equation and the free energy, were one; this one ends the same way. The value function is a free energy over futures. Bellman backups compute partition functions. Wanting, done optimally in the presence of noise, is thermodynamics pointed at the future.</p>
+  </div>
+</section>
+
+<hr>
+
+<section>
+  <div class="measure">
+    <h2><span class="no">Coda</span>The fine print, and the road onward</h2>
+    <p>An honest sequel names its hypotheses as loudly as its theorems. Three pieces of fine print, in increasing order of subtlety.</p>
+    <p><em>The channel condition.</em> Everything hinged on \(\lambda=2\alpha T\): noise and control entering through the same channel, at locked exchange rates. Steer a dimension the noise does not excite, or price actions non-quadratically, and the \(|\nabla V|^2\) term survives, HJB stays nonlinear, and one is back to viscosity solutions and grids. The linearly solvable problems are a rich and useful class, and they are a class, with a boundary.</p>
+    <p><em>The variance.</em> Figure 3's ESS collapse is not a demo artifact; it is the method's tax. The exact reweighting theorem holds at every \(\lambda\), but estimating it from finitely many dreams degrades exponentially as \(\lambda\to0\), which is precisely the regime of sharp, confident control. Every deployed descendant of this idea is, at heart, a variance-reduction scheme wrapped around a Boltzmann average.</p>
+    <p><em>The optimism.</em> The subtlest one. Notice what the transform actually computed:
+      <button class="pop" data-target="pp-risk" aria-expanded="false">\(-\lambda\log\mathbb E[e^{-\mathrm{cost}/\lambda}]\)</button>, and an exponential average is not an average. It weights lucky outcomes more than unlucky ones, so the "control as inference" agent is mildly risk-seeking: it plans as if the noise were slightly on its side, because it conditions on things having gone well rather than making them go well in expectation. In benign problems the difference is a rounding error; in problems where a rare disaster lurks, it is the whole problem. The exactness of the theorem and the correctness of the objective are different questions, and this essay has only proved the first.</p>
+    <div class="popbody" id="pp-risk"><span class="ttl">risk sensitivity of the exponential average</span>
+      <p>Expand the log-exponential average in cumulants:</p>
+      <p>$$-\lambda\log \mathbb E\big[e^{-C/\lambda}\big] \;=\; \mathbb E[C] \;-\; \frac{1}{2\lambda}\,\mathrm{Var}(C) \;+\; \cdots$$</p>
+      <p>The leading correction <em>subtracts</em> variance: among plans with equal expected cost, the exponential criterion prefers the riskier one, since its lucky tail is exponentially rewarded. (Readers of the previous essay have seen this expansion before: it is the free energy again, \(F = E - TS\) in cumulant form, with variance playing entropy's role.) This is classical risk-sensitive control (Whittle), and it is the precise technical content of critiques of "everything is inference" framings, including parts of the active-inference literature: converting costs into log-likelihoods silently converts expectations into free energies, and free energies have opinions about risk. If one wants risk-neutral optimal control, the identification is an approximation, and the approximation is uncontrolled exactly where danger is rare and large.</p>
+    </div>
+    <p>And the road. The two-sided version of the \(h\)-transform, conditioning on both endpoints, is the Schrödinger bridge, which is entropic optimal transport, which closes the loop back to the geometry of the previous essay; the modern samplers that steer diffusion models between distributions live there. The receding-horizon version of Figure 3 drives quadrotors and off-road vehicles as MPPI. The discrete-time version is maximum-entropy RL. The \(h\)-transform at sampling time is classifier guidance. And the equation all of them secretly solve is the one this essay started with: a linear backward equation, the oldest and mildest object in the theory, asked politely about the future.</p>
+    <p>Praise, then, for the backward equation: the forward equation's quiet twin, which prices options, ends gambler's ruin, and, given one logarithm, absorbs the entire theory of optimal behavior under noise into the theory of conditional expectation. Prediction and volition, the two things a mind does about the future, and the mathematics insists they were one subject. Few dualities in mathematics carry this much philosophy while looking this much like bookkeeping.</p>
+  </div>
+</section>
+
+<footer></footer>
+
+<script>
+/*CORE-BEGIN*/
+const N=240, X0=0, X1=10, DX=(X1-X0)/N;
+const XS=new Float64Array(N); for(let i=0;i<N;i++) XS[i]=X0+(i+0.5)*DX;
+function bern(x){ if(Math.abs(x)<1e-8) return 1-x/2+x*x/12; return x/Math.expm1(x); }
+function makeWork(){ return {a:new Float64Array(N-1),b:new Float64Array(N-1),
+  lo:new Float64Array(N),di:new Float64Array(N),up:new Float64Array(N),r:new Float64Array(N)};}
+function sgCoef(V,T,W){
+  for(let i=0;i<N-1;i++){ const p=-(V[i+1]-V[i])/T; W.a[i]=bern(-p); W.b[i]=bern(p); }
+}
+function thomas(lo,di,up,r,out){
+  const d=Float64Array.from(di), rr=Float64Array.from(r);
+  for(let i=1;i<N;i++){ const m=lo[i]/d[i-1]; d[i]-=m*up[i-1]; rr[i]-=m*rr[i-1]; }
+  out[N-1]=rr[N-1]/d[N-1];
+  for(let i=N-2;i>=0;i--) out[i]=(rr[i]-up[i]*out[i+1])/d[i];
+}
+function stepFP(rho,V,T,dt,W){
+  const c=dt*T/(DX*DX);
+  sgCoef(V,T,W);
+  for(let i=0;i<N;i++){
+    let d=1; W.up[i]=0; W.lo[i]=0;
+    if(i<N-1){ d+=c*W.a[i]; W.up[i]=-c*W.b[i]; }
+    if(i>0){ d+=c*W.b[i-1]; W.lo[i]=-c*W.a[i-1]; }
+    W.di[i]=d; W.r[i]=rho[i];
+  }
+  thomas(W.lo,W.di,W.up,W.r,rho);
+  let m=0; for(let i=0;i<N;i++){ if(rho[i]<0) rho[i]=0; m+=rho[i]*DX; }
+  for(let i=0;i<N;i++) rho[i]/=m;
+}
+// backward step for u (or psi with killing q/lam): exact transpose of stepFP
+function stepKBE(u,V,T,dt,W,q,lam){
+  const c=dt*T/(DX*DX);
+  sgCoef(V,T,W);
+  for(let i=0;i<N;i++){
+    let d=1; W.up[i]=0; W.lo[i]=0;
+    if(i<N-1){ d+=c*W.a[i]; W.up[i]=-c*W.a[i]; }
+    if(i>0){ d+=c*W.b[i-1]; W.lo[i]=-c*W.b[i-1]; }
+    if(q) d+=dt*q[i]/lam;
+    W.di[i]=d; W.r[i]=u[i];
+  }
+  thomas(W.lo,W.di,W.up,W.r,u);
+}
+function gaussSpike(rho,x0,sig){
+  let m=0;
+  for(let i=0;i<N;i++){ const d=(XS[i]-x0)/sig; rho[i]=Math.exp(-0.5*d*d); m+=rho[i]*DX; }
+  for(let i=0;i<N;i++) rho[i]/=m;
+}
+function gradArr(V){
+  const g=new Float64Array(N);
+  for(let i=0;i<N;i++){ const a=Math.max(0,i-1), b=Math.min(N-1,i+1);
+    g[i]=(V[b]-V[a])/((b-a)*DX); }
+  return g;
+}
+function interp(arr,x){
+  const u=(x-X0)/DX-0.5, i=Math.floor(u);
+  if(i<0) return arr[0]; if(i>=N-1) return arr[N-1];
+  const f=u-i; return arr[i]*(1-f)+arr[i+1]*f;
+}
+function doubleWell(h){
+  const V=new Float64Array(N);
+  for(let i=0;i<N;i++){ const u=(XS[i]-5)/2.1; V[i]=h*Math.pow(u*u-1,2); }
+  let m=Infinity; for(let i=0;i<N;i++) m=Math.min(m,V[i]);
+  for(let i=0;i<N;i++){ V[i]-=m; if(V[i]>3.8) V[i]=3.8; }
+  return V;
+}
+function smoothArr(A,passes){
+  const t=new Float64Array(N);
+  for(let p=0;p<passes;p++){
+    for(let i=0;i<N;i++){ const a=Math.max(0,i-1), b=Math.min(N-1,i+1);
+      t[i]=0.25*A[a]+0.5*A[i]+0.25*A[b]; }
+    A.set(t);
+  }
+}
+/*CORE-END*/
+
+if(typeof window!=='undefined'){(function(){
+'use strict';
+const INK='#111', GRAY='#999', LINE='#ddd', BLUE='#2b5fad', GREEN='#1f8a63';
+const S=280, DT=0.02, TF=S*DT;  // horizon
+let sp=null;
+function rnd(){ if(sp!==null){const v=sp;sp=null;return v;}
+  let u,v,s2; do{u=Math.random()*2-1;v=Math.random()*2-1;s2=u*u+v*v;}while(s2>=1||s2===0);
+  const f=Math.sqrt(-2*Math.log(s2)/s2); sp=v*f; return u*f; }
+function fit(c){
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  const w=Math.round(c.clientWidth*dpr), h=Math.round(c.clientHeight*dpr);
+  if(c.width!==w||c.height!==h){ c.width=w; c.height=h; }
+  const x=c.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); return x;
+}
+function xpx(x,w,pad){ return pad+(x-X0)/(X1-X0)*(w-2*pad); }
+function curve(ctx,w,pad,ys,yOf){
+  ctx.beginPath();
+  for(let i=0;i<N;i++){ const px=xpx(XS[i],w,pad), py=yOf(ys[i]);
+    i?ctx.lineTo(px,py):ctx.moveTo(px,py); }
+}
+function lab(ctx,t,x,y,col){ ctx.font='11px Palatino, Georgia, serif'; ctx.fillStyle=col||GRAY; ctx.fillText(t,x,y); }
+function maxOf(a){ let m=0; for(let i=0;i<a.length;i++) if(a[i]>m) m=a[i]; return m; }
+function say(fig,html){
+  const n=fig.querySelector('[data-role=note]'); if(!n) return;
+  n.classList.add('dim');
+  clearTimeout(n._t);
+  n._t=setTimeout(()=>{ n.innerHTML=html; n.classList.remove('dim'); },240);
+}
+function drawOnCanvas(canvas,arr,vmax,frac,onDone){
+  let active=false,lastCell=-1,lastVal=0;
+  function pt(ev){
+    const r=canvas.getBoundingClientRect();
+    const fx=(ev.clientX-r.left)/r.width, fy=(ev.clientY-r.top)/r.height;
+    const cell=Math.max(0,Math.min(N-1,Math.round(fx*N)));
+    let val=(1-Math.min(fy,frac)/frac)*vmax;
+    val=Math.max(0,Math.min(vmax,val));
+    if(lastCell>=0&&Math.abs(cell-lastCell)>1){
+      const a=Math.min(cell,lastCell), b=Math.max(cell,lastCell);
+      for(let i=a;i<=b;i++){ const f=(i-a)/(b-a);
+        arr[i]=(cell>lastCell)?(lastVal*(1-f)+val*f):(val*(1-f)+lastVal*f); }
+    } else arr[cell]=val;
+    lastCell=cell; lastVal=val;
+  }
+  canvas.addEventListener('pointerdown',ev=>{ if(!canvas._drawOn) return;
+    active=true; lastCell=-1; canvas.setPointerCapture(ev.pointerId); pt(ev); ev.preventDefault(); });
+  canvas.addEventListener('pointermove',ev=>{ if(canvas._drawOn&&active) pt(ev); });
+  function done(){ if(!active) return; active=false; lastCell=-1;
+    smoothArr(arr,2); onDone(); }
+  canvas.addEventListener('pointerup',done);
+  canvas.addEventListener('pointercancel',done);
+}
+// =================== FIGURE 1: forward meets backward ===================
+function Fig1(){
+  const s=this, fig=document.getElementById('fig1');
+  s.fig=fig; s.active=false; s.c=fig.querySelector('canvas');
+  s.V=doubleWell(1.7); s.T=0.4; s.W=makeWork();
+  s.Phi=new Float64Array(N);
+  for(let i=0;i<N;i++){ const d=(XS[i]-7.4)/0.55; s.Phi[i]=Math.exp(-0.5*d*d); }
+  s.rhoS=new Float64Array((S+1)*N); s.uS=new Float64Array((S+1)*N);
+  s.cursor=0; s.playing=true;
+  s.rebuild=function(){
+    const rho=new Float64Array(N); gaussSpike(rho,2.5,0.4);
+    s.rhoS.set(rho,0);
+    for(let k=1;k<=S;k++){ stepFP(rho,s.V,s.T,DT,s.W); s.rhoS.set(rho,k*N); }
+    const u=Float64Array.from(s.Phi);
+    s.uS.set(u,S*N);
+    for(let k=S-1;k>=0;k--){ stepKBE(u,s.V,s.T,DT,s.W,null,1); s.uS.set(u,k*N); }
+    // pairing at both ends
+    let p0=0,p1=0;
+    for(let i=0;i<N;i++){ p0+=s.uS[i]*s.rhoS[i]*DX; p1+=s.uS[S*N+i]*s.rhoS[S*N+i]*DX; }
+    s.pair0=p0;
+  };
+  s.rebuild();
+  s.step=function(){
+    if(s.playing){ s.cursor+=1; if(s.cursor>S){ s.cursor=0; } s.syncSlider(); }
+  };
+  s.pairAt=function(k){
+    let p=0; for(let i=0;i<N;i++) p+=s.uS[k*N+i]*s.rhoS[k*N+i]*DX;
+    return p;
+  };
+  s.draw=function(){
+    const ctx=fit(s.c), w=s.c.clientWidth, h=s.c.clientHeight, pad=12;
+    ctx.clearRect(0,0,w,h);
+    const k=s.cursor;
+    const vmax=maxOf(s.V)||1;
+    ctx.beginPath();
+    for(let i=0;i<N;i++){ const px=xpx(XS[i],w,pad), py=12+(s.V[i]/vmax)*(h*0.2);
+      i?ctx.lineTo(px,py):ctx.moveTo(px,py); }
+    ctx.strokeStyle='rgba(17,17,17,0.16)'; ctx.lineWidth=1; ctx.stroke();
+    lab(ctx,'landscape V (fixed double well)',pad+3,12);
+    const rmax=Math.max(maxOf(s.rhoS.subarray(k*N,(k+1)*N)),0.3)*1.1;
+    const umax=Math.max(maxOf(s.Phi),0.4)*1.15;
+    const y0=h-26;
+    const yr=d=>y0-(d/rmax)*(h-72);
+    const yu=d=>y0-(d/umax)*(h-72);
+    // Phi ghost
+    ctx.setLineDash([2,3]); curve(ctx,w,pad,s.Phi,yu);
+    ctx.strokeStyle='rgba(31,138,99,0.45)'; ctx.lineWidth=1.1; ctx.stroke(); ctx.setLineDash([]);
+    // u
+    curve(ctx,w,pad,s.uS.subarray(k*N,(k+1)*N),yu);
+    ctx.strokeStyle=GREEN; ctx.lineWidth=1.9; ctx.stroke();
+    // rho filled
+    curve(ctx,w,pad,s.rhoS.subarray(k*N,(k+1)*N),yr);
+    ctx.lineTo(xpx(X1,w,pad),y0); ctx.lineTo(xpx(X0,w,pad),y0); ctx.closePath();
+    ctx.fillStyle='rgba(43,95,173,0.13)'; ctx.fill();
+    curve(ctx,w,pad,s.rhoS.subarray(k*N,(k+1)*N),yr);
+    ctx.strokeStyle=BLUE; ctx.lineWidth=1.9; ctx.stroke();
+    ctx.strokeStyle=LINE; ctx.beginPath(); ctx.moveTo(pad,y0); ctx.lineTo(w-pad,y0); ctx.stroke();
+    lab(ctx,'t = '+(k*DT).toFixed(2)+' / '+TF.toFixed(1),pad+3,h-30,INK);
+    lab(ctx,'\u222b u\u00b7\u03c1 dx  =  '+s.pairAt(k).toFixed(13)+'   (does not move)',pad+3,h-8,INK);
+    lab(ctx,'\u03a6 (drawn, dotted)',w-130,26,GREEN);
+  };
+  const q=r=>fig.querySelector('[data-role='+r+']');
+  const tc=q('tcur'), tl=q('tlab');
+  s.syncSlider=function(){ tc.value=String(s.cursor/S); tl.textContent=(s.cursor*DT).toFixed(2); };
+  tc.addEventListener('input',()=>{ s.playing=false; s.cursor=Math.round(parseFloat(tc.value)*S);
+    tl.textContent=(s.cursor*DT).toFixed(2);
+    q('play').textContent='play'; q('play').classList.remove('toggled'); });
+  q('play').addEventListener('click',function(){
+    s.playing=!s.playing; this.textContent=s.playing?'pause':'play';
+    this.classList.toggle('toggled',s.playing);
+  });
+  q('play').classList.add('toggled');
+  const tm=q('temp'), tv=q('tval');
+  tm.addEventListener('input',()=>{ s.T=parseFloat(tm.value); tv.textContent=s.T.toFixed(2); s.dirty=true; });
+  tm.addEventListener('change',()=>{ s.rebuild();
+    say(fig,'New temperature, both equations re-solved. The curves changed everywhere; the overlap did not change at all. Hotter runs blur the payoff\u2019s influence further back into the past.'); });
+  const c=s.c; c._drawOn=true; c.style.cursor='crosshair';
+  drawOnCanvas(c,s.Phi,1.0,0.8,function(){ s.rebuild();
+    say(fig,'A new payoff. The green curve is its expectation rippling backward: at each earlier time it answers "standing here, what is \u03a6 worth to me?". The blue density never felt a thing; only the bookkeeping about the future changed.'); });
+  const db=q('draw');
+  db.addEventListener('click',function(){
+    c._drawOn=!c._drawOn; this.classList.toggle('toggled',c._drawOn);
+    this.setAttribute('aria-pressed',String(c._drawOn));
+    c.style.cursor=c._drawOn?'crosshair':'default';
+  });
+  db.classList.add('toggled');
+}
+// =================== shared control machinery (figs 2-4) ===================
+function makeControl(opts){
+  const o={
+    V:doubleWell(opts.barrier), T:opts.T, lam:opts.lam,
+    q:new Float64Array(N), Phi:new Float64Array(N),
+    psiS:new Float64Array((S+1)*N), W:makeWork(),
+  };
+  o.dV=gradArr(o.V);
+  // terminal cost: 0 inside slot, high outside
+  for(let i=0;i<N;i++){
+    const d=Math.abs(XS[i]-opts.slot)/opts.slotW;
+    o.Phi[i]=opts.PhiHigh*(1-Math.exp(-0.5*d*d*4));
+  }
+  o.solve=function(){
+    const psi=new Float64Array(N);
+    for(let i=0;i<N;i++) psi[i]=Math.exp(-o.Phi[i]/o.lam);
+    o.psiS.set(psi,S*N);
+    for(let k=S-1;k>=0;k--){
+      stepKBE(psi,o.V,o.T,DT,o.W,o.q,o.lam);
+      o.psiS.set(psi,k*N);
+    }
+  };
+  o.uStar=function(x,k){
+    const base=k*N;
+    let u=(x-X0)/DX-0.5, i=Math.floor(u);
+    if(i<0)i=0; if(i>N-2)i=N-2;
+    const f=Math.min(1,Math.max(0,u-i));
+    const l0=Math.log(Math.max(o.psiS[base+i],1e-300));
+    const l1=Math.log(Math.max(o.psiS[base+i+1],1e-300));
+    const im=Math.max(0,i-1), ip=Math.min(N-1,i+2);
+    const lm=Math.log(Math.max(o.psiS[base+im],1e-300));
+    const lp=Math.log(Math.max(o.psiS[base+ip],1e-300));
+    const g0=(l1-lm)/((i+1-im)*DX), g1=(lp-l0)/((ip-i)*DX);
+    const g=g0*(1-f)+g1*f;
+    return Math.max(-9,Math.min(9,2*o.T*g));
+  };
+  o.solve();
+  return o;
+}
+function reflect(x){ if(x<X0)x=2*X0-x; if(x>X1)x=2*X1-x; return Math.min(X1,Math.max(X0,x)); }
+// =================== FIGURE 2: the steered crowd ===================
+function Fig2(){
+  const s=this, fig=document.getElementById('fig2');
+  s.fig=fig; s.active=false; s.c=fig.querySelector('canvas');
+  s.ctl=makeControl({barrier:1.1, T:0.4, lam:0.8, slot:7.6, slotW:0.45, PhiHigh:3});
+  s.M=900;
+  s.Pg=new Float64Array(s.M); s.Pp=new Float64Array(s.M);
+  s.Dg=new Float64Array(s.M); s.Dp=new Float64Array(s.M);
+  s.J=new Float32Array(s.M);
+  s.cursor=0;
+  s.seed=function(){
+    for(let k=0;k<s.M;k++){ const x=reflect(2.5+0.4*rnd());
+      s.Pg[k]=x; s.Pp[k]=x; s.Dg[k]=x; s.Dp[k]=x; s.J[k]=Math.random()*2-1; }
+    s.cursor=0; s.cost=0; s.hit=0;
+  };
+  s.seed();
+  s.step=function(){
+    const o=s.ctl, sg=Math.sqrt(2*o.T*DT);
+    if(s.cursor>=S){
+      let hit=0;
+      for(let k=0;k<s.M;k++) if(Math.abs(s.Pg[k]-7.6)<0.6) hit++;
+      s.hit=hit/s.M;
+      s.seed(); return;
+    }
+    for(let k=0;k<s.M;k++){
+      const u=o.uStar(s.Pg[k],s.cursor);
+      s.Pg[k]=reflect(s.Pg[k]+(-interp(o.dV,s.Pg[k])+u)*DT+sg*rnd());
+      s.Pp[k]=reflect(s.Pp[k]-interp(o.dV,s.Pp[k])*DT+sg*rnd());
+      s.cost+=u*u;
+    }
+    for(let k=0;k<s.M;k++){ s.Dg[k]+=(s.Pg[k]-s.Dg[k])*0.3; s.Dp[k]+=(s.Pp[k]-s.Dp[k])*0.3; }
+    s.cursor++;
+  };
+  s.draw=function(){
+    const ctx=fit(s.c), w=s.c.clientWidth, h=s.c.clientHeight, pad=12;
+    ctx.clearRect(0,0,w,h);
+    const o=s.ctl, k=Math.min(s.cursor,S), base=k*N;
+    const hV=h*0.44;
+    // value function, clipped
+    const Vt=new Float64Array(N);
+    let vmax=0.1;
+    for(let i=0;i<N;i++){ Vt[i]=Math.min(-o.lam*Math.log(Math.max(o.psiS[base+i],1e-300)),8);
+      vmax=Math.max(vmax,Vt[i]); }
+    const yV=v=>hV-8-(v/vmax)*(hV-30);
+    curve(ctx,w,pad,Vt,yV); ctx.strokeStyle=BLUE; ctx.lineWidth=1.8; ctx.stroke();
+    // running cost q (painted) shaded
+    if(maxOf(o.q)>0.01){
+      curve(ctx,w,pad,o.q,v=>hV-8-(v/3.2)*(hV-30));
+      ctx.lineTo(xpx(X1,w,pad),hV-8); ctx.lineTo(xpx(X0,w,pad),hV-8); ctx.closePath();
+      ctx.fillStyle='rgba(176,58,58,0.13)'; ctx.fill();
+      lab(ctx,'painted running cost q',pad+3,hV-14,'#b03a3a');
+    }
+    lab(ctx,'value V(x,t) = \u2212\u03bb log \u03c8',pad+3,14,BLUE);
+    // arrows u*
+    ctx.strokeStyle='rgba(17,17,17,0.55)'; ctx.fillStyle='rgba(17,17,17,0.55)'; ctx.lineWidth=1.1;
+    for(let a=1;a<=16;a++){
+      const x=X0+a*(X1-X0)/17, u=o.uStar(x,k);
+      const len=Math.max(-22,Math.min(22,u*6));
+      if(Math.abs(len)<2) continue;
+      const px=xpx(x,w,pad), py=hV+10, sgn=Math.sign(len);
+      ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(px+len,py); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(px+len,py);
+      ctx.lineTo(px+len-4*sgn,py-2.4); ctx.lineTo(px+len-4*sgn,py+2.4); ctx.closePath(); ctx.fill();
+    }
+    // landscape + beads
+    const y1=h-14, vmax2=maxOf(o.V)||1;
+    const yL=v=>y1-8-(v/vmax2)*(h-hV-64);
+    ctx.beginPath();
+    for(let i=0;i<N;i++){ const px=xpx(XS[i],w,pad), py=yL(o.V[i]);
+      i?ctx.lineTo(px,py):ctx.moveTo(px,py); }
+    ctx.strokeStyle=INK; ctx.lineWidth=1.4; ctx.stroke();
+    // slot
+    const sx=xpx(7.6,w,pad);
+    ctx.fillStyle='rgba(31,138,99,0.13)';
+    ctx.fillRect(xpx(7.15,w,pad),hV+18,xpx(8.05,w,pad)-xpx(7.15,w,pad),h-hV-32);
+    lab(ctx,'target',sx-16,h-4,GREEN);
+    function beads(D,J,col){
+      ctx.fillStyle=col;
+      for(let kk=0;kk<s.M;kk++){
+        const x=D[kk], v=interp(o.V,x);
+        ctx.fillRect(xpx(x,w,pad)-1.1, yL(v)-1.1+J[kk]*4-4, 2.2,2.2);
+      }
+    }
+    beads(s.Dp,s.J,'rgba(150,150,150,0.4)');
+    beads(s.Dg,s.J,'rgba(31,138,99,0.55)');
+    lab(ctx,'t = '+(k*DT).toFixed(2)+'    last run: '+Math.round((s.hit||0)*100)+'% of controlled crowd in slot',pad+3,hV+34,INK);
+  };
+  const q=r=>fig.querySelector('[data-role='+r+']');
+  const c=s.c; c._drawOn=true; c.style.cursor='crosshair';
+  drawOnCanvas(c,s.ctl.q,3,0.44,function(){ s.ctl.solve();
+    say(fig,'The linear equation re-solved with your penalties as a killing rate: dreams that linger there are discounted, so the value function walls them off and the arrows route around. Nobody planned the detour; it is a conditional expectation.'); });
+  q('draw').addEventListener('click',function(){
+    c._drawOn=!c._drawOn; this.classList.toggle('toggled',c._drawOn);
+    this.setAttribute('aria-pressed',String(c._drawOn));
+    c.style.cursor=c._drawOn?'crosshair':'default';
+  });
+  q('draw').classList.add('toggled');
+  q('clearq').addEventListener('click',function(){ s.ctl.q.fill(0); s.ctl.solve(); });
+  q('reseed').addEventListener('click',function(){ s.seed(); });
+  const lm=q('lam'), lv=q('lval');
+  lm.addEventListener('input',()=>{ s.ctl.lam=parseFloat(lm.value); lv.textContent=s.ctl.lam.toFixed(2); });
+  lm.addEventListener('change',()=>{ s.ctl.solve();
+    say(fig, s.ctl.lam<0.5
+      ? 'Cold: effort is cheap relative to the noise, the exponential weighting is nearly a hard conditioning, and the controller drives almost every particle into the slot.'
+      : 'Hot: effort is dear, the weighting is loose, and the controller only leans on the crowd. Optimal is now visibly lazy, and correctly so.'); });
+}
+// =================== FIGURE 3: reweighted dreams ===================
+function Fig3(){
+  const s=this, fig=document.getElementById('fig3');
+  s.fig=fig; s.active=false; s.c=fig.querySelector('canvas');
+  s.ctl=makeControl({barrier:1.1, T:0.4, lam:0.7, slot:7.6, slotW:0.45, PhiHigh:3});
+  s.R=300; s.paths=new Float32Array(s.R*(S+1));
+  s.wts=new Float64Array(s.R);
+  s.dream=function(){
+    const o=s.ctl, sg=Math.sqrt(2*o.T*DT);
+    for(let r=0;r<s.R;r++){
+      let x=reflect(2.5+0.4*rnd());
+      s.paths[r*(S+1)]=x;
+      for(let k=1;k<=S;k++){
+        x=reflect(x-interp(o.dV,x)*DT+sg*rnd());
+        s.paths[r*(S+1)+k]=x;
+      }
+    }
+    s.reweight(); s.exact();
+  };
+  s.reweight=function(){
+    const o=s.ctl; let Zs=0;
+    for(let r=0;r<s.R;r++){
+      const xT=s.paths[r*(S+1)+S];
+      s.wts[r]=Math.exp(-interp(o.Phi,xT)/o.lam); Zs+=s.wts[r];
+    }
+    for(let r=0;r<s.R;r++) s.wts[r]/=Zs;
+    let e=0; for(let r=0;r<s.R;r++) e+=s.wts[r]*s.wts[r];
+    s.ess=1/e;
+    s.wmean=new Float64Array(S+1);
+    for(let k=0;k<=S;k++){ let m=0;
+      for(let r=0;r<s.R;r++) m+=s.wts[r]*s.paths[r*(S+1)+k];
+      s.wmean[k]=m; }
+  };
+  s.exact=function(){
+    const o=s.ctl, sg=Math.sqrt(2*o.T*DT), M=600;
+    const P=new Float64Array(M);
+    for(let k=0;k<M;k++) P[k]=reflect(2.5+0.4*rnd());
+    s.emean=new Float64Array(S+1);
+    let m0=0; for(let k=0;k<M;k++) m0+=P[k]/M; s.emean[0]=m0;
+    for(let st=1;st<=S;st++){
+      let m=0;
+      for(let k=0;k<M;k++){
+        P[k]=reflect(P[k]+(-interp(o.dV,P[k])+o.uStar(P[k],st-1))*DT+sg*rnd());
+        m+=P[k]/M;
+      }
+      s.emean[st]=m;
+    }
+  };
+  s.ctl.solve(); s.dream();
+  s.step=function(){};
+  s.draw=function(){
+    const ctx=fit(s.c), w=s.c.clientWidth, h=s.c.clientHeight;
+    ctx.clearRect(0,0,w,h);
+    const padL=64, padR=16, padT=12, padB=28;
+    const px=k=>padL+(k/S)*(w-padL-padR);
+    const py=x=>padT+(1-(x-X0)/(X1-X0))*(h-padT-padB);
+    // landscape profile on left margin
+    const o=s.ctl, vmax=maxOf(o.V)||1;
+    ctx.beginPath();
+    for(let i=0;i<N;i++){ const yy=py(XS[i]), xx=6+(o.V[i]/vmax)*44;
+      i?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy); }
+    ctx.strokeStyle='rgba(17,17,17,0.35)'; ctx.lineWidth=1.2; ctx.stroke();
+    lab(ctx,'V(x)',8,padT+10);
+    // slot band
+    ctx.fillStyle='rgba(31,138,99,0.1)';
+    ctx.fillRect(padL,py(8.05),w-padL-padR,py(7.15)-py(8.05));
+    lab(ctx,'target slot',w-88,py(7.6)+4,GREEN);
+    // spaghetti
+    const wmax=Math.max.apply(null,Array.prototype.slice.call(s.wts));
+    for(let r=0;r<s.R;r++){
+      const a=Math.min(0.85, 0.02+0.83*s.wts[r]/wmax);
+      if(a<0.025) continue;
+      ctx.strokeStyle='rgba(90,90,90,'+a.toFixed(3)+')';
+      ctx.lineWidth=a>0.4?1.3:0.8;
+      ctx.beginPath();
+      for(let k=0;k<=S;k+=2){
+        const xx=px(k), yy=py(s.paths[r*(S+1)+k]);
+        k?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy);
+      }
+      ctx.stroke();
+    }
+    // weighted mean vs exact
+    ctx.setLineDash([6,4]); ctx.beginPath();
+    for(let k=0;k<=S;k+=2){ const xx=px(k), yy=py(s.wmean[k]); k?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy); }
+    ctx.strokeStyle=GREEN; ctx.lineWidth=2.2; ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath();
+    for(let k=0;k<=S;k+=2){ const xx=px(k), yy=py(s.emean[k]); k?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy); }
+    ctx.strokeStyle=BLUE; ctx.lineWidth=1.8; ctx.stroke();
+    ctx.strokeStyle=LINE;
+    ctx.beginPath(); ctx.moveTo(padL,h-padB); ctx.lineTo(w-padR,h-padB); ctx.stroke();
+    lab(ctx,'time \u2192',w-60,h-8);
+    lab(ctx,'ESS = '+s.ess.toFixed(1)+' of '+s.R+' dreams doing the work',padL+6,h-8,INK);
+  };
+  const q=r=>fig.querySelector('[data-role='+r+']');
+  const lm=q('lam'), lv=q('lval');
+  lm.addEventListener('input',()=>{ s.ctl.lam=parseFloat(lm.value); lv.textContent=s.ctl.lam.toFixed(2); s.reweight(); });
+  lm.addEventListener('change',()=>{ s.ctl.solve(); s.exact();
+    say(fig, s.ess<12
+      ? 'Cold. The plan is sharp and the estimate is desperate: almost all weight sits on '+Math.max(1,Math.round(s.ess))+' lucky barrier-crossings. Exact in expectation, fragile in practice; this is the variance tax of Part IV\u2019s coda.'
+      : 'Warm. Many futures contribute, the estimate is calm, and the plan is correspondingly soft. The dial trades sharpness of intent against statistical safety, and nothing is free.'); });
+  q('redraw').addEventListener('click',function(){ s.dream(); });
+}
+// =================== FIGURE 4: conditioned = controlled ===================
+function Fig4(){
+  const s=this, fig=document.getElementById('fig4');
+  s.fig=fig; s.active=false; s.c=fig.querySelector('canvas');
+  s.ctl=makeControl({barrier:1.1, T:0.4, lam:0.6, slot:7.6, slotW:0.45, PhiHigh:3});
+  s.stride=4; s.F=Math.floor(S/s.stride)+1;
+  s.B=48;
+  s.cursor=Math.floor(S/2); s.playing=true;
+  s.build=function(){
+    const o=s.ctl, sg=Math.sqrt(2*o.T*DT);
+    // conditioned by soft rejection
+    const Mp=24000, snap=new Float32Array(Mp*s.F), P=new Float64Array(Mp);
+    for(let k=0;k<Mp;k++) P[k]=reflect(2.5+0.4*rnd());
+    let f=0;
+    for(let st=0;st<=S;st++){
+      if(st%s.stride===0){ for(let k=0;k<Mp;k++) snap[f*Mp+k]=P[k]; f++; }
+      if(st<S) for(let k=0;k<Mp;k++) P[k]=reflect(P[k]-interp(o.dV,P[k])*DT+sg*rnd());
+    }
+    const keep=[];
+    for(let k=0;k<Mp;k++) if(Math.random()<Math.exp(-interp(o.Phi,P[k])/o.lam)) keep.push(k);
+    s.acc=keep.length/Mp;
+    s.condH=new Float64Array(s.F*s.B);
+    const bw=(X1-X0)/s.B;
+    for(let fr=0;fr<s.F;fr++){
+      for(const k of keep){
+        let b=Math.floor((snap[fr*Mp+k]-X0)/bw); if(b<0)b=0; if(b>=s.B)b=s.B-1;
+        s.condH[fr*s.B+b]++;
+      }
+      for(let b=0;b<s.B;b++) s.condH[fr*s.B+b]/=(keep.length*bw);
+      for(let p=0;p<2;p++){
+        let prev=s.condH[fr*s.B];
+        for(let b=0;b<s.B;b++){
+          const nx=(b<s.B-1)?s.condH[fr*s.B+b+1]:s.condH[fr*s.B+b];
+          const cur=s.condH[fr*s.B+b];
+          s.condH[fr*s.B+b]=0.25*prev+0.5*cur+0.25*nx; prev=cur;
+        }
+      }
+    }
+    // controlled, same marginals recorded
+    const Mc=6000, Q=new Float64Array(Mc);
+    for(let k=0;k<Mc;k++) Q[k]=reflect(2.5+0.4*rnd());
+    s.ctrlH=new Float64Array(s.F*s.B); f=0;
+    for(let st=0;st<=S;st++){
+      if(st%s.stride===0){
+        for(let k=0;k<Mc;k++){
+          let b=Math.floor((Q[k]-X0)/bw); if(b<0)b=0; if(b>=s.B)b=s.B-1;
+          s.ctrlH[f*s.B+b]++;
+        }
+        for(let b=0;b<s.B;b++) s.ctrlH[f*s.B+b]/=(Mc*bw);
+        f++;
+      }
+      if(st<S) for(let k=0;k<Mc;k++)
+        Q[k]=reflect(Q[k]+(-interp(o.dV,Q[k])+o.uStar(Q[k],st))*DT+sg*rnd());
+    }
+  };
+  s.build();
+  s.step=function(){
+    if(s.playing){ s.cursor+=1; if(s.cursor>S) s.cursor=0; s.syncSlider(); }
+  };
+  s.draw=function(){
+    const ctx=fit(s.c), w=s.c.clientWidth, h=s.c.clientHeight, pad=12;
+    ctx.clearRect(0,0,w,h);
+    const o=s.ctl, fr=Math.min(s.F-1,Math.round(s.cursor/s.stride));
+    const vmax=maxOf(o.V)||1;
+    ctx.beginPath();
+    for(let i=0;i<N;i++){ const px=xpx(XS[i],w,pad), py=12+(o.V[i]/vmax)*(h*0.2);
+      i?ctx.lineTo(px,py):ctx.moveTo(px,py); }
+    ctx.strokeStyle='rgba(17,17,17,0.16)'; ctx.lineWidth=1; ctx.stroke();
+    ctx.fillStyle='rgba(31,138,99,0.1)';
+    ctx.fillRect(xpx(7.15,w,pad),24,xpx(8.05,w,pad)-xpx(7.15,w,pad),h-56);
+    const bw=(X1-X0)/s.B;
+    let dmax=0.3;
+    for(let b=0;b<s.B;b++) dmax=Math.max(dmax,s.condH[fr*s.B+b],s.ctrlH[fr*s.B+b]);
+    const y0=h-30, yOf=d=>y0-(d/(dmax*1.1))*(h-84);
+    function hist(H,col,fill){
+      ctx.beginPath();
+      for(let b=0;b<s.B;b++){ const px=xpx(X0+(b+0.5)*bw,w,pad), py=yOf(H[fr*s.B+b]);
+        b?ctx.lineTo(px,py):ctx.moveTo(px,py); }
+      if(fill){ ctx.lineTo(xpx(X1,w,pad),y0); ctx.lineTo(xpx(X0,w,pad),y0); ctx.closePath();
+        ctx.fillStyle=fill; ctx.fill();
+        ctx.beginPath();
+        for(let b=0;b<s.B;b++){ const px=xpx(X0+(b+0.5)*bw,w,pad), py=yOf(H[fr*s.B+b]);
+          b?ctx.lineTo(px,py):ctx.moveTo(px,py); }
+      }
+      ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke();
+    }
+    hist(s.condH,BLUE,'rgba(43,95,173,0.12)');
+    hist(s.ctrlH,GREEN,null);
+    ctx.strokeStyle=LINE; ctx.beginPath(); ctx.moveTo(pad,y0); ctx.lineTo(w-pad,y0); ctx.stroke();
+    lab(ctx,'t = '+(s.cursor*DT).toFixed(2),pad+3,h-34,INK);
+    lab(ctx,'rejection kept '+(100*s.acc).toFixed(1)+'% of '+24000+' passive paths; the controller kept 100% of its own',pad+3,h-8,INK);
+  };
+  const q=r=>fig.querySelector('[data-role='+r+']');
+  const tc=q('tcur'), tl=q('tlab');
+  s.syncSlider=function(){ tc.value=String(s.cursor/S); tl.textContent=(s.cursor*DT).toFixed(2); };
+  tc.addEventListener('input',()=>{ s.playing=false; s.cursor=Math.round(parseFloat(tc.value)*S);
+    tl.textContent=(s.cursor*DT).toFixed(2);
+    q('play').textContent='play'; q('play').classList.remove('toggled'); });
+  q('play').addEventListener('click',function(){
+    s.playing=!s.playing; this.textContent=s.playing?'pause':'play';
+    this.classList.toggle('toggled',s.playing);
+  });
+  q('play').classList.add('toggled');
+  q('rebuild').addEventListener('click',function(){ s.build();
+    say(fig,'Fresh samples on both sides, same agreement. The controlled process is not imitating the conditioned one; both are the same h-transformed diffusion, computed two different ways.'); });
+}
+// popups
+document.addEventListener('click',function(ev){
+  const btn=ev.target.closest('.pop');
+  if(!btn) return;
+  const el=document.getElementById(btn.dataset.target);
+  if(!el) return;
+  const open=el.classList.toggle('open');
+  btn.setAttribute('aria-expanded',String(open));
+  if(open && !el.dataset.typeset && window.MathJax && MathJax.typesetPromise){
+    el.dataset.typeset='1';
+    MathJax.typesetPromise([el]).catch(()=>{});
+  }
+});
+const sims=[new Fig1(), new Fig2(), new Fig3(), new Fig4()];
+const io=new IntersectionObserver(es=>{
+  for(const e of es){ const s=sims.find(x=>x.fig===e.target); if(s) s.active=e.isIntersecting; }
+},{threshold:0.02});
+for(const s of sims) io.observe(s.fig);
+(function loop(){
+  if(!document.hidden) for(const s of sims) if(s.active){ s.step(); s.draw(); }
+  requestAnimationFrame(loop);
+})();
+})();}
+</script>
+</body>
+</html>
