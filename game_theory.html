@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Crowd Optimizes Back</title>
+<script>
+window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},svg:{fontCache:'global'},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};
+</script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+<style>
+:root{
+  --ink:#111;--gray:#666;--line:#ddd;--blue:#2b5fad;--green:#1f8a63;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font-family:var(--serif);
+  font-size:19px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.measure{max-width:42rem;margin:0 auto;padding:0 1.25rem}
+p{margin:0 0 1.05em}
+a{color:var(--blue)}
+::selection{background:#dbe7f6}
+
+header{padding:4.5rem 1rem 1.2rem;text-align:center}
+.eyebrow{letter-spacing:.4em;font-size:.85rem;color:var(--gray);text-transform:uppercase;margin-bottom:.5rem}
+h1.title{font-weight:400;font-style:italic;margin:0;font-size:clamp(2.1rem,6vw,3.6rem);line-height:1.1}
+.hero-eq{margin:2rem 0 .4rem;font-size:clamp(1rem,2.5vw,1.4rem)}
+
+h2{font-weight:400;font-size:1.5rem;margin:3.4rem 0 .3rem;font-style:italic}
+h2 .no{font-style:normal;color:var(--gray);font-size:.8rem;letter-spacing:.22em;
+  text-transform:uppercase;display:block;margin-bottom:.45rem;font-family:var(--serif)}
+h3{font-weight:400;font-style:italic;font-size:1.13rem;margin:2.2rem 0 .6rem;color:#333}
+hr{border:0;border-top:1px solid var(--line);max-width:42rem;margin:3rem auto}
+mjx-container[jax="SVG"][display="true"]{margin:1.25em 0!important;overflow-x:auto;overflow-y:hidden;padding:2px 0}
+
+/* ---- gwern-style expandable notes ---- */
+.pop{
+  font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;
+  border-bottom:1px solid #9db8dd;text-decoration:none;line-height:inherit;
+}
+.pop:hover{border-bottom-color:var(--blue);background:#f0f5fb}
+.pop::after{content:"\2009\25B8";font-size:.68em;color:var(--blue);vertical-align:.12em}
+.pop[aria-expanded=true]::after{content:"\2009\25BE"}
+.pop[aria-expanded=true]{background:#f0f5fb;border-bottom-color:var(--blue)}
+.popbody{
+  display:none;margin:1.1em 0 1.4em;padding:.85em 1.1em .3em;
+  border-left:2px solid var(--blue);background:#f7f9fc;
+  font-size:.93rem;line-height:1.58;
+}
+.popbody.open{display:block}
+.popbody .ttl{font-style:italic;color:var(--blue);font-size:.8rem;letter-spacing:.1em;
+  text-transform:uppercase;display:block;margin-bottom:.5em}
+.popbody p{margin:0 0 .8em}
+.popbody mjx-container[jax="SVG"][display="true"]{margin:.85em 0!important}
+
+/* ---- figures ---- */
+figure.sim{max-width:54rem;margin:2.2rem auto;padding:0 1.25rem}
+.sim-frame{border:1px solid var(--line);border-radius:3px;background:#fff;padding:10px}
+.sim-frame canvas{display:block;width:100%;touch-action:none}
+.sim-frame .split{display:flex;gap:10px}
+.sim-frame .split>div{flex:1;min-width:0}
+@media (max-width:760px){.sim-frame .split{flex-direction:column}}
+figcaption{font-size:.85rem;color:var(--gray);margin-top:.6rem;line-height:1.5}
+figcaption .figno{font-style:italic}
+.controls{display:flex;flex-wrap:wrap;gap:.8rem 1.5rem;align-items:center;margin-top:.8rem;font-size:.9rem}
+.controls label{color:var(--gray);font-size:.82rem;letter-spacing:.05em;margin-right:.4em}
+button.ui{font-family:var(--serif);font-size:.88rem;background:#fff;border:1px solid var(--ink);
+  color:var(--ink);padding:.3rem .9rem;cursor:pointer;border-radius:2px}
+button.ui:hover{background:var(--ink);color:#fff}
+button.ui.toggled{background:var(--blue);border-color:var(--blue);color:#fff}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+select{font-family:var(--serif);font-size:.9rem;border:1px solid var(--line);padding:.28rem .45rem;background:#fff;border-radius:2px}
+input[type=range]{accent-color:var(--blue);width:150px;vertical-align:middle}
+.readout{font-style:italic;color:var(--gray);min-width:3.2em;display:inline-block}
+.fig-note{font-style:italic;color:#444;font-size:.92rem;margin-top:.7rem;
+  border-left:2px solid var(--green);padding-left:.8rem;min-height:2.4em;transition:opacity .25s}
+.fig-note.dim{opacity:0}
+.legend{display:inline-flex;gap:1em;flex-wrap:wrap}
+.legend span{white-space:nowrap}
+.sw{display:inline-block;width:1.4em;height:0;border-top:2px solid;vertical-align:middle;margin-right:.3em}
+footer{height:4rem}
+</style>
+
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">an ode, part four</div>
+  <h1 class="title">The Crowd Optimizes Back</h1>
+  <div class="hero-eq">$$-\,\partial_t V \;=\; q\big(x,\rho_t\big) + \mathcal LV - \tfrac{1}{2\alpha}|\nabla V|^2
+  \qquad\quad
+  \partial_t \rho \;=\; \nabla\!\cdot\!\Big(\rho\,\big(\nabla U + \tfrac{1}{\alpha}\nabla V\big)\Big) + T\Delta\rho$$</div>
+</header>
+
+<section>
+  <div class="measure">
+    <p>Readers of this sequence have met both equations above. The right one is the <a href="an-ode-to-the-fokker-planck-equation.html">first essay</a>: a Fokker–Planck equation, pushing a crowd's density \(\rho\) forward through time. The left one is the <a href="control-is-inference.html">second essay</a>: a Hamilton–Jacobi–Bellman equation, pulling one agent's value function \(V\) backward from its goals. Each essay held its equation in isolation. The first essay's crowd was mindless, descending a free energy with no opinions. The second essay's agent was alone, steering against a world that did not care what it did.</p>
+    <p>Look at what is different now. The running cost \(q\) in the backward equation contains \(\rho_t\): the agent's costs depend on <em>where the crowd is</em>. And the drift in the forward equation contains \(\nabla V\): the crowd moves the way <em>optimizing agents</em> move. Neither equation can be solved first. The backward one needs the crowd's whole future; the forward one needs the agents' whole plan; each is the other's boundary data. The pair is a single object, a fixed-point problem in the space of (plans, crowds), and it has a name from a field we have so far avoided entirely. It is a <em>game</em>, and its solutions are Nash equilibria of a continuum of players.</p>
+    <p>This essay closes the sequence by coupling its first two members and watching what the coupling creates: traffic that anticipates itself, crowds that stampede into one of two identical valleys by coin flip, learning dynamics that orbit forever instead of settling, and, when the coupling is switched off entirely, one last appearance of the trilogy's favorite factorization. Game theory will be introduced from zero, because the mathematics deserves readers who were never taught it. As always: we, popups, figures.</p>
+  </div>
+</section>
+
+<hr>
+
+<section>
+  <div class="measure">
+    <h2><span class="no">Part I</span>What a game is</h2>
+    <p>A <button class="pop" data-target="pp-game" aria-expanded="false">game</button>, in the mathematical sense, needs three ingredients and no board: a set of <em>players</em>; for each player a set of available <em>strategies</em>; and for each player a <em>payoff</em> that depends on the strategies of <em>everyone</em>. That last clause is the entire subject. In optimization, my outcome depends on my choice; in a game, my outcome depends on my choice and yours, so the very notion of "best" becomes circular. The best route to work depends on the routes everyone else takes, and theirs on mine.</p>
+    <div class="popbody" id="pp-game"><span class="ttl">games, strategies, payoffs</span>
+      <p>Formally: players \(i = 1,\dots,n\), strategy sets \(A_i\), payoff functions \(J_i(a_1,\dots,a_n)\). The everyday examples are worth keeping in mind because they calibrate the abstraction: rock-paper-scissors (three strategies, payoffs from the cycle of who beats whom), choosing a lane in traffic, choosing when a crowd exits a stadium, setting a price against competitors, and, in this essay's continuous-time version, choosing an entire trajectory through a landscape while everyone else does too.</p>
+      <p>A <em>mixed strategy</em> is a probability distribution over one's options, and it is forced on us immediately: rock-paper-scissors has no sensible deterministic recommendation, since any fixed choice is beaten by a specific reply. The recommendation "play each with probability \(1/3\)" is stable in a sense the next popup makes precise, and the appearance of probability distributions as the natural strategy objects is why this subject was always going to collide with the rest of this sequence.</p>
+    </div>
+    <p>The circularity is broken by a definition rather than an algorithm. Call a strategy a
+      <button class="pop" data-target="pp-nash" aria-expanded="false">best response</button> to the others' behavior if no alternative improves my payoff, holding them fixed. A profile of strategies, one per player, is a <em>Nash equilibrium</em> if every player's strategy is a best response to everyone else's: a configuration with no regrets, where each player, shown the full truth about the others, would change nothing. Equilibrium is a fixed point of the best-response map, and its existence in mixed strategies is Nash's 1950 theorem.</p>
+    <div class="popbody" id="pp-nash"><span class="ttl">Nash equilibrium</span>
+      <p>A profile \((a_1^*,\dots,a_n^*)\) is a Nash equilibrium if for every player \(i\) and every alternative \(a_i\), \(J_i(a_i, a_{-i}^*) \le J_i(a_i^*, a_{-i}^*)\) (payoffs to be maximized; flip inequalities for costs). Nash proved existence for finite games in mixed strategies via a fixed-point theorem (Kakutani's, later simplified with Brouwer's), which is worth internalizing as a moral: equilibria are fixed points, so everything we know about fixed points, existence without uniqueness, sensitivity, hard computation, transfers to them. Uniqueness in particular is <em>not</em> part of the theorem, and Part III is about what enforcing it costs.</p>
+      <p>One more calibration: equilibrium is a consistency condition, and consistency is a modest virtue. Nothing in the definition says equilibrium play is good for the players; the prisoner's dilemma has a unique equilibrium everyone regrets jointly, and congestion games have equilibria strictly worse than what a coordinator could arrange (the gap is the "price of anarchy"). Our figures will show equilibria, and the reader should resist hearing applause in the word.</p>
+    </div>
+    <p>For two or three players this is manageable. Our games have a million players, and there the honest formulation drowns: a million coupled best responses, each conditioned on the strategies of the other \(10^6 - 1\). The rescue is the same move this sequence has made twice already, in the first essay's crowds of particles and the third essay's crowds of hypotheses: stop tracking individuals.
+      <button class="pop" data-target="pp-anon" aria-expanded="false">Assume the players are anonymous</button>, so that my payoff depends on the others only through their <em>distribution</em>, not their names. Then, as \(n\to\infty\), the game against a million opponents becomes a game against a single object: the population density \(\rho\). I am small; the crowd is a field; my choices do not move it, and its shape is all of it that touches me. This is a <em>mean field game</em>, and the limit is not merely a convenience: equilibria of the limit are approximate equilibria of the million-player game, with an error that vanishes as \(n\) grows.</p>
+    <div class="popbody" id="pp-anon"><span class="ttl">anonymity, and where the theory comes from</span>
+      <p>The anonymity hypothesis: \(J_i = J\big(a_i,\; \tfrac{1}{n-1}\sum_{j\ne i}\delta_{a_j}\big)\), the same function for everyone, seeing only the empirical distribution of the others. It is exactly the hypothesis behind the first essay's McKean–Vlasov limit, promoted from dynamics to payoffs, and the limit theorem is again propagation of chaos, now for strategic behavior.</p>
+      <p>The theory was created twice, independently and simultaneously, around 2006: by Lasry and Lions in Paris, who wrote the coupled PDE system of this essay's title and named the subject <em>jeux à champ moyen</em>, and by Huang, Caines, and Malhamé in Montreal, who reached the same structure from large-population control engineering under the name Nash certainty equivalence. The probabilistic formulation, through coupled forward-backward stochastic differential equations, is due to Carmona and Delarue, whose two volumes are the subject's standard reference. The quantitative version of "the limit is honest" is stated in the coda.</p>
+    </div>
+
+    <h2 style="margin-top:3.4rem"><span class="no">Part II</span>The system, and how to actually find its fixed point</h2>
+    <p>Now assemble the object from parts we own. Fix, provisionally, a belief about the crowd: a whole flow of densities \(\bar\rho_t\), the anticipated traffic report for the entire horizon. Against a <em>fixed</em> \(\bar\rho\), each agent faces an ordinary stochastic control problem, the second essay's, verbatim: dynamics \(\mathrm dX = (-\nabla U + u)\,\mathrm dt + \sqrt{2T}\,\mathrm dW\) in a landscape \(U\), effort priced quadratically, terminal goal \(\Phi\), and a running cost that now reads the traffic report, the simplest case being a <em>congestion charge</em></p>
+    <p>$$q(x, \bar\rho_t) \;=\; c\,\bar\rho_t(x),$$</p>
+    <p>a fee proportional to how crowded your location is. The entire technology of essay two fires unchanged: one logarithm linearizes the HJB equation, the desirability \(\psi\) solves a linear backward equation with \(q/\lambda\) as a killing rate, and every agent's optimal steering is the score \(u^* = 2T\nabla\log\psi\). But now close the loop: if <em>every</em> agent steers by \(u^*\), the crowd is a diffusion with that drift, and its density evolves by essay one's forward equation. The output is a new traffic report \(\rho^{\text{new}}\). The
+      <button class="pop" data-target="pp-system" aria-expanded="false">consistency demand</button> that defines equilibrium is the fixed point: <em>the crowd everyone optimizes against must be the crowd that optimizing produces</em>, \(\rho^{\text{new}} = \bar\rho\). That single sentence is the mean field game, and the two displayed equations of the title are its differential form.</p>
+    <div class="popbody" id="pp-system"><span class="ttl">the coupled system, assembled</span>
+      <p>Backward, from essay two, with the crowd in the cost:</p>
+      <p>$$-\partial_t V = c\rho_t + \mathcal LV - \tfrac{1}{2\alpha}|\nabla V|^2, \qquad V(\cdot,T_f)=\Phi, \qquad u^* = -\nabla V/\alpha.$$</p>
+      <p>Forward, from essay one, with the optimizers in the drift:</p>
+      <p>$$\partial_t\rho = \nabla\!\cdot\!\big(\rho\,(\nabla U - u^*)\big) + T\Delta\rho, \qquad \rho(\cdot,0)=\rho_0.$$</p>
+      <p>Data at both ends of time, coupling in both directions: the future of the value depends on the crowd, the future of the crowd depends on the value. Note the structural rhyme with the third essay, which also paired a forward object with a backward one; the difference is the coupling. Smoothing multiplied \(\alpha\) and \(\beta\) pointwise and each evolved obliviously; here each equation sits inside the other's coefficients. Perception was a handshake; this is a negotiation.</p>
+    </div>
+    <p>Fixed points invite iteration, and the iteration with both a pedigree and a theorem is
+      <button class="pop" data-target="pp-fp" aria-expanded="false">fictitious play</button>: solve the best response against yesterday's traffic, then average it into the standing plan, then repeat, forever commuting against an ever-better forecast of yourself. The first figure runs it live, one "day" per animation frame, and its right panel plots the quantity by which equilibrium is measured: the
+      <em>exploitability</em>, how much a single deviant could still gain against the current crowd. At a Nash equilibrium, and only there, it is zero.</p>
+    <div class="popbody" id="pp-fp"><span class="ttl">fictitious play, and exploitability</span>
+      <p>Brown proposed the scheme in 1951 for matrix games: each round, best-respond to the <em>time average</em> of the opponent's past play. The averaging is the active ingredient; best-responding to yesterday alone tends to overshoot and oscillate, two rush hours chasing each other's ghost. For mean field games, Cardaliaguet and Hadikhanloo proved the averaged scheme converges in the potential and monotone classes (both defined in the next parts), which is the license under which Figure 1 operates.</p>
+      <p>Exploitability makes "how far from equilibrium" a number: \(\mathcal E(\bar\rho) = J(\text{population's own plan against } \bar\rho) - \min_u J(u \text{ against } \bar\rho)\). The subtrahend is one linear backward solve, by essay two; the minuend is an integral over the crowd's flow. It is nonnegative by definition and zero exactly at equilibrium, so it plays the role the free energy played in essay one: the scalar that certifies the descent. One honesty note for the figure: our grid, splitting, and finite differences leave a floor of a few times \(10^{-2}\) under the curve that no amount of iteration removes; the fall to the floor is fictitious play working, the floor itself is discretization.</p>
+    </div>
+  </div>
+
+  <figure class="sim" id="fig1">
+    <div class="sim-frame"><div class="split"><div><canvas height="320" data-role="left"></canvas></div><div><canvas height="320" data-role="right"></canvas></div></div></div>
+    <div class="controls">
+      <span><label>congestion charge c</label><input type="range" data-role="cc" min="0" max="3" step="0.05" value="1.5"><span class="readout" data-role="cval">1.50</span></span>
+      <button class="ui" data-role="restart">day zero</button>
+      <span class="legend"><span><i class="sw" style="border-color:#2b5fad"></i>crowd \(\rho_t\)</span>
+      <span><i class="sw" style="border-color:#1f8a63"></i>steering \(u^*\)</span></span>
+    </div>
+    <p class="fig-note" data-role="note">A crowd commuting from the left heap to the right slot, replayed daily; each day it best-responds to its own history and averages. With the charge at zero everyone marches in a dense column. Raise it and watch the column widen and stagger: the crowd is spending effort to avoid itself, and the exploitability on the right certifies that nobody can do better alone.</p>
+    <figcaption><span class="figno">Figure 1.</span> A mean field game solved by commuting. Fictitious play as daily life.</figcaption>
+  </figure>
+
+  <div class="measure">
+    <p>Watch the equilibrium the slider buys. At \(c=0\) the crowd is essay two exactly: everyone runs the same optimal control, indifferent to company. At \(c=3\) the flow spreads in space <em>and</em> in time, some of the crowd leaving early, some late, some detouring; nobody told it to take turns, and no strategy in the system contains the concept. Staggering is what a fixed point of selfishness looks like when the cost of proximity is real, which is to say: it is rush hour, derived.</p>
+  </div>
+</section>
+
+<hr>
+
+<section>
+  <div class="measure">
+    <h2><span class="no">Part III</span>One equilibrium, or several</h2>
+    <p>Nash's theorem grants existence; it is silent on uniqueness, and the silence is load-bearing. The known sufficient condition is due to Lasry and Lions and has a name that sounds technical and a meaning that does not:
+      <button class="pop" data-target="pp-mono" aria-expanded="false">monotonicity</button>, which for our congestion coupling is nothing more than \(c \ge 0\). If people <em>dislike</em> crowds, the equilibrium is unique. The proof is three lines, and the mechanism is self-correction: any imbalance between two candidate equilibria creates costs that push agents from the fuller one to the emptier, closing the gap.</p>
+    <div class="popbody" id="pp-mono"><span class="ttl">the Lasry–Lions monotonicity argument</span>
+      <p>The coupling \(q(x,\rho)\) is monotone if \(\int \big(q(x,\rho)-q(x,\rho')\big)\,\mathrm d(\rho-\rho')(x) \;\ge\; 0\) for all pairs: crowding costs are higher where the crowd is bigger. For \(q = c\rho\) the integrand is \(c\int(\rho-\rho')^2 \ge 0\) exactly when \(c\ge0\).</p>
+      <p>Sketch of uniqueness: take two equilibria \((V,\rho)\) and \((V',\rho')\), write the equations for the differences, pair the HJB difference against \(\rho-\rho'\) and the FP difference against \(V-V'\), integrate over space-time, and add. The transport terms cancel by the same duality that ran through essays two and three; what survives is the monotonicity integral plus a nonnegative term from the convexity of the effort cost. A sum of nonnegatives equalling zero forces \(\rho=\rho'\). The argument is the whole flavor of the field: forward-backward duality plus one sign condition.</p>
+      <p>Flip the sign, \(c<0\), and not only does the proof die, the conclusion does: the next figure is its counterexample.</p>
+    </div>
+    <p>So flip the sign. Let \(c<0\): being near others is now a <em>reward</em>, and the coupling is a herding instinct. Symmetric landscape, two identical shallow valleys, crowd starting spread evenly between them, no destination at all. Every symmetry of the problem says the symmetric flow is an equilibrium, and it is. It is also, past a critical coupling strength, the <em>wrong answer</em>: unstable, exploitable by any agent who bets the crowd will pick a side, and abandoned by fictitious play at the first breath of asymmetry. What the dynamics finds instead is one of two mirror-image equilibria: the entire population in the left valley, or the entire population in the right, with nothing in the problem to prefer either. Run the figure repeatedly; the tally is the coin's ledger.</p>
+    <p>Readers of the first essay have seen this picture. Its Figure 9 cooled a McKean–Vlasov crowd through a critical temperature and watched the symmetric state destabilize into a pitchfork, and we filed it under statistical mechanics: spontaneous symmetry breaking, magnetization, a phase transition. The mathematics on screen below is deliberately, exactly parallel, and the new frame is the point. <em>That phase transition was a game all along.</em> Attraction to the mean is a payoff coupling; the ferromagnet's ordered states are the coordinated equilibria; the phase transition is the moment coordination starts to pay; and the coin flip that physics calls symmetry breaking, game theory calls <em>equilibrium selection</em>, its oldest unsolved embarrassment: when the theory permits several self-consistent worlds, it contains no principle that picks one. The crowd commits anyway, because it must, and the committed world looks inevitable in hindsight to everyone inside it.</p>
+  </div>
+
+  <figure class="sim" id="fig2">
+    <div class="sim-frame"><div class="split"><div><canvas height="320" data-role="left"></canvas></div><div><canvas height="320" data-role="right"></canvas></div></div></div>
+    <div class="controls">
+      <span><label>coupling c</label><input type="range" data-role="cc" min="-6" max="6" step="0.1" value="-6"><span class="readout" data-role="cval">-6.0</span></span>
+      <button class="ui" data-role="rerun">re-run with fresh noise</button>
+      <span class="legend"><span><i class="sw" style="border-color:#2b5fad"></i>final crowd</span>
+      <span><i class="sw" style="border-color:#999"></i>initial crowd</span></span>
+    </div>
+    <p class="fig-note" data-role="note">Crowd-averse (c &gt; 0): fictitious play returns the symmetric answer every time, as the uniqueness theorem promises. Crowd-seeking (c &lt; 0, strong): the symmetric answer is still self-consistent and never survives; a 5% whisper of noise in the initial crowd decides which valley gets everyone. The tally on the right is the coin's record.</p>
+    <figcaption><span class="figno">Figure 2.</span> Monotonicity, and its counterexample. The first essay's phase transition, re-filed as equilibrium selection.</figcaption>
+  </figure>
+</section>
+
+<hr>
+
+<section>
+  <div class="measure">
+    <h2><span class="no">Part IV</span>Games that refuse to be optimizations</h2>
+    <p>The first essay's deepest theorem said a crowd's evolution was secretly one optimization: gradient descent of a free energy. A reader could hope games work the same way, every equilibrium the minimum of some grand functional, and for one class the hope is exact. In a
+      <button class="pop" data-target="pp-pot" aria-expanded="false">potential game</button>, all the players' incentives are slices of a single function, equilibria are its critical points, and the whole apparatus of essay one reactivates: fictitious play descends the potential the way JKO descended the free energy, which is precisely <em>why</em> Figures 1 and 2 converge. But the hope fails in general, and it fails with structure: every game splits into a potential part and a
+      <button class="pop" data-target="pp-harm" aria-expanded="false">harmonic part</button>, and the harmonic part is not the gradient of anything. Its purest specimen is matching pennies, the two-player game of pure opposition, where my win is your loss and every configuration has a regretter. Chasing the regret forever is not a failure to find the equilibrium; it is the shape of the incentives.</p>
+    <div class="popbody" id="pp-pot"><span class="ttl">potential games</span>
+      <p>Monderer and Shapley: a game is a potential game if there exists one function \(\mathcal P\) of the full profile such that every player's payoff change from a unilateral deviation equals the change in \(\mathcal P\). Congestion games are the canonical class (Rosenthal's theorem), which is why traffic keeps appearing in this essay. Equilibria are critical points of \(\mathcal P\); better-response dynamics ascend \(\mathcal P\) and must terminate; the game is an optimization wearing a disguise of multiplicity.</p>
+      <p>The mean-field version: when the coupling has the form \(q(x,\rho) = \frac{\delta \mathcal Q}{\delta\rho}(x)\) for a functional \(\mathcal Q\) (our \(c\rho\) qualifies, with \(\mathcal Q = \tfrac{c}{2}\int\rho^2\)), the MFG is potential, and equilibria are critical points of a single functional over flows of measures, cost plus \(\mathcal Q\) plus the entropic terms of essay two. One precision flag, because the literature blurs it: the <em>minimizers</em> of that functional solve a mean-field <em>control</em> problem (a benevolent planner moving the whole crowd), and MFG equilibria are its <em>critical points</em>; the two coincide only sometimes, and the gap between them is the price of anarchy in this setting.</p>
+    </div>
+    <div class="popbody" id="pp-harm"><span class="ttl">the harmonic part, and learning that circles</span>
+      <p>On finite games there is an orthogonal decomposition (Candogan, Menache, Ozdaglar, Parrilo) of every game into a potential component and a harmonic component; zero-sum games like matching pennies are the harmonic archetype. Under gradient-style learning, the potential component pulls toward equilibria and the harmonic component <em>rotates</em> around them, conserving a Hamiltonian-like quantity instead of dissipating one.</p>
+      <p>Readers of the first essay have the right picture already: its Figure 10 split every drift into a gradient part, which descended the free energy, and a rotational part, which did no work on it and circulated forever. That was a statement about one crowd's dynamics; this is the same geometry in the space of strategies, and it is why naive simultaneous gradient learning oscillates in adversarial settings (the training instabilities of GANs are this phenomenon wearing a neural network). The known remedies, averaging, optimism, extragradient steps, are all ways of taxing the rotation.</p>
+      <p>And one honest confession from the making of this figure: our first simulation showed the orbit failing to settle even at moderate rationality, and the cause was the integrator, an explicit Euler scheme going unstable on a fast spiral, manufacturing a limit cycle the mathematics does not contain. The figure now runs a Runge–Kutta scheme, under which the theorem (Hofbauer and Sandholm: smoothed best-response dynamics converge to the logit equilibrium in zero-sum games) holds on screen at every rationality the slider offers. Numerical artifacts are fondest of exactly the claims one most wants to believe.</p>
+    </div>
+    <p>What tames the rotation, in theory and in the figure, is the sequence's oldest friend. Soften the best response into a
+      <button class="pop" data-target="pp-qre" aria-expanded="false">logit response</button>: instead of playing the argmax, play each action with probability proportional to \(e^{-(\text{its cost})/\lambda}\), a Boltzmann distribution over one's own options. The resulting rest point, where everyone is logit-responding to everyone's logit response, is the <em>quantal response equilibrium</em>, and the temperature \(\lambda\) does to the eternal orbit what it has done in every essay of this sequence: the harmonic circulation persists, but the softening adds an inward pull, and the trajectory spirals into the QRE for every positive \(\lambda\). Only at exactly zero temperature does the circle close and the game refuse forever to sit down.</p>
+    <div class="popbody" id="pp-qre"><span class="ttl">the fourth appearance of \(\lambda\)</span>
+      <p>Quantal response equilibrium is due to McKelvey and Palfrey (1995), as a model of boundedly rational play that fits human experimental data far better than exact Nash. Its logit form is a fixed point of softmax responses, and the sequence's ledger is now complete enough to read out. Essay one: \(e^{-V/T}/Z\), the Boltzmann distribution over states. Essay two: \(\pi(a) \propto e^{-Q(a)/\lambda}\), the soft-Bellman policy over actions. Essay three: the posterior, a Boltzmann distribution over hypotheses with negative log-likelihood as energy. Essay four: QRE, a Boltzmann distribution over strategies, self-consistently. One functional form, four essays, one dial, and in each case the same trade purchased: a little optimality surrendered for smoothness, uniqueness, and the ability of a dynamics to actually arrive.</p>
+    </div>
+  </div>
+
+  <figure class="sim" id="fig3">
+    <div class="sim-frame"><canvas height="360"></canvas></div>
+    <div class="controls">
+      <button class="ui" data-role="game" aria-pressed="false">game: matching pennies</button>
+      <span><label>temperature &lambda;</label><input type="range" data-role="lam" min="0.02" max="1.5" step="0.01" value="0.25"><span class="readout" data-role="lval">0.25</span></span>
+      <button class="ui" data-role="kick">new starting point</button>
+      <span class="legend"><span><i class="sw" style="border-color:#2b5fad"></i>learning orbit</span>
+      <span><i class="sw" style="border-color:#b03a3a"></i>equilibrium</span></span>
+    </div>
+    <p class="fig-note" data-role="note">The square is the space of mixed strategies: each axis is one player's probability of playing heads. In matching pennies the incentive field is almost pure rotation; cool \(\lambda\) toward zero and watch the spiral flatten toward a closed orbit, the shape of pure opposition. Toggle to the coordination game and the same dynamics runs straight to a corner, because that game is all potential and no rotation.</p>
+    <figcaption><span class="figno">Figure 3.</span> Learning in strategy space. The first essay's rotation-versus-gradient decomposition, now for incentives.</figcaption>
+  </figure>
+</section>
+
+<hr>
+
+<section>
+  <div class="measure">
+    <h2><span class="no">Part V</span>Switching the game off: the bridge</h2>
+    <p>One experiment remains, the one this sequence has owed its readers since the first essay's coda. Take the system of Part II and delete the game: coupling zero, no landscape, no goals along the way. All that survives is a crowd of independent diffusers and two non-negotiable facts: where the crowd starts, \(\rho_0\), and where it must end, \(\rho_1\). The question collapses from strategy to logistics: among all ways a diffusing crowd can begin as \(\rho_0\) and end as \(\rho_1\), which is the most probable, the one costing the least steering against the noise? This is
+      <button class="pop" data-target="pp-bridge" aria-expanded="false">Schrödinger's 1931 problem</button>, and the degenerate mean field game hands us its answer with machinery we have used all essay: the solution is a pair of potentials, one running forward, one backward, with the crowd at every intermediate moment given by their pointwise product,</p>
+    <div class="popbody" id="pp-bridge"><span class="ttl">the Schrödinger system, and Sinkhorn</span>
+      <p>Schrödinger asked: a cloud of independent Brownian particles is observed as \(\rho_0\) at time 0 and, surprisingly, as \(\rho_1\) at time 1; what is the most likely history? The answer (the large-deviations formulation is Föllmer's) minimizes \(\mathrm{KL}\) from the free diffusion subject to both marginals, which is essay two's control cost with two pinned ends, and the optimality system is</p>
+      <p>$$\rho_t = \varphi_t\,\psi_t, \qquad \partial_t\varphi = \mathcal L^{*}\varphi, \qquad \partial_t\psi = -\mathcal L\psi,$$</p>
+      <p>one factor riding the forward equation, one the backward, coupled only through the boundary requirements \(\varphi_0\psi_0 = \rho_0\), \(\varphi_1\psi_1 = \rho_1\). The numerical method is to alternate: fix \(\psi\), solve \(\varphi\) to match the left marginal; fix \(\varphi\), solve \(\psi\) to match the right; repeat. This is the Sinkhorn algorithm (also: iterative proportional fitting), the workhorse of computational optimal transport, and structurally it is fictitious play's cousin: alternating best responses between the two ends of time, each conceding to the other's constraint. As the diffusivity \(\varepsilon\to0\), the bridge converges to the deterministic optimal-transport geodesic, McCann's displacement interpolation, closing the loop to the first essay's Wasserstein geometry from one dial away.</p>
+    </div>
+    <p>$$\rho_t(x) \;=\; \varphi_t(x)\,\psi_t(x).$$</p>
+    <p>Readers of the third essay should be experiencing recognition. Its title equation was \(p(x_t\mid\text{everything}) \propto \alpha_t\,\beta_t\): a forward factor times a backward factor. The correspondence is exact and is the sequence's final identity: <em>the Schrödinger bridge is the smoothing problem of essay three</em>, with the two endpoint marginals playing the role of the observations, and conversely, smoothing is a bridge pinned by data instead of by decree. Filtering, control, and entropic transport are one forward-backward factorization inhabiting three costumes, and the figure below computes it by Sinkhorn iteration, live, with the diffusivity on a slider so the last thing this sequence shows is stochastic transport tightening into the deterministic geodesic where essay one began.</p>
+  </div>
+
+  <figure class="sim" id="fig4">
+    <div class="sim-frame"><canvas height="330"></canvas></div>
+    <div class="controls">
+      <span><label>diffusivity &epsilon;</label><input type="range" data-role="eps" min="0.05" max="1.0" step="0.01" value="0.4"><span class="readout" data-role="eval">0.40</span></span>
+      <span><label>time</label><input type="range" data-role="tcur" min="0" max="1" step="0.002" value="0"><span class="readout" data-role="tlab">0.00</span></span>
+      <button class="ui" data-role="play" aria-pressed="true">pause</button>
+      <span class="legend"><span><i class="sw" style="border-color:#2b5fad"></i>bridge \(\rho_t=\varphi_t\psi_t\)</span>
+      <span><i class="sw" style="border-color:#999"></i>pinned ends</span></span>
+    </div>
+    <p class="fig-note" data-role="note">Both ends are decreed: a heap on the left must become the two-humped shape on the right. Sinkhorn negotiates the factors \(\varphi\) and \(\psi\) until both decrees hold (the marginal errors are at machine precision), and the animated curve is their product. Cool \(\varepsilon\) and the cloud of possible histories tightens toward the unique cheapest transport.</p>
+    <figcaption><span class="figno">Figure 4.</span> The mean field game with the game removed: Schrödinger's bridge, essay three's factorization, essay one's geometry.</figcaption>
+  </figure>
+</section>
+
+<hr>
+
+<section>
+  <div class="measure">
+    <h2><span class="no">Coda</span>The fine print, and the end of the sequence</h2>
+    <p>Fine print, in three clauses, as always. <em>The solver has a license, and it is limited.</em> Fictitious play provably converges for potential and monotone games, which is where every figure above lives; outside those classes it can cycle or diverge, and for properly adversarial couplings it must, by Part IV's geometry. A figure that converged is not a theorem that it had to. <em>The crowd here shares no weather.</em> Our million agents face independent noise, so the limiting density is deterministic. Let them share a common shock, a market crash, a storm over the whole city, and \(\rho\) itself becomes random; the value function must then depend on the entire current distribution, \(V(x,\rho,t)\), and its equation, the <em>master equation</em>, lives on the space of measures. It is the field's deep end, it is where Lions's lectures pointed, and it is exiled from this essay by one paragraph, this one. <em>The limit has a price tag.</em> The mean-field equilibrium, replayed by \(n\) real players, is an \(\varepsilon\)-Nash equilibrium with \(\varepsilon = O(1/\sqrt n)\): no player can gain more than that by deviating. The theorem is the license for everything above; the rate is a warning that boardrooms of five are not crowds of a million, and the mean-field idealization earns its keep only in the second regime.</p>
+    <p>The road onward is short to name, because from here the subject fans into the world: crowd dynamics and evacuation planning, macroeconomic models where the distribution of wealth is the state, epidemic response as a game between behavior and contagion, electricity markets, multi-agent reinforcement learning, and the training dynamics of adversarial networks, where Part IV's rotation is a daily engineering complaint. The mathematics in every case is the pair of equations at the top of this page.</p>
+    <p>And the sequence closes. Four essays, four tenses of one grammar. The forward equation: what will be. The backward equation: what to do. Their pointwise product: what to believe. Their fixed point: what everyone will do about everyone. One crowd of particles became, in turn, a crowd of futures, a crowd of hypotheses, and a crowd of optimizers, and at every step the same small cast returned: a Boltzmann distribution, a partition function nobody wanted to compute, a score pointing uphill in log-probability, a temperature trading sharpness for sanity, an effective sample size counting who is really doing the work. We promised in the first essay that one equation was secretly doing something more significant. Four essays later the honest summary is that it was doing everything in sight: prediction, volition, perception, and society, each one the same descent, dressed for a different occasion. Praise, at the last, not for any single equation, but for the duality that ran through all of them, the forward and the backward, the crowd and the goal, holding each other's boundary conditions, meeting, as everything in this sequence has met, at the only moment that exists: the present, jointly determined by where everything has been and what everyone intends.</p>
+  </div>
+</section>
+
+<footer></footer>
+
+<script>
+/*CORE-BEGIN*/
+const N=240, X0=0, X1=10, DX=(X1-X0)/N;
+const XS=new Float64Array(N); for(let i=0;i<N;i++) XS[i]=X0+(i+0.5)*DX;
+function bern(x){ if(Math.abs(x)<1e-8) return 1-x/2+x*x/12; return x/Math.expm1(x); }
+function thomas(lo,di,up,r,out){
+  const d=Float64Array.from(di), rr=Float64Array.from(r);
+  for(let i=1;i<N;i++){ const m=lo[i]/d[i-1]; d[i]-=m*up[i-1]; rr[i]-=m*rr[i-1]; }
+  out[N-1]=rr[N-1]/d[N-1];
+  for(let i=N-2;i>=0;i--) out[i]=(rr[i]-up[i]*out[i+1])/d[i];
+}
+function sgAB(V,T,a,b){
+  for(let i=0;i<N-1;i++){ const p=-(V[i+1]-V[i])/T; a[i]=bern(-p); b[i]=bern(p); }
+}
+function stepFP(rho,V,T,dt,W){
+  const c=dt*T/(DX*DX);
+  sgAB(V,T,W.a,W.b);
+  for(let i=0;i<N;i++){ let d=1; W.up[i]=0; W.lo[i]=0;
+    if(i<N-1){ d+=c*W.a[i]; W.up[i]=-c*W.b[i]; }
+    if(i>0){ d+=c*W.b[i-1]; W.lo[i]=-c*W.a[i-1]; }
+    W.di[i]=d; }
+  thomas(W.lo,W.di,W.up,rho,rho);
+  for(let i=0;i<N;i++) if(rho[i]<0) rho[i]=0;
+}
+function stepBK(u,V,T,dt,W){
+  const c=dt*T/(DX*DX);
+  sgAB(V,T,W.a,W.b);
+  for(let i=0;i<N;i++){ let d=1; W.up[i]=0; W.lo[i]=0;
+    if(i<N-1){ d+=c*W.a[i]; W.up[i]=-c*W.a[i]; }
+    if(i>0){ d+=c*W.b[i-1]; W.lo[i]=-c*W.b[i-1]; }
+    W.di[i]=d; }
+  thomas(W.lo,W.di,W.up,u,u);
+  for(let i=0;i<N;i++) if(u[i]<0) u[i]=0;
+}
+function makeWork(){ return {a:new Float64Array(N-1),b:new Float64Array(N-1),
+  lo:new Float64Array(N),di:new Float64Array(N),up:new Float64Array(N),r:new Float64Array(N)};}
+function doubleWell(h){
+  const V=new Float64Array(N);
+  for(let i=0;i<N;i++){ const u=(XS[i]-5)/2.1; V[i]=h*Math.pow(u*u-1,2); }
+  let m=Infinity; for(let i=0;i<N;i++) m=Math.min(m,V[i]);
+  for(let i=0;i<N;i++){ V[i]-=m; if(V[i]>3.8) V[i]=3.8; }
+  return V;
+}
+function gaussSpike(rho,x0,sig){
+  let m=0;
+  for(let i=0;i<N;i++){ const d=(XS[i]-x0)/sig; rho[i]=Math.exp(-0.5*d*d); m+=rho[i]*DX; }
+  for(let i=0;i<N;i++) rho[i]/=m;
+}
+function normalize(p){
+  let m=0; for(let i=0;i<N;i++) m+=p[i]*DX;
+  if(m>0){ for(let i=0;i<N;i++) p[i]/=m; }
+  return m;
+}
+function maxOf(a){ let m=0; for(let i=0;i<a.length;i++) if(a[i]>m) m=a[i]; return m; }
+/*CORE-END*/
+
+if(typeof window!=='undefined'){(function(){
+'use strict';
+const INK='#111', GRAY='#999', LINE='#ddd', BLUE='#2b5fad', GREEN='#1f8a63', RED='#b03a3a';
+const DT=0.02, S=280;
+function fit(c){
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  const w=Math.round(c.clientWidth*dpr), h=Math.round(c.clientHeight*dpr);
+  if(c.width!==w||c.height!==h){ c.width=w; c.height=h; }
+  const x=c.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); return x;
+}
+function xpx(x,w,pad){ return pad+(x-X0)/(X1-X0)*(w-2*pad); }
+function curve(ctx,w,pad,ys,yOf,base){
+  ctx.beginPath();
+  for(let i=0;i<N;i++){ const px=xpx(XS[i]+(base||0),w,pad), py=yOf(ys[i]);
+    i?ctx.lineTo(px,py):ctx.moveTo(px,py); }
+}
+function lab(ctx,t,x,y,col){ ctx.font='11px Palatino, Georgia, serif'; ctx.fillStyle=col||GRAY; ctx.fillText(t,x,y); }
+function say(fig,html){
+  const n=fig.querySelector('[data-role=note]'); if(!n) return;
+  n.classList.add('dim'); clearTimeout(n._t);
+  n._t=setTimeout(()=>{ n.innerHTML=html; n.classList.remove('dim'); },240);
+}
+document.addEventListener('click',function(ev){
+  const btn=ev.target.closest('.pop'); if(!btn) return;
+  const el=document.getElementById(btn.dataset.target); if(!el) return;
+  const open=el.classList.toggle('open');
+  btn.setAttribute('aria-expanded',String(open));
+  if(open && !el.dataset.typeset && window.MathJax && MathJax.typesetPromise){
+    el.dataset.typeset='1'; MathJax.typesetPromise([el]).catch(()=>{});
+  }
+});
+// ---------- shared MFG engine ----------
+function MFG(opts){
+  const o={T:opts.T, lam:opts.lam, V:opts.V, Phi:opts.Phi, rho0:opts.rho0, c:opts.c,
+    uBar:new Float64Array((S+1)*N), rhoBar:new Float64Array((S+1)*N),
+    psiS:new Float64Array((S+1)*N), lp:new Float64Array(S+1),
+    W:makeWork(), n:0, expl:[], alpha:opts.lam/(2*opts.T)};
+  o.flow=function(){
+    const W3=makeWork(), rho=Float64Array.from(o.rho0);
+    o.rhoBar.set(rho,0);
+    const Veff=new Float64Array(N);
+    for(let k=0;k<S;k++){
+      let acc=0; Veff[0]=o.V[0];
+      for(let i=1;i<N;i++){ acc+=0.5*(o.uBar[k*N+i]+o.uBar[k*N+i-1])*DX; Veff[i]=o.V[i]-acc; }
+      stepFP(rho,Veff,o.T,DT,W3); normalize(rho);
+      o.rhoBar.set(rho,(k+1)*N);
+    }
+  };
+  o.solvePsi=function(){
+    const psi=new Float64Array(N);
+    for(let i=0;i<N;i++) psi[i]=Math.exp(-o.Phi[i]/o.lam);
+    o.psiS.set(psi,S*N); o.lp[S]=0;
+    for(let k=S-1;k>=0;k--){
+      for(let i=0;i<N;i++) psi[i]*=Math.exp(-0.5*DT*o.c*o.rhoBar[k*N+i]/o.lam);
+      stepBK(psi,o.V,o.T,DT,o.W);
+      for(let i=0;i<N;i++) psi[i]*=Math.exp(-0.5*DT*o.c*o.rhoBar[k*N+i]/o.lam);
+      const mx=maxOf(psi)||1e-300;
+      o.lp[k]=o.lp[k+1]+Math.log(mx);
+      for(let i=0;i<N;i++) psi[i]/=mx;
+      o.psiS.set(psi,k*N);
+    }
+  };
+  o.uOf=function(k,i){
+    const im=Math.max(0,i-1), ip=Math.min(N-1,i+1);
+    const g=(Math.log(Math.max(o.psiS[k*N+ip],1e-300))-Math.log(Math.max(o.psiS[k*N+im],1e-300)))/((ip-im)*DX);
+    return Math.max(-9,Math.min(9,2*o.T*g));
+  };
+  o.round=function(){
+    o.flow();
+    o.solvePsi();
+    // exploitability
+    let Jbr=0;
+    for(let i=0;i<N;i++) Jbr+=o.rho0[i]*(-o.lam*(Math.log(Math.max(o.psiS[i],1e-300))+o.lp[0]))*DX;
+    let Jpop=0;
+    for(let k=0;k<S;k++) for(let i=0;i<N;i++){
+      const r=o.rhoBar[k*N+i];
+      Jpop+=DT*r*(o.c*r + 0.5*o.alpha*o.uBar[k*N+i]*o.uBar[k*N+i])*DX;
+    }
+    for(let i=0;i<N;i++) Jpop+=o.rhoBar[S*N+i]*o.Phi[i]*DX;
+    o.n++;
+    o.expl.push(Math.max(Jpop-Jbr,1e-4));
+    for(let k=0;k<=S;k++) for(let i=0;i<N;i++)
+      o.uBar[k*N+i]+=(o.uOf(k,i)-o.uBar[k*N+i])/o.n;
+  };
+  o.reset=function(rho0){
+    if(rho0) o.rho0=rho0;
+    o.uBar.fill(0); o.n=0; o.expl=[];
+    o.flow(); // so there is something to draw immediately
+  };
+  o.reset();
+  return o;
+}
+// =================== FIG 1: congestion / commute ===================
+function Fig1(){
+  const s=this, fig=document.getElementById('fig1');
+  s.fig=fig; s.active=false;
+  s.cL=fig.querySelector('canvas[data-role=left]'); s.cR=fig.querySelector('canvas[data-role=right]');
+  const Phi=new Float64Array(N);
+  for(let i=0;i<N;i++){ const d=Math.abs(XS[i]-7.5)/0.45; Phi[i]=3*(1-Math.exp(-0.5*d*d*4)); }
+  const rho0=new Float64Array(N); gaussSpike(rho0,2.5,0.5);
+  s.g=MFG({T:0.4, lam:0.8, V:new Float64Array(N), Phi:Phi, rho0:rho0, c:1.5});
+  s.cursor=0;
+  s.step=function(){
+    if(s.g.n<28) s.g.round();
+    s.cursor=(s.cursor+2)%(S+1);
+  };
+  s.draw=function(){
+    const ctx=fit(s.cL), w=s.cL.clientWidth, h=s.cL.clientHeight, pad=12;
+    ctx.clearRect(0,0,w,h);
+    const k=s.cursor, y0=h-26;
+    // slot
+    ctx.fillStyle='rgba(31,138,99,0.1)';
+    ctx.fillRect(xpx(7.05,w,pad),16,xpx(7.95,w,pad)-xpx(7.05,w,pad),h-46);
+    lab(ctx,'target',xpx(7.5,w,pad)-16,14,GREEN);
+    const R=s.g.rhoBar.subarray(k*N,(k+1)*N);
+    const dmax=Math.max(maxOf(R),0.35)*1.12;
+    const yOf=d=>y0-(d/dmax)*(h-64);
+    curve(ctx,w,pad,R,yOf);
+    ctx.lineTo(xpx(X1,w,pad),y0); ctx.lineTo(xpx(X0,w,pad),y0); ctx.closePath();
+    ctx.fillStyle='rgba(43,95,173,0.14)'; ctx.fill();
+    curve(ctx,w,pad,R,yOf);
+    ctx.strokeStyle=BLUE; ctx.lineWidth=2; ctx.stroke();
+    // steering arrows
+    ctx.strokeStyle='rgba(31,138,99,0.8)'; ctx.fillStyle='rgba(31,138,99,0.8)'; ctx.lineWidth=1.2;
+    for(let a=1;a<=14;a++){
+      const i=Math.round(a*N/15);
+      if(R[i]<0.03*dmax) continue;
+      const u=s.g.uBar[k*N+i];
+      const len=Math.max(-22,Math.min(22,u*6));
+      if(Math.abs(len)<2) continue;
+      const px=xpx(XS[i],w,pad), py=yOf(R[i])-8, sg=Math.sign(len);
+      ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(px+len,py); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(px+len,py);
+      ctx.lineTo(px+len-4*sg,py-2.4); ctx.lineTo(px+len-4*sg,py+2.4); ctx.closePath(); ctx.fill();
+    }
+    ctx.strokeStyle=LINE; ctx.beginPath(); ctx.moveTo(pad,y0); ctx.lineTo(w-pad,y0); ctx.stroke();
+    lab(ctx,'t = '+(k*DT).toFixed(2)+'    day '+s.g.n,pad+3,h-8,INK);
+    // right: exploitability
+    const c2=fit(s.cR), w2=s.cR.clientWidth, h2=s.cR.clientHeight;
+    c2.clearRect(0,0,w2,h2);
+    const E=s.g.expl;
+    lab(c2,'exploitability per day (log scale)',36,16,INK);
+    if(E.length>1){
+      const x0p=40, x1p=w2-12, y0p=h2-26, y1p=26;
+      const lo=Math.log10(Math.min.apply(null,E))-0.1, hi=Math.log10(Math.max.apply(null,E))+0.1;
+      c2.strokeStyle=LINE;
+      c2.beginPath(); c2.moveTo(x0p,y1p); c2.lineTo(x0p,y0p); c2.lineTo(x1p,y0p); c2.stroke();
+      c2.beginPath();
+      for(let i=0;i<E.length;i++){
+        const px=x0p+(i/Math.max(E.length-1,1))*(x1p-x0p);
+        const py=y0p-(Math.log10(E[i])-lo)/Math.max(hi-lo,1e-9)*(y0p-y1p);
+        i?c2.lineTo(px,py):c2.moveTo(px,py);
+        c2.fillStyle=INK; c2.fillRect(px-1.5,py-1.5,3,3);
+      }
+      c2.strokeStyle=INK; c2.lineWidth=1.4; c2.stroke();
+      lab(c2,'10^'+hi.toFixed(1),2,y1p+4); lab(c2,'10^'+lo.toFixed(1),2,y0p);
+      lab(c2,'day \u2192',x1p-36,h2-8);
+      lab(c2,'floor \u2248 discretization, see popup',x0p+6,y0p-6);
+    }
+  };
+  const q=r=>fig.querySelector('[data-role='+r+']');
+  const cc=q('cc'), cv=q('cval');
+  cc.addEventListener('input',()=>{ cv.textContent=parseFloat(cc.value).toFixed(2); });
+  cc.addEventListener('change',()=>{ s.g.c=parseFloat(cc.value); s.g.reset();
+    say(fig, s.g.c<0.3
+      ? 'Congestion nearly free: this is essay two again, a single-agent problem cloned a million times. The crowd marches as one dense column, and fictitious play converges in a day or two because there is nothing to negotiate.'
+      : 'The charge is real now. Watch the column widen and the departure stagger across time as the days pass: the equilibrium spends control effort to buy distance from itself. Nobody coordinates; the fixed point does.'); });
+  q('restart').addEventListener('click',()=>s.g.reset());
+}
+// =================== FIG 2: herding / uniqueness ===================
+function Fig2(){
+  const s=this, fig=document.getElementById('fig2');
+  s.fig=fig; s.active=false;
+  s.cL=fig.querySelector('canvas[data-role=left]'); s.cR=fig.querySelector('canvas[data-role=right]');
+  s.V=doubleWell(0.5);
+  s.base=new Float64Array(N); gaussSpike(s.base,5,1.6);
+  s.tally={L:0,R:0,C:0};
+  s.mk=function(){
+    const r0=Float64Array.from(s.base), ph=Math.random()*7;
+    for(let i=0;i<N;i++) r0[i]*=(1+0.05*Math.sin(ph+XS[i]*1.3));
+    normalize(r0);
+    return MFG({T:0.3, lam:0.8, V:s.V, Phi:new Float64Array(N), rho0:r0, c:s.c});
+  };
+  s.c=-6; s.g=s.mk(); s.done=false; s.cursor=0;
+  s.step=function(){
+    if(s.g.n<16){ s.g.round(); }
+    else if(!s.done){
+      s.done=true;
+      let m=0; for(let i=0;i<N;i++) m+=XS[i]*s.g.rhoBar[S*N+i]*DX;
+      s.finalM=m;
+      if(m<4.4) s.tally.L++; else if(m>5.6) s.tally.R++; else s.tally.C++;
+    }
+    s.cursor=(s.cursor+2)%(S+1);
+  };
+  s.draw=function(){
+    const ctx=fit(s.cL), w=s.cL.clientWidth, h=s.cL.clientHeight, pad=12;
+    ctx.clearRect(0,0,w,h);
+    const y0=h-26;
+    const vmax=maxOf(s.V)||1;
+    ctx.beginPath();
+    for(let i=0;i<N;i++){ const px=xpx(XS[i],w,pad), py=14+(s.V[i]/vmax)*(h*0.18);
+      i?ctx.lineTo(px,py):ctx.moveTo(px,py); }
+    ctx.strokeStyle='rgba(17,17,17,0.2)'; ctx.lineWidth=1; ctx.stroke();
+    lab(ctx,'two identical valleys',pad+3,12);
+    const k=s.done?S:s.cursor;
+    const R=s.g.rhoBar.subarray(k*N,(k+1)*N);
+    const dmax=Math.max(maxOf(R),maxOf(s.base),0.3)*1.12;
+    const yOf=d=>y0-(d/dmax)*(h-70);
+    ctx.setLineDash([4,4]);
+    curve(ctx,w,pad,s.base,yOf);
+    ctx.strokeStyle=GRAY; ctx.lineWidth=1.2; ctx.stroke(); ctx.setLineDash([]);
+    curve(ctx,w,pad,R,yOf);
+    ctx.lineTo(xpx(X1,w,pad),y0); ctx.lineTo(xpx(X0,w,pad),y0); ctx.closePath();
+    ctx.fillStyle='rgba(43,95,173,0.14)'; ctx.fill();
+    curve(ctx,w,pad,R,yOf);
+    ctx.strokeStyle=BLUE; ctx.lineWidth=2; ctx.stroke();
+    ctx.strokeStyle=LINE; ctx.beginPath(); ctx.moveTo(pad,y0); ctx.lineTo(w-pad,y0); ctx.stroke();
+    lab(ctx,(s.done?'equilibrium reached, ':'day '+s.g.n+', ')+'t = '+(k*DT).toFixed(2),pad+3,h-8,INK);
+    // right: tally
+    const c2=fit(s.cR), w2=s.cR.clientWidth, h2=s.cR.clientHeight;
+    c2.clearRect(0,0,w2,h2);
+    lab(c2,'where did everyone end up? (runs at current coupling)',14,18,INK);
+    const tot=Math.max(1,s.tally.L+s.tally.R+s.tally.C);
+    const bars=[['left valley',s.tally.L,BLUE],['stayed symmetric',s.tally.C,GRAY],['right valley',s.tally.R,BLUE]];
+    bars.forEach((b,i)=>{
+      const y=52+i*46;
+      lab(c2,b[0],14,y-6,INK);
+      c2.fillStyle='#eee'; c2.fillRect(14,y,w2-90,16);
+      c2.fillStyle=b[2]; c2.fillRect(14,y,(b[1]/tot)*(w2-90),16);
+      lab(c2,String(b[1]),w2-64,y+12,INK);
+    });
+    lab(c2,s.c<0?'the coin\u2019s ledger':'uniqueness, verified by repetition',14,h2-12,INK);
+  };
+  const q=r=>fig.querySelector('[data-role='+r+']');
+  const cc=q('cc'), cv=q('cval');
+  cc.addEventListener('input',()=>{ cv.textContent=parseFloat(cc.value).toFixed(1); });
+  cc.addEventListener('change',()=>{ s.c=parseFloat(cc.value);
+    s.tally={L:0,R:0,C:0}; s.g=s.mk(); s.done=false;
+    say(fig, s.c>=0
+      ? 'Crowd-averse: the monotone regime. Lasry\u2013Lions applies, the equilibrium is unique and symmetric, and every re-run lands on the same answer no matter the noise. Uniqueness is boring on purpose.'
+      : (s.c>-3
+        ? 'Weak herding. The proof of uniqueness is gone, and yet the symmetric answer keeps winning: below the critical coupling, self-love is not worth the climb out of the valley you are in. The bifurcation has a threshold, exactly as the first essay\u2019s pitchfork did.'
+        : 'Strong herding. The symmetric equilibrium still exists and is never found: any whisper of asymmetry recruits itself, and the population commits to one valley. Re-run and let the tally accumulate; the theory has no opinion about which side, and that is the whole point.'));
+  });
+  q('rerun').addEventListener('click',()=>{ s.g=s.mk(); s.done=false; });
+}
+// =================== FIG 3: learning dynamics ===================
+function Fig3(){
+  const s=this, fig=document.getElementById('fig3');
+  s.fig=fig; s.active=false; s.c=fig.querySelector('canvas');
+  s.lam=0.25; s.zero=true; // matching pennies vs coordination
+  s.p=0.85; s.q=0.2; s.trail=[];
+  s.adv=function(p,q){
+    if(s.zero) return [2*(2*q-1), -2*(2*p-1)];
+    return [2*q-1, 2*p-1]; // coordination
+  };
+  s.f=function(p,q){
+    const b=1/s.lam, a=s.adv(p,q);
+    return [1/(1+Math.exp(-b*a[0]))-p, 1/(1+Math.exp(-b*a[1]))-q];
+  };
+  s.step=function(){
+    const dt=0.012;
+    for(let it=0;it<6;it++){
+      const k1=s.f(s.p,s.q),
+            k2=s.f(s.p+dt/2*k1[0],s.q+dt/2*k1[1]),
+            k3=s.f(s.p+dt/2*k2[0],s.q+dt/2*k2[1]),
+            k4=s.f(s.p+dt*k3[0],s.q+dt*k3[1]);
+      s.p+=dt/6*(k1[0]+2*k2[0]+2*k3[0]+k4[0]);
+      s.q+=dt/6*(k1[1]+2*k2[1]+2*k3[1]+k4[1]);
+    }
+    s.trail.push([s.p,s.q]);
+    if(s.trail.length>1400) s.trail.shift();
+  };
+  s.draw=function(){
+    const ctx=fit(s.c), w=s.c.clientWidth, h=s.c.clientHeight;
+    ctx.clearRect(0,0,w,h);
+    const size=Math.min(w-140,h-40), ox=(w-size)/2, oy=(h-size)/2;
+    const px=p=>ox+p*size, py=q=>oy+(1-q)*size;
+    // vector field
+    ctx.strokeStyle='rgba(17,17,17,0.22)'; ctx.fillStyle='rgba(17,17,17,0.22)'; ctx.lineWidth=1;
+    for(let a=0;a<=8;a++) for(let b=0;b<=8;b++){
+      const p0=a/8, q0=b/8, v=s.f(p0,q0);
+      const m=Math.hypot(v[0],v[1])||1, L=12;
+      const x0=px(p0), y0=py(q0), x1=x0+v[0]/m*L, y1=y0-v[1]/m*L;
+      ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke();
+      const ang=Math.atan2(y1-y0,x1-x0);
+      ctx.beginPath(); ctx.moveTo(x1,y1);
+      ctx.lineTo(x1-4*Math.cos(ang-0.4),y1-4*Math.sin(ang-0.4));
+      ctx.lineTo(x1-4*Math.cos(ang+0.4),y1-4*Math.sin(ang+0.4));
+      ctx.closePath(); ctx.fill();
+    }
+    ctx.strokeStyle=LINE; ctx.strokeRect(ox,oy,size,size);
+    lab(ctx,'P(player 1 plays heads) \u2192',ox+size/2-70,oy+size+16);
+    ctx.save(); ctx.translate(ox-10,oy+size/2+70); ctx.rotate(-Math.PI/2);
+    lab(ctx,'P(player 2 plays heads) \u2192',0,0); ctx.restore();
+    // trail
+    if(s.trail.length>2){
+      for(let i=1;i<s.trail.length;i++){
+        ctx.strokeStyle='rgba(43,95,173,'+(0.65*i/s.trail.length).toFixed(3)+')';
+        ctx.lineWidth=1.6;
+        ctx.beginPath();
+        ctx.moveTo(px(s.trail[i-1][0]),py(s.trail[i-1][1]));
+        ctx.lineTo(px(s.trail[i][0]),py(s.trail[i][1]));
+        ctx.stroke();
+      }
+    }
+    ctx.fillStyle=BLUE; ctx.beginPath(); ctx.arc(px(s.p),py(s.q),4.5,0,6.29); ctx.fill();
+    // equilibria
+    ctx.fillStyle=RED;
+    if(s.zero){ ctx.beginPath(); ctx.arc(px(0.5),py(0.5),4,0,6.29); ctx.fill();
+      lab(ctx,'QRE',px(0.5)+8,py(0.5)-6,RED); }
+    else {
+      const b=1/s.lam;
+      // logit equilibria of coordination: p*=sigma(b(2p*-1)) fixed points; mark corners approx + center
+      [[0.97,0.97],[0.03,0.03]].forEach(e=>{
+        ctx.beginPath(); ctx.arc(px(e[0]),py(e[1]),4,0,6.29); ctx.fill();
+      });
+      lab(ctx,'two stable equilibria',px(0.5)-52,py(0.5)-8,RED);
+    }
+  };
+  const q2=r=>fig.querySelector('[data-role='+r+']');
+  q2('game').addEventListener('click',function(){
+    s.zero=!s.zero; this.classList.toggle('toggled',!s.zero);
+    this.setAttribute('aria-pressed',String(!s.zero));
+    this.textContent='game: '+(s.zero?'matching pennies':'coordination');
+    s.trail=[]; s.p=0.85; s.q=0.2;
+    say(fig, s.zero
+      ? 'Pure opposition: the incentive field is nearly all rotation, the harmonic archetype. There is exactly one place with no regrets, the center, and the only way to arrive is to let the temperature tax the circling.'
+      : 'Coordination: a potential game, all gradient and no rotation. The same learning dynamics now behaves like essay one\u2019s crowds: straight descent into one of two stable equilibria, chosen by where you started.');
+  });
+  const lm=q2('lam'), lv=q2('lval');
+  lm.addEventListener('input',()=>{ s.lam=parseFloat(lm.value); lv.textContent=s.lam.toFixed(2); });
+  lm.addEventListener('change',()=>{ s.trail=[];
+    say(fig, s.lam<0.08
+      ? 'Nearly rational: the inward pull is faint and the orbit takes ages to spiral home. In the limit \u03bb = 0 the circle closes and never lands; that closed loop is what adversarial learning fights every day.'
+      : 'Comfortably warm: the Boltzmann softening dominates the rotation and the spiral collapses quickly into the quantal response equilibrium. Softness is what makes arrival possible; the fourth appearance of the dial, doing its usual job.');
+  });
+  q2('kick').addEventListener('click',()=>{ s.p=0.05+0.9*Math.random(); s.q=0.05+0.9*Math.random(); s.trail=[]; });
+}
+// =================== FIG 4: Schrodinger bridge ===================
+function Fig4(){
+  const s=this, fig=document.getElementById('fig4');
+  s.fig=fig; s.active=false; s.c=fig.querySelector('canvas');
+  s.eps=0.4; s.cursor=0; s.playing=true;
+  s.r0=new Float64Array(N); gaussSpike(s.r0,2.2,0.5);
+  s.r1=new Float64Array(N);
+  { const t1=new Float64Array(N), t2=new Float64Array(N);
+    gaussSpike(t1,6.6,0.4); gaussSpike(t2,8.4,0.4);
+    for(let i=0;i<N;i++) s.r1[i]=0.55*t1[i]+0.45*t2[i]; normalize(s.r1); }
+  s.build=function(){
+    const V=new Float64Array(N), Tr=s.eps;
+    function pushF(f){ const g=Float64Array.from(f), W3=makeWork();
+      for(let k=0;k<S;k++) stepFP(g,V,Tr,DT,W3); return g; }
+    function pushB(f){ const g=Float64Array.from(f), W3=makeWork();
+      for(let k=0;k<S;k++) stepBK(g,V,Tr,DT,W3); return g; }
+    let a=Float64Array.from(s.r0), b=new Float64Array(N).fill(1);
+    for(let it=0;it<40;it++){
+      const Kb=pushB(b);
+      for(let i=0;i<N;i++) a[i]=s.r0[i]/Math.max(Kb[i],1e-300);
+      const Ka=pushF(a);
+      for(let i=0;i<N;i++) b[i]=s.r1[i]/Math.max(Ka[i],1e-300);
+    }
+    // snapshots of forward-propagated a and backward-propagated b
+    s.phiS=new Float64Array((S+1)*N); s.psiS=new Float64Array((S+1)*N);
+    { const g=Float64Array.from(a), W3=makeWork();
+      s.phiS.set(g,0);
+      for(let k=1;k<=S;k++){ stepFP(g,V,Tr,DT,W3); s.phiS.set(g,k*N); } }
+    { const g=Float64Array.from(b), W3=makeWork();
+      s.psiS.set(g,S*N);
+      for(let k=S-1;k>=0;k--){ stepBK(g,V,Tr,DT,W3); s.psiS.set(g,k*N); } }
+    // marginal errors
+    let e0=0,e1=0;
+    for(let i=0;i<N;i++){
+      e0+=Math.abs(s.phiS[i]*s.psiS[i]-s.r0[i])*DX;
+      e1+=Math.abs(s.phiS[S*N+i]*s.psiS[S*N+i]-s.r1[i])*DX;
+    }
+    s.err=Math.max(e0,e1);
+  };
+  s.build();
+  s.step=function(){ if(s.playing){ s.cursor+=2; if(s.cursor>S) s.cursor=0; s.sync(); } };
+  s.draw=function(){
+    const ctx=fit(s.c), w=s.c.clientWidth, h=s.c.clientHeight, pad=12;
+    ctx.clearRect(0,0,w,h);
+    const k=s.cursor, y0=h-26;
+    const rt=new Float64Array(N);
+    for(let i=0;i<N;i++) rt[i]=s.phiS[k*N+i]*s.psiS[k*N+i];
+    normalize(rt);
+    const dmax=Math.max(maxOf(rt),maxOf(s.r0),maxOf(s.r1),0.3)*1.1;
+    const yOf=d=>y0-(d/dmax)*(h-58);
+    ctx.setLineDash([4,4]);
+    curve(ctx,w,pad,s.r0,yOf); ctx.strokeStyle=GRAY; ctx.lineWidth=1.3; ctx.stroke();
+    curve(ctx,w,pad,s.r1,yOf); ctx.stroke(); ctx.setLineDash([]);
+    curve(ctx,w,pad,rt,yOf);
+    ctx.lineTo(xpx(X1,w,pad),y0); ctx.lineTo(xpx(X0,w,pad),y0); ctx.closePath();
+    ctx.fillStyle='rgba(43,95,173,0.14)'; ctx.fill();
+    curve(ctx,w,pad,rt,yOf);
+    ctx.strokeStyle=BLUE; ctx.lineWidth=2.1; ctx.stroke();
+    ctx.strokeStyle=LINE; ctx.beginPath(); ctx.moveTo(pad,y0); ctx.lineTo(w-pad,y0); ctx.stroke();
+    lab(ctx,'t = '+(k*DT).toFixed(2)+'      max marginal error: '+s.err.toExponential(1),pad+3,h-8,INK);
+    lab(ctx,'\u03c1\u2080 (decreed)',xpx(2.2,w,pad)-28,26,GRAY);
+    lab(ctx,'\u03c1\u2081 (decreed)',xpx(7.5,w,pad)-28,26,GRAY);
+  };
+  const q=r=>fig.querySelector('[data-role='+r+']');
+  const ep=q('eps'), ev=q('eval');
+  ep.addEventListener('input',()=>{ ev.textContent=parseFloat(ep.value).toFixed(2); });
+  ep.addEventListener('change',()=>{ s.eps=parseFloat(ep.value); s.build();
+    say(fig, s.eps<0.15
+      ? 'Cold: the reference diffusion barely wanders, deviations from straight transport are expensive, and the bridge tightens toward McCann\u2019s displacement interpolation, the deterministic geodesic of essay one. One dial connects the last figure of this sequence to its first.'
+      : 'Warm: many histories are cheap, the bridge is a broad superposition of them, and the mid-time density is wide. This is entropic optimal transport, and the slider is the entropic regularizer every Sinkhorn user tunes.'); });
+  const tc=q('tcur'), tl=q('tlab');
+  s.sync=function(){ tc.value=String(s.cursor/S); tl.textContent=(s.cursor*DT).toFixed(2); };
+  tc.addEventListener('input',()=>{ s.playing=false; s.cursor=Math.round(parseFloat(tc.value)*S);
+    tl.textContent=(s.cursor*DT).toFixed(2);
+    q('play').textContent='play'; q('play').classList.remove('toggled'); });
+  q('play').addEventListener('click',function(){
+    s.playing=!s.playing; this.textContent=s.playing?'pause':'play';
+    this.classList.toggle('toggled',s.playing);
+  });
+  q('play').classList.add('toggled');
+}
+const sims=[new Fig1(), new Fig2(), new Fig3(), new Fig4()];
+const io=new IntersectionObserver(es=>{
+  for(const e of es){ const s2=sims.find(x=>x.fig===e.target); if(s2) s2.active=e.isIntersecting; }
+},{threshold:0.02});
+for(const s2 of sims) io.observe(s2.fig);
+(function loop(){
+  if(!document.hidden) for(const s2 of sims) if(s2.active){ s2.step(); s2.draw(); }
+  requestAnimationFrame(loop);
+})();
+})();}
+</script>
+</body>
+</html>

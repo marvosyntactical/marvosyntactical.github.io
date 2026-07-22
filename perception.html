@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Perception is Filtering</title>
+<script>
+window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},svg:{fontCache:'global'},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};
+</script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+<style>
+:root{
+  --ink:#111;--gray:#666;--line:#ddd;--blue:#2b5fad;--green:#1f8a63;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font-family:var(--serif);
+  font-size:19px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.measure{max-width:42rem;margin:0 auto;padding:0 1.25rem}
+p{margin:0 0 1.05em}
+a{color:var(--blue)}
+::selection{background:#dbe7f6}
+
+header{padding:4.5rem 1rem 1.2rem;text-align:center}
+.eyebrow{letter-spacing:.4em;font-size:.85rem;color:var(--gray);text-transform:uppercase;margin-bottom:.5rem}
+h1.title{font-weight:400;font-style:italic;margin:0;font-size:clamp(2.1rem,6vw,3.6rem);line-height:1.1}
+.hero-eq{margin:2rem 0 .4rem;font-size:clamp(1rem,2.5vw,1.4rem)}
+
+h2{font-weight:400;font-size:1.5rem;margin:3.4rem 0 .3rem;font-style:italic}
+h2 .no{font-style:normal;color:var(--gray);font-size:.8rem;letter-spacing:.22em;
+  text-transform:uppercase;display:block;margin-bottom:.45rem;font-family:var(--serif)}
+h3{font-weight:400;font-style:italic;font-size:1.13rem;margin:2.2rem 0 .6rem;color:#333}
+hr{border:0;border-top:1px solid var(--line);max-width:42rem;margin:3rem auto}
+mjx-container[jax="SVG"][display="true"]{margin:1.25em 0!important;overflow-x:auto;overflow-y:hidden;padding:2px 0}
+
+/* ---- gwern-style expandable notes ---- */
+.pop{
+  font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;
+  border-bottom:1px solid #9db8dd;text-decoration:none;line-height:inherit;
+}
+.pop:hover{border-bottom-color:var(--blue);background:#f0f5fb}
+.pop::after{content:"\2009\25B8";font-size:.68em;color:var(--blue);vertical-align:.12em}
+.pop[aria-expanded=true]::after{content:"\2009\25BE"}
+.pop[aria-expanded=true]{background:#f0f5fb;border-bottom-color:var(--blue)}
+.popbody{
+  display:none;margin:1.1em 0 1.4em;padding:.85em 1.1em .3em;
+  border-left:2px solid var(--blue);background:#f7f9fc;
+  font-size:.93rem;line-height:1.58;
+}
+.popbody.open{display:block}
+.popbody .ttl{font-style:italic;color:var(--blue);font-size:.8rem;letter-spacing:.1em;
+  text-transform:uppercase;display:block;margin-bottom:.5em}
+.popbody p{margin:0 0 .8em}
+.popbody mjx-container[jax="SVG"][display="true"]{margin:.85em 0!important}
+
+/* ---- figures ---- */
+figure.sim{max-width:54rem;margin:2.2rem auto;padding:0 1.25rem}
+.sim-frame{border:1px solid var(--line);border-radius:3px;background:#fff;padding:10px}
+.sim-frame canvas{display:block;width:100%;touch-action:none}
+.sim-frame .split{display:flex;gap:10px}
+.sim-frame .split>div{flex:1;min-width:0}
+@media (max-width:760px){.sim-frame .split{flex-direction:column}}
+figcaption{font-size:.85rem;color:var(--gray);margin-top:.6rem;line-height:1.5}
+figcaption .figno{font-style:italic}
+.controls{display:flex;flex-wrap:wrap;gap:.8rem 1.5rem;align-items:center;margin-top:.8rem;font-size:.9rem}
+.controls label{color:var(--gray);font-size:.82rem;letter-spacing:.05em;margin-right:.4em}
+button.ui{font-family:var(--serif);font-size:.88rem;background:#fff;border:1px solid var(--ink);
+  color:var(--ink);padding:.3rem .9rem;cursor:pointer;border-radius:2px}
+button.ui:hover{background:var(--ink);color:#fff}
+button.ui.toggled{background:var(--blue);border-color:var(--blue);color:#fff}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+select{font-family:var(--serif);font-size:.9rem;border:1px solid var(--line);padding:.28rem .45rem;background:#fff;border-radius:2px}
+input[type=range]{accent-color:var(--blue);width:150px;vertical-align:middle}
+.readout{font-style:italic;color:var(--gray);min-width:3.2em;display:inline-block}
+.fig-note{font-style:italic;color:#444;font-size:.92rem;margin-top:.7rem;
+  border-left:2px solid var(--green);padding-left:.8rem;min-height:2.4em;transition:opacity .25s}
+.fig-note.dim{opacity:0}
+.legend{display:inline-flex;gap:1em;flex-wrap:wrap}
+.legend span{white-space:nowrap}
+.sw{display:inline-block;width:1.4em;height:0;border-top:2px solid;vertical-align:middle;margin-right:.3em}
+footer{height:4rem}
+</style>
+
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">an ode, part three</div>
+  <h1 class="title">Perception is Filtering</h1>
+  <div class="hero-eq">$$p\big(x_t \,\big|\, \text{everything observed}\big) \;\propto\; \alpha_t(x)\;\beta_t(x)$$</div>
+</header>
+
+<section>
+  <div class="measure">
+    <p>This is the third essay in a sequence. The <a href="an-ode-to-the-fokker-planck-equation.html">first</a> was about the forward equation: given the present, what the world will do. The <a href="control-is-inference.html">second</a> was about the backward equation: given a goal, what we should do. Between them sits a question both essays quietly assumed away: in every figure so far, we could <em>see</em> the state. The density was on screen; the controller read its own position off the grid. No real agent gets that. A real agent gets a hidden world and a trickle of noisy measurements, and must maintain, at every instant, its best guess about what is actually out there.</p>
+    <p>That problem is called <em>filtering</em>, and it completes a triptych with a symmetry too clean to be a coincidence. Prediction, volition, perception: what will be, what to do, what to believe. The forward equation owned the first, the backward equation owned the second, and this essay's thesis is that perception is owned by both at once. The optimal belief about the state at time \(t\), given <em>everything</em> ever observed, factorizes into a forward object \(\alpha_t\) carrying the past and a backward object \(\beta_t\) carrying the future, multiplied pointwise. That is the equation above the title, and both of its factors are solved by machinery we have already built, down to the same discretized operators.</p>
+    <p>The essay also has a destination beyond the theorem. The phrase "free energy" has followed us through both previous essays, and there is a research program in theoretical neuroscience, active inference, claiming that perception and action in real brains are both descents of one such functional. By the end of this essay every ingredient of that claim will be an object we have personally simulated, which puts us in a position to do something the surrounding discourse rarely does: say precisely which part of it is a theorem, which part is a modeling choice, and which part is a known problem. As always, underlined terms expand, we write in "we", and the figures are the argument.</p>
+  </div>
+</section>
+
+<hr>
+
+<section>
+  <div class="measure">
+    <h2><span class="no">Part I</span>Seeing through noise</h2>
+    <p>The setup, called a
+      <button class="pop" data-target="pp-hmm" aria-expanded="false">state-space model</button>, needs two ingredients. A hidden state \(X_t\), which we take to be the Langevin diffusion of essay one, drifting and jittering in a landscape we cannot watch. And an observation channel: every so often, a measurement arrives,</p>
+    <div class="popbody" id="pp-hmm"><span class="ttl">state-space models</span>
+      <p>The pair (hidden Markov dynamics, noisy observations of it) is the workhorse of half of applied science: it is the hidden Markov model of speech and genomics when the state is discrete, the state-space model of econometrics and neuroscience when continuous, the basis of GPS positioning, target tracking, robot localization (SLAM), data assimilation in weather forecasting, and the decoding step of brain-computer interfaces. The Apollo guidance computer ran one. In every case the logical situation is identical: the world has a state, the state has dynamics, the sensors are noisy, and the object of interest is the conditional distribution of the former given the latter.</p>
+      <p>Two independence assumptions define the class: the state is Markov, and each observation depends only on the state at its own time. Everything in this essay flows from these two, and the factorization in the title is their joint consequence.</p>
+    </div>
+    <p>$$Y_k \;=\; X_{t_k} + \sigma_{\text{obs}}\,\varepsilon_k, \qquad \varepsilon_k \sim \mathcal N(0,1),$$</p>
+    <p>a ping: the true position, corrupted. The object we must maintain is the <em>filtering distribution</em> \(\pi_t(x) = p(X_t = x \mid \text{all pings so far})\), the honest summary of what the data permits us to believe. And the algorithm that maintains it is a two-step loop so natural it feels less derived than remembered, alternating the two halves of
+      <button class="pop" data-target="pp-bayes" aria-expanded="false">Bayes' rule in time</button>:</p>
+    <div class="popbody" id="pp-bayes"><span class="ttl">predict and correct</span>
+      <p><em>Predict.</em> Between pings, no information arrives, so belief evolves exactly as probability does: by the Fokker–Planck equation of essay one. If we believed \(\pi_{t}\) a moment ago, we believe \(e^{\Delta t\,\mathcal L^{*}}\pi_t\) now. Uncertainty diffuses; the belief cloud spreads and drifts precisely as an unwatched crowd would, because as far as we know, the state <em>is</em> an unwatched crowd of possibilities.</p>
+      <p><em>Correct.</em> When a ping \(y\) arrives, Bayes' rule reweighs every hypothesis by its likelihood \(g(x) = p(y \mid x)\):</p>
+      <p>$$\pi_{t}^{+}(x) \;=\; \frac{g(x)\,\pi_{t}^{-}(x)}{\int g\,\pi_{t}^{-}\,\mathrm dx}.$$</p>
+      <p>A multiplication and a renormalization; nothing moves, hypotheses are only promoted and demoted in place. Note which geometry this is: pointwise reweighting was exactly the <em>Fisher–Rao flow</em> of essay one's three-metrics figure, the one that could never cross a barrier. Filtering alternates the two geometries of that figure: transport when blind, reweighting when told. Prediction is Wasserstein; correction is Fisher–Rao.</p>
+      <p>The denominator looks like bookkeeping. Hold on to it: Part II is entirely about that denominator.</p>
+    </div>
+    <p>Between pings, the belief obeys the Fokker–Planck equation, spreading and drifting like the crowd it secretly is. At a ping, the belief is multiplied by the likelihood and renormalized: hypotheses compatible with the measurement are promoted, the rest demoted, nothing moves. Transport, then reweighting; blindness, then sight. The figure runs this loop live, and you should spend a minute being the hidden state: grab the particle and drag it somewhere the belief does not expect, and watch how many pings it takes for the cloud to hunt you down.</p>
+  </div>
+
+  <figure class="sim" id="fig1">
+    <div class="sim-frame"><canvas height="330"></canvas></div>
+    <div class="controls">
+      <button class="ui" data-role="reveal" aria-pressed="true">reveal the truth</button>
+      <span><label>ping noise &sigma;</label><input type="range" data-role="sig" min="0.15" max="1.6" step="0.01" value="0.55"><span class="readout" data-role="sval">0.55</span></span>
+      <button class="ui" data-role="reset">reset belief</button>
+      <span class="legend"><span><i class="sw" style="border-color:#2b5fad"></i>belief \(\pi_t\)</span>
+      <span><i class="sw" style="border-color:#1f8a63"></i>last ping's likelihood</span></span>
+    </div>
+    <p class="fig-note" data-role="note">The dark dot is the hidden truth, shown only because we are gods here; hide it and steer by the belief alone, or drag the dot to ambush the filter. Between pings the blue cloud diffuses (it is literally running essay one's equation); each ping snaps it toward the green likelihood. Crank the noise and watch belief become appropriately humble.</p>
+    <figcaption><span class="figno">Figure 1.</span> The predict-correct loop, live. Prediction is transport; correction is reweighting.</figcaption>
+  </figure>
+
+  <div class="measure">
+    <p>Two behaviors in this figure are worth naming, because they are the whole phenomenology of perception in miniature. First, the belief cloud <em>breathes</em>: it contracts at each ping and relaxes between them, equilibrating between the information coming in and the entropy production of the dynamics. Steady-state perceptual uncertainty is a balance of exactly the two forces essay one spent itself on. Second, when the hidden particle hops the barrier between wells, the belief lags, hesitates bimodally with mass in both hypotheses, then commits. That bimodal hesitation is the filter being <em>correct</em>: for a few pings, two stories fit the data, and the honest belief holds both.</p>
+  </div>
+</section>
+
+<hr>
+
+<section>
+  <div class="measure">
+    <h2><span class="no">Part II</span>The equations of belief, and the treasure in the denominator</h2>
+    <p>The loop above is discrete pings; nature usually observes continuously. Send the interval between pings to zero (scaling the noise appropriately) and the loop becomes a differential equation for \(\pi_t\), the
+      <button class="pop" data-target="pp-kushner" aria-expanded="false">Kushner–Stratonovich equation</button>, which is the exact and final answer to the perception problem, and which has a flaw of a familiar shape: it is <em>nonlinear</em> in the belief. Where essay two's HJB carried the nonlinearity \(|\nabla V|^2\), the equation of belief carries products of the posterior with its own conditional means. And in both essays the cure was the same kind of move, so we should try it here: stop insisting on the honest object and evolve a convenient one. Define \(\alpha_t\), the <em>unnormalized</em> belief, by running the identical predict-correct loop and skipping the renormalization. The result, in the continuous limit, is the
+      <button class="pop" data-target="pp-zakai" aria-expanded="false">Zakai equation</button>, and it is linear. The equation of believing was linear all along, wearing a normalizer.</p>
+    <div class="popbody" id="pp-kushner"><span class="ttl">the Kushner–Stratonovich equation</span>
+      <p>With continuous observations \(\mathrm dY_t = h(X_t)\,\mathrm dt + \mathrm dB_t\), the normalized filter evolves as</p>
+      <p>$$\mathrm d\pi_t \;=\; \mathcal L^{*}\pi_t\,\mathrm dt \;+\; \pi_t\,\big(h - \hat h_t\big)\,\big(\mathrm dY_t - \hat h_t\,\mathrm dt\big), \qquad \hat h_t = \int h\,\pi_t\,\mathrm dx.$$</p>
+      <p>The first term is Fokker–Planck: prediction. The second is the continuous-time correction, and it is built from the <em>innovation</em> \(\mathrm dY - \hat h\,\mathrm dt\), the part of each measurement the filter did not already expect. A filter learns only from its own surprise; measurements it predicted perfectly pass through without effect. (Readers who want the neuroscience keyword: this is precisely the "prediction error" that predictive-coding theories place at the center of cortical computation, appearing here as a theorem about conditional expectations rather than a hypothesis about neurons.)</p>
+      <p>The nonlinearity is the \(\hat h_t\): the equation for the belief contains averages <em>under the belief</em>. Solutions do not superpose, and the machinery of the previous essays stalls, until the next popup.</p>
+    </div>
+    <div class="popbody" id="pp-zakai"><span class="ttl">the Zakai equation</span>
+      <p>Drop the normalization and the unnormalized density obeys</p>
+      <p>$$\mathrm d\alpha_t \;=\; \mathcal L^{*}\alpha_t\,\mathrm dt \;+\; \alpha_t\, h\,\mathrm dY_t,$$</p>
+      <p>with no conditional means anywhere: <em>linear</em> in \(\alpha\), driven by the raw data. The honest posterior is recovered at any moment by one division, \(\pi_t = \alpha_t / \int\alpha_t\). The structural parallel with essay two is exact and worth savoring: there, the log of the value function obeyed a linear equation; here, the belief times an evidence factor obeys one. In both cases the nonlinearity of the famous equation is a normalization in disguise, and in both cases the linear object is the one worth computing.</p>
+      <p>Linearity is also what makes the theory robust: it is why filters can be analyzed, why the Feynman–Kac representation applies to perception too (\(\alpha\) is a path-integral over hypotheses weighted by observation likelihood), and why the particle methods of Part IV converge.</p>
+    </div>
+    <p>So the normalizer was the price of nonlinearity. It is also, and this is the pivot of the essay, the most valuable number in the theory. The total mass that the renormalizations keep discarding multiplies out, over a whole episode, to</p>
+    <p>$$\int \alpha_t(x)\,\mathrm dx \;=\; p\big(Y_1, \dots, Y_k \,\big|\, \text{model}\big),$$</p>
+    <p>the
+      <button class="pop" data-target="pp-evidence" aria-expanded="false">evidence</button>: the probability the model assigns to everything actually observed. Figure 1 has been accumulating its logarithm in the corner readout all along. One number, streaming in real time, scoring the model against reality.</p>
+    <div class="popbody" id="pp-evidence"><span class="ttl">the evidence, third appearance</span>
+      <p>This is the trilogy's most persistent character, and it is worth lining up its three costumes. In essay one, \(Z=\int e^{-V/T}\) normalized the Boltzmann distribution and \(-T\log Z\) was the equilibrium free energy. In essay two, \(\psi = \mathbb E[e^{-\mathrm{cost}/\lambda}]\) normalized the posterior over futures and \(-\lambda\log\psi\) was the value function. Here, \(\int\alpha_t\) normalizes the posterior over hidden presents, and \(-\log\int\alpha_t\) is the surprise the data has inflicted on the model so far. In all three, the same division of labor: the normalized object answers "what, given this frame"; the normalizer answers "how good is the frame". Model comparison, structure learning, and change-point detection all live in the normalizer, which is why throwing it away, though harmless for tracking, is scientifically expensive.</p>
+      <p>And minimizing \(-\log(\text{evidence})\) over model parameters, when the exact evidence is intractable, is done by bounding it with a variational free energy: the ELBO of essay two's Part V, now applied to trajectories. Part V of this essay is built on that observation.</p>
+    </div>
+
+    <h2 style="margin-top:3.4rem"><span class="no">Part III</span>The past times the future</h2>
+    <p>Filtering is real-time: the belief at \(t\) uses pings up to \(t\). But offline, with a whole recorded episode in hand, the question changes: what should we believe about the state at noon, given the <em>entire day's</em> data, including the afternoon? This is <em>smoothing</em>, and its answer is the title equation. By the
+      <button class="pop" data-target="pp-fusion" aria-expanded="false">two independence assumptions</button> of the model, past and future data are independent given the present state, so their contributions factorize pointwise:</p>
+    <div class="popbody" id="pp-fusion"><span class="ttl">deriving the factorization</span>
+      <p>Split the data at \(t\): \(Y_{\text{past}}\) and \(Y_{\text{future}}\). Bayes, then the conditional independence of the two blocks given \(X_t\) (which holds because the state is Markov and observations touch only their own instant):</p>
+      <p>$$p(x_t \mid Y_{\text{past}}, Y_{\text{future}}) \;\propto\; p(x_t \mid Y_{\text{past}})\; p(Y_{\text{future}} \mid x_t) \;=\; \frac{\alpha_t(x)}{\int\alpha_t}\;\beta_t(x).$$</p>
+      <p>The forward factor \(\alpha_t\) is the filter we already have. The backward factor \(\beta_t(x) = p(Y_{\text{future}} \mid X_t = x)\) is a conditional expectation of future quantities given the present state, which is to say: it solves the Kolmogorov <em>backward</em> equation of essay two, punctuated by multiplication with each future ping's likelihood as the backward sweep absorbs it. Forward-and-multiply for the past; backward-and-multiply for the future. In the discrete-state world this pair is the forward-backward algorithm of hidden Markov models and the sum-product algorithm on chains; \(\beta\) is also, in the language of essay two, an \(h\)-function, and smoothing is an \(h\)-transform by the future data.</p>
+      <p>The conserved pairing follows immediately: \(\int \alpha_t\,\beta_t\,\mathrm dx = p(\text{all data})\), the total evidence, which cannot depend on where we chose to split past from future. At each ping, the likelihood factor hops from the \(\beta\) ledger to the \(\alpha\) ledger; the product never feels it.</p>
+    </div>
+    <p>$$p\big(x_t \mid \text{all data}\big) \;\propto\; \underbrace{\alpha_t(x)}_{\text{what the past supports}} \;\times\; \underbrace{\beta_t(x)}_{\text{what the future demands}},$$</p>
+    <p>where \(\beta_t(x)\), the likelihood of all future pings given \(X_t = x\), solves the backward equation of essay two, ping by ping. Readers of that essay have seen this figure's skeleton before: its Figure 1 propagated a density forward and an expectation backward and displayed their invariant pairing. That was, we can now admit, smoothing with the serial numbers filed off. Here the pairing \(\int\alpha_t\beta_t\,\mathrm dx\) is the total evidence of the episode, constant in \(t\) to machine precision, even across the pings, where a likelihood factor jumps from one ledger to the other in the same instant. Scrub the figure and watch hindsight at work: at times where the filter hesitated bimodally, the backward factor, knowing how the story ends, quietly deletes the wrong hypothesis.</p>
+  </div>
+
+  <figure class="sim" id="fig2">
+    <div class="sim-frame"><canvas height="340"></canvas></div>
+    <div class="controls">
+      <span><label>time</label><input type="range" data-role="tcur" min="0" max="1" step="0.002" value="0.5"><span class="readout" data-role="tlab">0.00</span></span>
+      <button class="ui" data-role="play" aria-pressed="true">pause</button>
+      <button class="ui" data-role="rebuild">new episode</button>
+      <span class="legend"><span><i class="sw" style="border-color:#2b5fad"></i>\(\alpha\) past</span>
+      <span><i class="sw" style="border-color:#1f8a63"></i>\(\beta\) future</span>
+      <span><i class="sw" style="border-color:#111"></i>\(\alpha\beta\) smoothed</span></span>
+    </div>
+    <p class="fig-note" data-role="note">One recorded episode: hidden path, pings, then both sweeps. Blue is real-time belief; green is the future's testimony; black is their product, the verdict of hindsight. The readout is \(\log\int\alpha\beta\), the episode's total evidence: it holds still to thirteen decimals while everything else moves, including at the pings.</p>
+    <figcaption><span class="figno">Figure 2.</span> Smoothing: the forward and backward equations of the previous essays, fused pointwise. The tick marks the true state.</figcaption>
+  </figure>
+</section>
+
+<hr>
+
+<section>
+  <div class="measure">
+    <h2><span class="no">Part IV</span>Why perception must approximate</h2>
+    <p>Everything so far solved the belief on a grid, an option available in one dimension and a fantasy beyond a few. What the field wanted, from the 1960s on, was a <em>finite-dimensional</em> filter: a handful of summary statistics whose updates absorb every observation exactly. One glorious case delivers. If the dynamics are linear and everything is Gaussian, the belief stays Gaussian forever, its mean and covariance obey closed ODEs, and the result is the
+      <button class="pop" data-target="pp-kalman" aria-expanded="false">Kalman–Bucy filter</button>, arguably the most consequential algorithm of the twentieth century, and the source of a duality that readers of essay two are contractually owed:</p>
+    <div class="popbody" id="pp-kalman"><span class="ttl">Kalman–Bucy, and the duality with control</span>
+      <p>For \(\mathrm dX = AX\,\mathrm dt + \mathrm dW\), \(\mathrm dY = CX\,\mathrm dt + \mathrm dB\), the posterior is \(\mathcal N(\hat x_t, P_t)\) with</p>
+      <p>$$\mathrm d\hat x = A\hat x\,\mathrm dt + P C^{\top}(\mathrm dY - C\hat x\,\mathrm dt), \qquad \dot P = AP + PA^{\top} + Q - PC^{\top}CP.$$</p>
+      <p>The mean chases the innovation with gain \(PC^\top\); the covariance obeys a Riccati equation. And that Riccati equation is, under the substitution \(A \to A^\top\), \(C \to B^\top\), time reversed, <em>the</em> Riccati equation of the linear-quadratic regulator: the optimal estimator and the optimal controller are transposes of one another. Kalman noticed this in the founding papers, and the previous essay's thesis, control is inference, has this as its oldest and most concrete instance, discovered from the other shore. Estimation is control of a belief; control is estimation of a desire.</p>
+      <p>It runs, famously, everywhere: Apollo navigation, GPS receivers, every phone's sensor fusion, every autopilot. The reason is the theorem, and the reason the theorem is fragile is the next popup.</p>
+    </div>
+    <p>Outside that case, the news is a flat negative, and it is one of the cleanest impossibility results in applied mathematics. For generic nonlinear systems,
+      <button class="pop" data-target="pp-nofinite" aria-expanded="false">no finite-dimensional exact filter exists</button>: the belief is an irreducibly infinite-dimensional object, and no fixed set of statistics, however clever, can carry it. Perception cannot be summarized; it can only be approximated. This is not a complaint about our algorithms. It is a statement about the problem, and it is why every real perceiving system, silicon or biological, is running an approximation, and why the interesting question is which one.</p>
+    <div class="popbody" id="pp-nofinite"><span class="ttl">the Lie-algebraic obstruction</span>
+      <p>Brockett, Clark, and Mitter observed in the late 1970s that a finite-dimensional filter would furnish a finite-dimensional realization of the Zakai equation, and that this requires the Lie algebra generated by the equation's two operators (the Fokker–Planck operator and multiplication by \(h\)) to be finite-dimensional. For the deceptively innocent <em>cubic sensor</em>, Brownian motion observed through \(h(x)=x^3\), Hazewinkel, Marcus, and Sussmann proved the algebra is infinite-dimensional and no finite-dimensional exact filter of any kind exists. Generic nonlinearities behave the same way.</p>
+      <p>The known exceptions form a thin aristocracy: the linear-Gaussian class, and the Beneš family, where the drift satisfies a special Riccati-type identity that collapses the algebra. Everything else approximates: extended and unscented Kalman filters (local Gaussian fits), ensemble methods (the meteorologists' workhorse), variational filters (Part V), and the particle filters below. The impossibility theorem is why this list exists.</p>
+    </div>
+    <p>The approximation with the deepest roots in this trilogy is the
+      <button class="pop" data-target="pp-pf" aria-expanded="false">particle filter</button>: represent the belief by a swarm of hypothetical worlds, let each one live forward under the dynamics (predict), reweight each by the likelihood of the actual ping (correct), and occasionally <em>resample</em>, cloning heavy hypotheses and culling dead ones. It is the predict-correct loop with the grid replaced by an ensemble, and every failure mode it has, we have already met.</p>
+    <div class="popbody" id="pp-pf"><span class="ttl">particle filters, and the mean-field connection</span>
+      <p>The algorithm (Gordon, Salmond, and Smith's 1993 bootstrap filter) is four lines. Its theory is a homecoming for this trilogy: a particle filter is an <em>interacting particle system</em>, since resampling couples the particles through their common weight normalization, and Del Moral's convergence theory proceeds exactly as essay one's Part IV did, by propagation of chaos: as \(N\to\infty\), the empirical swarm converges to the true filter, the mean-field limit of perception. The same mathematics that turned a crowd of magnetically coupled particles into the McKean–Vlasov equation turns a crowd of hypotheses into the Zakai equation.</p>
+      <p>Resampling is the interesting move. Without it, weights degenerate: one hypothesis slowly absorbs all the mass and the swarm wastes itself simulating worlds the data has already executed. With it, the swarm reallocates computation to where the posterior lives, at the price of extra variance and a genealogical collapse (trace ancestries backward and they coalesce). The diagnostic for when to trigger it is the effective sample size, making, by our count, its third appearance in the trilogy as the recurring villain: it measured planning collapse in essay two's Figure 3, importance-weight collapse before that, and here it decides when the swarm must be reborn.</p>
+    </div>
+  </div>
+
+  <figure class="sim" id="fig3">
+    <div class="sim-frame"><canvas height="330"></canvas></div>
+    <div class="controls">
+      <button class="ui" data-role="resample" aria-pressed="true">resampling on</button>
+      <span><label>particles N</label><input type="range" data-role="np" min="30" max="800" step="10" value="300"><span class="readout" data-role="nval">300</span></span>
+      <button class="ui" data-role="reset">reset</button>
+      <span class="legend"><span><i class="sw" style="border-color:#1f8a63"></i>hypotheses (size = weight)</span>
+      <span><i class="sw" style="border-color:#2b5fad"></i>exact belief (grid)</span></span>
+    </div>
+    <p class="fig-note" data-role="note">Each green bead is a hypothetical world; pings reweight them and the ESS readout counts the survivors. Switch resampling off and watch degeneracy: within a few pings one bead owns everything and the swarm is dead weight. Switch it back on and the swarm reincarnates onto the living hypotheses, hugging the exact blue curve.</p>
+    <figcaption><span class="figno">Figure 3.</span> Perception by ensemble. The mean-field limit of this swarm is the exact filter.</figcaption>
+  </figure>
+</section>
+
+<hr>
+
+<section>
+  <div class="measure">
+    <h2><span class="no">Part V</span>Perception, action, and one functional</h2>
+    <p>The trilogy's accounts are now complete enough to audit a famous claim. When the exact belief is unaffordable, the principled fallback is
+      <button class="pop" data-target="pp-vfe" aria-expanded="false">variational filtering</button>: pick a tractable family of beliefs \(q\), and minimize over it the functional</p>
+    <div class="popbody" id="pp-vfe"><span class="ttl">variational filtering, and the ELBO over trajectories</span>
+      <p>Essay two's Part V derived, for static unknowns, the identity \(F[q] = -\log(\text{evidence}) + \mathrm{KL}(q\,\|\,\text{posterior})\). Apply it with the hidden <em>trajectory</em> as the unknown and the ping sequence as the data: minimizing the free energy of a belief over paths simultaneously tightens a bound on this essay's evidence \(\int\alpha\) and drags \(q\) toward this essay's smoothing posterior \(\alpha\beta\). Every object in the identity is now something we have computed exactly, in one dimension, in the figures above; variational filtering is what one does in dimension fifty, where the grid is gone and the bound is all there is. Kalman smoothers, variational autoencoders with temporal structure, and deep state-space models are all this one minimization with different families \(q\).</p>
+      <p>One honest note on the word "perception is". The exact posterior is what perception <em>should</em> be; the variational minimizer is what a bounded perceiver can afford. The gap between them, \(\mathrm{KL}(q^*\|\,p)\), is not rhetoric: it is a computable number, it was on screen as the "variational gap" in essay one's Figure 3, and any theory that identifies perception with free-energy minimization is a theory of that gap being tolerable.</p>
+    </div>
+    <p>$$F[q] \;=\; \underbrace{-\log p(\text{data})}_{\text{fixed by the world}} \;+\; \underbrace{\mathrm{KL}\big(q \,\big\|\, p(\text{states}\mid\text{data})\big)}_{\text{the perceiver's error}},$$</p>
+    <p>the variational free energy of essay two, now over trajectories. Minimizing it is simultaneously approximating this essay's smoothing posterior and bounding this essay's evidence. And here the pieces click into a shape readers may recognize. The <em>free energy principle</em> of active inference asserts that a self-maintaining agent does two things with one functional: it updates beliefs to lower \(F\) (perception), and it selects actions to lower \(F\) (action). We are, for once, positioned to audit the assertion clause by clause, because we have personally built both halves.</p>
+    <p><em>What is theorem.</em> Perception as free-energy descent: established, and it is this essay. Exact filtering minimizes \(F\) to its floor; variational filtering minimizes it within a family; the equations are Parts I through III. Action as free-energy descent: established for the linearly solvable class, and it is essay two, whose entire content was that optimal control minimizes an expected cost plus \(\lambda\,\mathrm{KL}\) from passive dynamics, a free energy over futures. Two theorems, one functional \(F\), one temperature. That much of active inference is mathematics, and it is good mathematics.</p>
+    <p><em>What is a modeling choice.</em> The theorems above make an agent that perceives accurately and reaches goals cheaply. They do not make it <em>curious</em>, and a famous thought experiment says why: an agent whose only mandate is to keep \(F\) low can satisfy it in a dark room, where nothing happens and every prediction comes true. Active inference patches this with the <em>expected free energy</em>, an action-scoring rule whose decomposition contains an
+      <button class="pop" data-target="pp-efe" aria-expanded="false">epistemic value term</button>: prefer actions whose observations are expected to reduce uncertainty. The patch works, and the figure below shows it working, but it is important to file it correctly: it is not derived from the two theorems, it is an additional preference, chosen because agents without it are inert in exactly the situations where information must be bought with movement.</p>
+    <div class="popbody" id="pp-efe"><span class="ttl">expected free energy, and expected information gain</span>
+      <p>For a candidate action \(a\), the expected free energy decomposes (up to conventions that vary across the literature) as</p>
+      <p>$$G(a) \;=\; \underbrace{\mathbb E\big[\text{cost of outcomes}\big]}_{\text{pragmatic value}} \;-\; \underbrace{\mathbb E\big[\mathrm{KL}(q_{\text{after obs}} \,\|\, q_{\text{before}})\big]}_{\text{epistemic value: expected information gain}},$$</p>
+      <p>so the agent trades goal progress against expected reduction of its own uncertainty, and an observation is valuable in proportion to how much it is expected to change one's mind. The second term is classical Bayesian experimental design (Lindley, 1956), and maximizing it alone gives infotaxis, the search strategy of moths tracking odor plumes. The figure's toggle switches the term on and off; the weight on it is a free parameter with no theorem behind it, which is exactly the point being made in the main text.</p>
+      <p>The known objection carried over from essay two also applies here and deserves its one-line reprise: converting costs into log-probabilities makes the exponential-average, risk-seeking objective of that essay's coda, so agents of this family are structurally mild optimists, and no amount of epistemic value changes that.</p>
+    </div>
+    <p>The figure is the cleanest demonstration of that filing we could build. A corridor, a prize behind one of two doors, prior odds 60/40, and a map in the middle of the corridor that names the winning door to anyone standing near it. The purely pragmatic agent, minimizing expected distance to the prize, does the locally sensible thing: it walks to the favorite door and collects its 60%. The agent with the epistemic term pays movement it did not pragmatically need, reads the map, and collects nearly everything. Same filter, same world, one added term; the toggle is the entire philosophy of exploration, reduced to a button.</p>
+  </div>
+
+  <figure class="sim" id="fig4">
+    <div class="sim-frame"><canvas height="330"></canvas></div>
+    <div class="controls">
+      <button class="ui" data-role="mode" aria-pressed="true">epistemic value: on</button>
+      <button class="ui" data-role="restart">restart tallies</button>
+      <span class="legend"><span><i class="sw" style="border-color:#2b5fad"></i>belief over prize location</span>
+      <span><i class="sw" style="border-color:#1f8a63"></i>agent</span></span>
+    </div>
+    <p class="fig-note" data-role="note">Episodes run continuously; the tallies keep score per policy. With the epistemic term off, the agent heads straight for the favorite door and wins about as often as the prior allows. Switch it on and watch the detour appear: the map is worth nothing to the destination and everything to the belief.</p>
+    <figcaption><span class="figno">Figure 4.</span> One added term buys curiosity. Its value is measurable; its justification is a choice.</figcaption>
+  </figure>
+</section>
+
+<hr>
+
+<section>
+  <div class="measure">
+    <h2><span class="no">Coda</span>The fine print, and where the tetralogy points</h2>
+    <p>The fine print, in three clauses. <em>Exactness is one-dimensional.</em> Every "exact" curve on this page lives on a grid; the impossibility theorem of Part IV says that in general dimension there is no exact anything, only a portfolio of approximations, each with a regime. <em>The model is assumed.</em> Filtering is conditional probability <em>given the model</em>: the dynamics, the noise, the observation channel. Feed a filter the wrong model and it converges, confidently, to well-calibrated nonsense; the evidence readout of Part II is the only alarm in the building, and learning the model from that alarm (system identification, the EM algorithm, structure learning) is its own literature. <em>The audit stands.</em> Perception as free-energy descent is theorem; action as free-energy descent is theorem in the linearly solvable class; the epistemic term is an imported preference; the risk-seeking tilt of exponentiated costs is inherited by the whole family. Anyone selling more than that is selling.</p>
+    <p>And the road points somewhere specific. This essay coupled the forward and backward equations <em>pointwise</em>, by multiplication, with the world indifferent to being believed about. The remaining possibility is the interesting one: couple them <em>dynamically</em>. Let the crowd's density enter each agent's cost, so essay one's forward equation feeds essay two's backward equation, whose optimal control feeds back into the drift of the forward equation, and close the loop with a consistency demand: the crowd everyone optimizes against must be the crowd that optimizing produces. That fixed point is a Nash equilibrium of a continuum of agents, the system is a mean field game, and it is the natural fourth member of this sequence.</p>
+    <p>Praise, then, for the filter: the only algorithm in this trilogy that runs, right now, in the phone in your pocket and the mid-flight corrections of spacecraft; the machine that holds two stories when the data permits two, and drops one the instant it doesn't; the pointwise handshake of the trilogy's two equations. Prediction looks forward, control looks backward, and perception is where the two lines of sight cross: at the present, which is the only place anything is ever actually known.</p>
+  </div>
+</section>
+
+<footer></footer>
+
+<script>
+/*CORE-BEGIN*/
+const N=240, X0=0, X1=10, DX=(X1-X0)/N;
+const XS=new Float64Array(N); for(let i=0;i<N;i++) XS[i]=X0+(i+0.5)*DX;
+function bern(x){ if(Math.abs(x)<1e-8) return 1-x/2+x*x/12; return x/Math.expm1(x); }
+function thomas(lo,di,up,r,out){
+  const d=Float64Array.from(di), rr=Float64Array.from(r);
+  for(let i=1;i<N;i++){ const m=lo[i]/d[i-1]; d[i]-=m*up[i-1]; rr[i]-=m*rr[i-1]; }
+  out[N-1]=rr[N-1]/d[N-1];
+  for(let i=N-2;i>=0;i--) out[i]=(rr[i]-up[i]*out[i+1])/d[i];
+}
+function sgAB(V,T,a,b){
+  for(let i=0;i<N-1;i++){ const p=-(V[i+1]-V[i])/T; a[i]=bern(-p); b[i]=bern(p); }
+}
+function stepFP(rho,V,T,dt,W){
+  const c=dt*T/(DX*DX);
+  sgAB(V,T,W.a,W.b);
+  for(let i=0;i<N;i++){ let d=1; W.up[i]=0; W.lo[i]=0;
+    if(i<N-1){ d+=c*W.a[i]; W.up[i]=-c*W.b[i]; }
+    if(i>0){ d+=c*W.b[i-1]; W.lo[i]=-c*W.a[i-1]; }
+    W.di[i]=d; }
+  thomas(W.lo,W.di,W.up,rho,rho);
+  for(let i=0;i<N;i++) if(rho[i]<0) rho[i]=0;
+}
+function stepBK(u,V,T,dt,W){
+  const c=dt*T/(DX*DX);
+  sgAB(V,T,W.a,W.b);
+  for(let i=0;i<N;i++){ let d=1; W.up[i]=0; W.lo[i]=0;
+    if(i<N-1){ d+=c*W.a[i]; W.up[i]=-c*W.a[i]; }
+    if(i>0){ d+=c*W.b[i-1]; W.lo[i]=-c*W.b[i-1]; }
+    W.di[i]=d; }
+  thomas(W.lo,W.di,W.up,u,u);
+  for(let i=0;i<N;i++) if(u[i]<0) u[i]=0;
+}
+function makeWork(){ return {a:new Float64Array(N-1),b:new Float64Array(N-1),
+  lo:new Float64Array(N),di:new Float64Array(N),up:new Float64Array(N),r:new Float64Array(N)};}
+function doubleWell(h){
+  const V=new Float64Array(N);
+  for(let i=0;i<N;i++){ const u=(XS[i]-5)/2.1; V[i]=h*Math.pow(u*u-1,2); }
+  let m=Infinity; for(let i=0;i<N;i++) m=Math.min(m,V[i]);
+  for(let i=0;i<N;i++){ V[i]-=m; if(V[i]>3.8) V[i]=3.8; }
+  return V;
+}
+function gradArr(V){
+  const g=new Float64Array(N);
+  for(let i=0;i<N;i++){ const a=Math.max(0,i-1), b=Math.min(N-1,i+1);
+    g[i]=(V[b]-V[a])/((b-a)*DX); }
+  return g;
+}
+function gaussSpike(rho,x0,sig){
+  let m=0;
+  for(let i=0;i<N;i++){ const d=(XS[i]-x0)/sig; rho[i]=Math.exp(-0.5*d*d); m+=rho[i]*DX; }
+  for(let i=0;i<N;i++) rho[i]/=m;
+}
+function interp(arr,x){
+  const u=(x-X0)/DX-0.5, i=Math.floor(u);
+  if(i<0) return arr[0]; if(i>=N-1) return arr[N-1];
+  const f=u-i; return arr[i]*(1-f)+arr[i+1]*f;
+}
+function normalize(p){
+  let m=0; for(let i=0;i<N;i++) m+=p[i]*DX;
+  if(m>0){ for(let i=0;i<N;i++) p[i]/=m; }
+  return m;
+}
+function likGauss(y,sig,out){
+  for(let i=0;i<N;i++) out[i]=Math.exp(-Math.pow(y-XS[i],2)/(2*sig*sig));
+}
+/*CORE-END*/
+
+if(typeof window!=='undefined'){(function(){
+'use strict';
+const INK='#111', GRAY='#999', LINE='#ddd', BLUE='#2b5fad', GREEN='#1f8a63';
+const DT=0.02, S=280;
+let sp=null;
+function rnd(){ if(sp!==null){const v=sp;sp=null;return v;}
+  let u,v,s2; do{u=Math.random()*2-1;v=Math.random()*2-1;s2=u*u+v*v;}while(s2>=1||s2===0);
+  const f=Math.sqrt(-2*Math.log(s2)/s2); sp=v*f; return u*f; }
+function refl(x){ if(x<X0)x=2*X0-x; if(x>X1)x=2*X1-x; return Math.min(X1,Math.max(X0,x)); }
+function fit(c){
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  const w=Math.round(c.clientWidth*dpr), h=Math.round(c.clientHeight*dpr);
+  if(c.width!==w||c.height!==h){ c.width=w; c.height=h; }
+  const x=c.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); return x;
+}
+function xpx(x,w,pad){ return pad+(x-X0)/(X1-X0)*(w-2*pad); }
+function curve(ctx,w,pad,ys,yOf){
+  ctx.beginPath();
+  for(let i=0;i<N;i++){ const px=xpx(XS[i],w,pad), py=yOf(ys[i]);
+    i?ctx.lineTo(px,py):ctx.moveTo(px,py); }
+}
+function lab(ctx,t,x,y,col){ ctx.font='11px Palatino, Georgia, serif'; ctx.fillStyle=col||GRAY; ctx.fillText(t,x,y); }
+function maxOf(a){ let m=0; for(let i=0;i<a.length;i++) if(a[i]>m) m=a[i]; return m; }
+function say(fig,html){
+  const n=fig.querySelector('[data-role=note]'); if(!n) return;
+  n.classList.add('dim'); clearTimeout(n._t);
+  n._t=setTimeout(()=>{ n.innerHTML=html; n.classList.remove('dim'); },240);
+}
+// popups
+document.addEventListener('click',function(ev){
+  const btn=ev.target.closest('.pop'); if(!btn) return;
+  const el=document.getElementById(btn.dataset.target); if(!el) return;
+  const open=el.classList.toggle('open');
+  btn.setAttribute('aria-expanded',String(open));
+  if(open && !el.dataset.typeset && window.MathJax && MathJax.typesetPromise){
+    el.dataset.typeset='1'; MathJax.typesetPromise([el]).catch(()=>{});
+  }
+});
+// =================== FIGURE 1: live filter ===================
+function Fig1(){
+  const s=this, fig=document.getElementById('fig1');
+  s.fig=fig; s.active=false; s.c=fig.querySelector('canvas');
+  s.V=doubleWell(1.5); s.dV=gradArr(s.V); s.T=0.35; s.W=makeWork();
+  s.sig=0.55; s.reveal=true;
+  s.X=2.8; s.pi=new Float64Array(N); gaussSpike(s.pi,5,1.8);
+  s.g=new Float64Array(N); s.hasG=false;
+  s.logZ=0; s.pings=[]; s.frame=0; s.drag=false;
+  s.step=function(){
+    s.frame++;
+    if(!s.drag) s.X=refl(s.X-interp(s.dV,s.X)*DT+Math.sqrt(2*s.T*DT)*rnd());
+    stepFP(s.pi,s.V,s.T,DT,s.W); normalize(s.pi);
+    if(s.frame%25===0){
+      const y=s.X+s.sig*rnd();
+      likGauss(y,s.sig,s.g); s.hasG=true;
+      let m=0;
+      for(let i=0;i<N;i++){ s.pi[i]*=s.g[i]; m+=s.pi[i]*DX; }
+      s.logZ+=Math.log(m/(Math.sqrt(2*Math.PI)*s.sig));
+      for(let i=0;i<N;i++) s.pi[i]/=m;
+      s.pings.push({y:y, age:0});
+      if(s.pings.length>6) s.pings.shift();
+    }
+    for(const p of s.pings) p.age++;
+  };
+  s.draw=function(){
+    const ctx=fit(s.c), w=s.c.clientWidth, h=s.c.clientHeight, pad=12;
+    ctx.clearRect(0,0,w,h);
+    const vmax=maxOf(s.V)||1;
+    ctx.beginPath();
+    for(let i=0;i<N;i++){ const px=xpx(XS[i],w,pad), py=12+(s.V[i]/vmax)*(h*0.2);
+      i?ctx.lineTo(px,py):ctx.moveTo(px,py); }
+    ctx.strokeStyle='rgba(17,17,17,0.16)'; ctx.lineWidth=1; ctx.stroke();
+    lab(ctx,'hidden landscape',pad+3,12);
+    const y0=h-28;
+    const dmax=Math.max(maxOf(s.pi),0.3)*1.12;
+    const yOf=d=>y0-(d/dmax)*(h-84);
+    if(s.hasG){
+      const gmax=maxOf(s.g)||1;
+      curve(ctx,w,pad,s.g,d=>y0-(d/gmax)*(h-84)*0.6);
+      ctx.strokeStyle='rgba(31,138,99,0.55)'; ctx.lineWidth=1.3;
+      ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
+    }
+    curve(ctx,w,pad,s.pi,yOf);
+    ctx.lineTo(xpx(X1,w,pad),y0); ctx.lineTo(xpx(X0,w,pad),y0); ctx.closePath();
+    ctx.fillStyle='rgba(43,95,173,0.13)'; ctx.fill();
+    curve(ctx,w,pad,s.pi,yOf);
+    ctx.strokeStyle=BLUE; ctx.lineWidth=2; ctx.stroke();
+    ctx.strokeStyle=LINE; ctx.beginPath(); ctx.moveTo(pad,y0); ctx.lineTo(w-pad,y0); ctx.stroke();
+    for(const p of s.pings){
+      const a=Math.max(0,1-p.age/220);
+      ctx.fillStyle='rgba(31,138,99,'+(0.75*a).toFixed(3)+')';
+      const px=xpx(p.y,w,pad);
+      ctx.beginPath(); ctx.moveTo(px,y0+3); ctx.lineTo(px-4,y0+11); ctx.lineTo(px+4,y0+11); ctx.closePath(); ctx.fill();
+    }
+    if(s.reveal){
+      const px=xpx(s.X,w,pad);
+      ctx.fillStyle=INK; ctx.beginPath(); ctx.arc(px,y0-6,4.5,0,6.29); ctx.fill();
+      ctx.strokeStyle='rgba(17,17,17,0.25)';
+      ctx.beginPath(); ctx.moveTo(px,y0-6); ctx.lineTo(px,26); ctx.stroke();
+    }
+    lab(ctx,'accumulated log-evidence: '+s.logZ.toFixed(1)+'   (the number Part II is about)',pad+3,h-8,INK);
+    lab(ctx,'pings \u25b4',w-64,y0+12,GREEN);
+  };
+  const q=r=>fig.querySelector('[data-role='+r+']');
+  q('reveal').addEventListener('click',function(){
+    s.reveal=!s.reveal; this.classList.toggle('toggled',s.reveal);
+    this.setAttribute('aria-pressed',String(s.reveal));
+    this.textContent=s.reveal?'reveal the truth':'truth hidden';
+  });
+  q('reveal').classList.add('toggled');
+  const sg=q('sig'), sv=q('sval');
+  sg.addEventListener('input',()=>{ s.sig=parseFloat(sg.value); sv.textContent=s.sig.toFixed(2); });
+  sg.addEventListener('change',()=>say(fig, s.sig>0.9
+    ? 'Blurry sensors. Each ping barely narrows the green likelihood, so the belief leans harder on the dynamics: watch it default to the wells, which is the prior knowledge doing the work the data cannot.'
+    : 'Sharp sensors. The likelihood is a needle and each ping snaps the belief onto it; between pings you can watch diffusion undo that certainty in real time.'));
+  q('reset').addEventListener('click',()=>{ gaussSpike(s.pi,5,1.8); s.logZ=0; s.pings.length=0; });
+  s.c.style.cursor='grab';
+  s.c.addEventListener('pointerdown',ev=>{ s.drag=true; s.c.setPointerCapture(ev.pointerId);
+    const r=s.c.getBoundingClientRect();
+    s.X=refl(X0+(ev.clientX-r.left)/r.width*(X1-X0)); });
+  s.c.addEventListener('pointermove',ev=>{ if(!s.drag) return;
+    const r=s.c.getBoundingClientRect();
+    s.X=refl(X0+(ev.clientX-r.left)/r.width*(X1-X0)); });
+  s.c.addEventListener('pointerup',()=>{ s.drag=false; });
+}
+// =================== FIGURE 2: smoothing ===================
+function Fig2(){
+  const s=this, fig=document.getElementById('fig2');
+  s.fig=fig; s.active=false; s.c=fig.querySelector('canvas');
+  s.V=doubleWell(1.5); s.dV=gradArr(s.V); s.T=0.35; s.W=makeWork();
+  s.sig=0.55; s.OBS=25;
+  s.cursor=0; s.playing=true;
+  s.build=function(){
+    let X=2.8; s.truth=[X]; s.obs=[];
+    for(let k=1;k<=S;k++){
+      X=refl(X-interp(s.dV,X)*DT+Math.sqrt(2*s.T*DT)*rnd());
+      s.truth.push(X);
+      if(k%s.OBS===0) s.obs.push({k:k, y:X+s.sig*rnd()});
+    }
+    const g=new Float64Array(N);
+    // forward alpha (renormalized, log tracked)
+    s.aS=new Float64Array((S+1)*N); s.la=new Float64Array(S+1);
+    const a=new Float64Array(N); gaussSpike(a,5,1.8);
+    s.aS.set(a,0); let logA=0, oi=0;
+    for(let k=1;k<=S;k++){
+      stepFP(a,s.V,s.T,DT,s.W); normalize(a);
+      if(oi<s.obs.length && s.obs[oi].k===k){
+        likGauss(s.obs[oi].y,s.sig,g);
+        let m=0; for(let i=0;i<N;i++){ a[i]*=g[i]; m+=a[i]*DX; }
+        logA+=Math.log(m); for(let i=0;i<N;i++) a[i]/=m;
+        oi++;
+      }
+      s.aS.set(a,k*N); s.la[k]=logA;
+    }
+    // backward beta
+    s.bS=new Float64Array((S+1)*N); s.lb=new Float64Array(S+1);
+    const b=new Float64Array(N).fill(1); let logB=0;
+    s.bS.set(b,S*N); s.lb[S]=0; oi=s.obs.length-1;
+    for(let k=S-1;k>=0;k--){
+      if(oi>=0 && s.obs[oi].k===k+1){
+        likGauss(s.obs[oi].y,s.sig,g);
+        let mx=0; for(let i=0;i<N;i++){ b[i]*=g[i]; mx=Math.max(mx,b[i]); }
+        logB+=Math.log(mx); for(let i=0;i<N;i++) b[i]/=mx;
+        oi--;
+      }
+      stepBK(b,s.V,s.T,DT,s.W);
+      let mx2=maxOf(b)||1; logB+=Math.log(mx2);
+      for(let i=0;i<N;i++) b[i]/=mx2;
+      s.bS.set(b,k*N); s.lb[k]=logB;
+    }
+    s.cursor=0;
+  };
+  s.build();
+  s.evid=function(k){
+    let p=0; for(let i=0;i<N;i++) p+=s.aS[k*N+i]*s.bS[k*N+i]*DX;
+    return Math.log(p)+s.la[k]+s.lb[k];
+  };
+  s.step=function(){ if(s.playing){ s.cursor++; if(s.cursor>S) s.cursor=0; s.sync(); } };
+  s.draw=function(){
+    const ctx=fit(s.c), w=s.c.clientWidth, h=s.c.clientHeight, pad=12;
+    ctx.clearRect(0,0,w,h);
+    const k=s.cursor, y0=h-28;
+    const A=s.aS.subarray(k*N,(k+1)*N), B=s.bS.subarray(k*N,(k+1)*N);
+    const prod=new Float64Array(N);
+    for(let i=0;i<N;i++) prod[i]=A[i]*B[i];
+    normalize(prod);
+    const yOf=(arr)=>{ const m=Math.max(maxOf(arr),1e-9)*1.12;
+      return d=>y0-(d/m)*(h-72); };
+    curve(ctx,w,pad,B,yOf(B));
+    ctx.strokeStyle='rgba(31,138,99,0.8)'; ctx.lineWidth=1.5; ctx.setLineDash([5,4]); ctx.stroke(); ctx.setLineDash([]);
+    curve(ctx,w,pad,A,yOf(A));
+    ctx.strokeStyle=BLUE; ctx.lineWidth=1.7; ctx.stroke();
+    curve(ctx,w,pad,prod,yOf(prod));
+    ctx.lineTo(xpx(X1,w,pad),y0); ctx.lineTo(xpx(X0,w,pad),y0); ctx.closePath();
+    ctx.fillStyle='rgba(17,17,17,0.08)'; ctx.fill();
+    curve(ctx,w,pad,prod,yOf(prod));
+    ctx.strokeStyle=INK; ctx.lineWidth=2.1; ctx.stroke();
+    // truth tick
+    const tx=xpx(s.truth[k],w,pad);
+    ctx.fillStyle=INK;
+    ctx.beginPath(); ctx.moveTo(tx,y0+3); ctx.lineTo(tx-4.5,y0+12); ctx.lineTo(tx+4.5,y0+12); ctx.closePath(); ctx.fill();
+    // ping markers on a time rail
+    ctx.strokeStyle=LINE; ctx.beginPath(); ctx.moveTo(pad,y0); ctx.lineTo(w-pad,y0); ctx.stroke();
+    const railY=16;
+    ctx.strokeStyle='#ccc'; ctx.beginPath(); ctx.moveTo(pad,railY); ctx.lineTo(w-pad,railY); ctx.stroke();
+    for(const o of s.obs){
+      const px=pad+(o.k/S)*(w-2*pad);
+      ctx.fillStyle=o.k<=k?GREEN:'#ccc';
+      ctx.fillRect(px-1.5,railY-4,3,8);
+    }
+    const cx=pad+(k/S)*(w-2*pad);
+    ctx.fillStyle=INK; ctx.fillRect(cx-1,railY-7,2,14);
+    lab(ctx,'past pings',pad+2,railY+16,GREEN); lab(ctx,'future pings',w-86,railY+16,'#aaa');
+    lab(ctx,'t = '+(k*DT).toFixed(2)+'      log-evidence  log\u222b\u03b1\u03b2 = '+s.evid(k).toFixed(13),pad+3,h-8,INK);
+  };
+  const q=r=>fig.querySelector('[data-role='+r+']');
+  const tc=q('tcur'), tl=q('tlab');
+  s.sync=function(){ tc.value=String(s.cursor/S); tl.textContent=(s.cursor*DT).toFixed(2); };
+  tc.addEventListener('input',()=>{ s.playing=false; s.cursor=Math.round(parseFloat(tc.value)*S);
+    tl.textContent=(s.cursor*DT).toFixed(2);
+    q('play').textContent='play'; q('play').classList.remove('toggled'); });
+  q('play').addEventListener('click',function(){
+    s.playing=!s.playing; this.textContent=s.playing?'pause':'play';
+    this.classList.toggle('toggled',s.playing);
+  });
+  q('play').classList.add('toggled');
+  q('rebuild').addEventListener('click',()=>{ s.build();
+    say(fig,'A fresh hidden path and fresh pings, re-solved both ways. Look for a moment where blue hesitates between the wells and black does not: that is the future testifying about the past.'); });
+}
+// =================== FIGURE 3: particle filter ===================
+function Fig3(){
+  const s=this, fig=document.getElementById('fig3');
+  s.fig=fig; s.active=false; s.c=fig.querySelector('canvas');
+  s.V=doubleWell(1.5); s.dV=gradArr(s.V); s.T=0.35; s.W=makeWork();
+  s.sig=0.55; s.Np=300; s.resample=true;
+  s.reset=function(){
+    s.X=2.8;
+    s.px=new Float64Array(s.Np); s.pw=new Float64Array(s.Np).fill(1/s.Np);
+    for(let j=0;j<s.Np;j++) s.px[j]=refl(5+1.8*rnd());
+    s.pi=new Float64Array(N); gaussSpike(s.pi,5,1.8);
+    s.frame=0; s.ess=s.Np; s.lastPing=null;
+  };
+  s.reset();
+  s.step=function(){
+    s.frame++;
+    const sg2=Math.sqrt(2*s.T*DT);
+    s.X=refl(s.X-interp(s.dV,s.X)*DT+sg2*rnd());
+    for(let j=0;j<s.Np;j++) s.px[j]=refl(s.px[j]-interp(s.dV,s.px[j])*DT+sg2*rnd());
+    stepFP(s.pi,s.V,s.T,DT,s.W); normalize(s.pi);
+    if(s.frame%25===0){
+      const y=s.X+s.sig*rnd(); s.lastPing={y:y,age:0};
+      const g=new Float64Array(N); likGauss(y,s.sig,g);
+      let m=0; for(let i=0;i<N;i++){ s.pi[i]*=g[i]; m+=s.pi[i]*DX; }
+      for(let i=0;i<N;i++) s.pi[i]/=m;
+      let Zw=0;
+      for(let j=0;j<s.Np;j++){ s.pw[j]*=Math.exp(-Math.pow(y-s.px[j],2)/(2*s.sig*s.sig)); Zw+=s.pw[j]; }
+      for(let j=0;j<s.Np;j++) s.pw[j]/=Zw;
+      let e=0; for(let j=0;j<s.Np;j++) e+=s.pw[j]*s.pw[j];
+      s.ess=1/e;
+      if(s.resample && s.ess<s.Np/2){
+        const nx=new Float64Array(s.Np); let c=s.pw[0], j2=0;
+        for(let j=0;j<s.Np;j++){ const u=(j+Math.random())/s.Np;
+          while(c<u && j2<s.Np-1){ j2++; c+=s.pw[j2]; } nx[j]=s.px[j2]; }
+        s.px.set(nx); s.pw.fill(1/s.Np); 
+      }
+    }
+    if(s.lastPing) s.lastPing.age++;
+  };
+  s.draw=function(){
+    const ctx=fit(s.c), w=s.c.clientWidth, h=s.c.clientHeight, pad=12;
+    ctx.clearRect(0,0,w,h);
+    const y0=h-28;
+    const dmax=Math.max(maxOf(s.pi),0.3)*1.12;
+    const yOf=d=>y0-(d/dmax)*(h-70);
+    curve(ctx,w,pad,s.pi,yOf);
+    ctx.strokeStyle=BLUE; ctx.lineWidth=2; ctx.stroke();
+    // particles as beads sized by weight
+    const wmax=maxOf(s.pw)||1;
+    for(let j=0;j<s.Np;j++){
+      const r=0.9+3.5*Math.sqrt(s.pw[j]/wmax);
+      const a=0.15+0.6*(s.pw[j]/wmax);
+      ctx.fillStyle='rgba(31,138,99,'+a.toFixed(3)+')';
+      const yy=y0-14-((j*2654435761)%97)/97*40;
+      ctx.beginPath(); ctx.arc(xpx(s.px[j],w,pad),yy,r,0,6.29); ctx.fill();
+    }
+    const tx=xpx(s.X,w,pad);
+    ctx.fillStyle=INK; ctx.beginPath(); ctx.arc(tx,y0-6,4.5,0,6.29); ctx.fill();
+    if(s.lastPing){
+      const a=Math.max(0,1-s.lastPing.age/220);
+      ctx.fillStyle='rgba(31,138,99,'+(0.8*a).toFixed(3)+')';
+      const px=xpx(s.lastPing.y,w,pad);
+      ctx.beginPath(); ctx.moveTo(px,y0+3); ctx.lineTo(px-4,y0+11); ctx.lineTo(px+4,y0+11); ctx.closePath(); ctx.fill();
+    }
+    ctx.strokeStyle=LINE; ctx.beginPath(); ctx.moveTo(pad,y0); ctx.lineTo(w-pad,y0); ctx.stroke();
+    lab(ctx,'ESS = '+s.ess.toFixed(0)+' / '+s.Np+(s.resample?'   (resampling when ESS < N/2)':'   (resampling OFF: watch the swarm die)'),pad+3,h-8,INK);
+  };
+  const q=r=>fig.querySelector('[data-role='+r+']');
+  q('resample').addEventListener('click',function(){
+    s.resample=!s.resample; this.classList.toggle('toggled',s.resample);
+    this.setAttribute('aria-pressed',String(s.resample));
+    this.textContent=s.resample?'resampling on':'resampling off';
+    say(fig, s.resample
+      ? 'Resampling restored: heavy hypotheses are cloned, dead ones culled, and the swarm re-inhabits the posterior. The price is subtle: extra Monte Carlo variance, and a family tree that collapses to a few ancestors.'
+      : 'Resampling off. Nothing is wrong with the mathematics; the weights are exactly correct. But watch the ESS: within a few pings, one bead carries everything, and N\u22121 simulated worlds are rehearsing histories the data has already refuted.');
+  });
+  q('resample').classList.add('toggled');
+  const np=q('np'), nv=q('nval');
+  np.addEventListener('input',()=>{ nv.textContent=np.value; });
+  np.addEventListener('change',()=>{ s.Np=parseInt(np.value); s.reset(); });
+  q('reset').addEventListener('click',()=>s.reset());
+}
+// =================== FIGURE 4: the two doors ===================
+function Fig4(){
+  const s=this, fig=document.getElementById('fig4');
+  s.fig=fig; s.active=false; s.c=fig.querySelector('canvas');
+  const NG=120, DG=(X1-X0)/NG;
+  const GS=new Float64Array(NG); for(let i=0;i<NG;i++) GS[i]=X0+(i+0.5)*DG;
+  const DOOR_A=1.0, DOOR_B=9.0, MAP=6.0, PA=0.6, WEPI=6.0;
+  s.epi=true; s.tally={g:{ok:0,n:0},e:{ok:0,n:0}};
+  function priorGrid(){
+    const p=new Float64Array(NG); let m=0;
+    for(let i=0;i<NG;i++){ p[i]=PA*Math.exp(-Math.pow((GS[i]-DOOR_A)/0.3,2)/2)+(1-PA)*Math.exp(-Math.pow((GS[i]-DOOR_B)/0.3,2)/2); m+=p[i]*DG; }
+    for(let i=0;i<NG;i++) p[i]/=m; return p;
+  }
+  function pread(a){ return Math.exp(-Math.pow(a-MAP,2)/(2*0.7*0.7)); }
+  function likval(y,th,a){
+    const pr=pread(a);
+    return pr*Math.exp(-Math.pow(y-th,2)/(2*0.09))/0.3+(1-pr)*Math.exp(-Math.pow(y-5,2)/18)/3;
+  }
+  function update(post,a,y){
+    let m=0;
+    for(let i=0;i<NG;i++){ post[i]*=likval(y,GS[i],a); m+=post[i]*DG; }
+    for(let i=0;i<NG;i++) post[i]/=m;
+  }
+  function ent(p){ let e=0; for(let i=0;i<NG;i++) if(p[i]>1e-12) e-=p[i]*Math.log(p[i])*DG; return e; }
+  function expAbs(p,a){ let e=0; for(let i=0;i<NG;i++) e+=Math.abs(a-GS[i])*p[i]*DG; return e; }
+  s.newEp=function(){
+    s.th=Math.random()<PA?DOOR_A:DOOR_B;
+    s.post=priorGrid(); s.a=4.0; s.t=0; s.H=42; s.flash=0;
+  };
+  s.newEp();
+  s.step=function(){
+    if(s.flash>0){ s.flash--; if(s.flash===0) s.newEp(); return; }
+    // one agent step per frame
+    const y=(Math.random()<pread(s.a))?(s.th+0.3*rnd()):(5+3*rnd());
+    update(s.post,s.a,y);
+    let best=0, bestVal=1e18; const V=0.2;
+    for(const da of [-V,0,V]){
+      const a2=Math.min(X1,Math.max(X0,s.a+da));
+      let val=expAbs(s.post,a2);
+      if(s.epi) val-=WEPI*pread(a2)*Math.max(0,ent(s.post)+0.28);
+      if(val<bestVal){ bestVal=val; best=da; }
+    }
+    s.a=Math.min(X1,Math.max(X0,s.a+best));
+    s.t++;
+    if(s.t>=s.H){
+      const ok=Math.abs(s.a-s.th)<0.5;
+      const T2=s.epi?s.tally.e:s.tally.g;
+      T2.n++; if(ok) T2.ok++;
+      s.flash=45; s.ok=ok;
+    }
+  };
+  s.draw=function(){
+    const ctx=fit(s.c), w=s.c.clientWidth, h=s.c.clientHeight, pad=16;
+    ctx.clearRect(0,0,w,h);
+    const railY=h*0.62;
+    // map zone shading = pread
+    for(let i=0;i<NG;i++){
+      const p=pread(GS[i]);
+      if(p<0.02) continue;
+      ctx.fillStyle='rgba(150,116,44,'+(0.22*p).toFixed(3)+')';
+      ctx.fillRect(xpx(GS[i]-DG/2,w,pad),railY-26,(w-2*pad)/NG+1,52);
+    }
+    lab(ctx,'the map',xpx(MAP,w,pad)-20,railY-32,'#96742c');
+    // corridor
+    ctx.strokeStyle=INK; ctx.lineWidth=1.4;
+    ctx.beginPath(); ctx.moveTo(pad,railY); ctx.lineTo(w-pad,railY); ctx.stroke();
+    // doors
+    for(const [dx,plab] of [[DOOR_A,'door A (prior 60%)'],[DOOR_B,'door B (prior 40%)']]){
+      const px=xpx(dx,w,pad);
+      ctx.strokeStyle=INK; ctx.lineWidth=2.4;
+      ctx.beginPath(); ctx.moveTo(px,railY-20); ctx.lineTo(px,railY+20); ctx.stroke();
+      lab(ctx,plab,px-30,railY+36,INK);
+    }
+    // posterior over prize
+    const pm=maxOf(s.post)||1;
+    ctx.beginPath();
+    for(let i=0;i<NG;i++){ const px=xpx(GS[i],w,pad), py=railY-30-(s.post[i]/pm)*(railY-56);
+      i?ctx.lineTo(px,py):ctx.moveTo(px,py); }
+    ctx.strokeStyle=BLUE; ctx.lineWidth=1.8; ctx.stroke();
+    // agent
+    const ax=xpx(s.a,w,pad);
+    ctx.fillStyle=GREEN;
+    ctx.beginPath(); ctx.arc(ax,railY,6,0,6.29); ctx.fill();
+    if(s.flash>0){
+      const px=xpx(s.th,w,pad);
+      ctx.fillStyle=s.ok?'rgba(31,138,99,0.9)':'rgba(176,58,58,0.9)';
+      ctx.beginPath(); ctx.arc(px,railY,9,0,6.29); ctx.fill();
+      lab(ctx,s.ok?'found it':'wrong door',px-24,railY-14,s.ok?GREEN:'#b03a3a');
+    }
+    // tallies
+    const g=s.tally.g, e=s.tally.e;
+    lab(ctx,'greedy:     '+(g.n?((100*g.ok/g.n).toFixed(0)+'%  ('+g.n+' episodes)'):'\u2014'),pad+2,26,INK);
+    lab(ctx,'epistemic:  '+(e.n?((100*e.ok/e.n).toFixed(0)+'%  ('+e.n+' episodes)'):'\u2014'),pad+2,42,INK);
+    lab(ctx,'current policy: '+(s.epi?'epistemic':'greedy')+'    t = '+s.t+' / '+s.H,w-220,26,INK);
+  };
+  const q=r=>fig.querySelector('[data-role='+r+']');
+  q('mode').addEventListener('click',function(){
+    s.epi=!s.epi; this.classList.toggle('toggled',s.epi);
+    this.setAttribute('aria-pressed',String(s.epi));
+    this.textContent='epistemic value: '+(s.epi?'on':'off');
+    s.newEp();
+    say(fig, s.epi
+      ? 'Epistemic term on: the agent now assigns value to expected information gain, so the map zone pulls on it despite offering zero progress toward either door. Watch the detour, then the confident sprint.'
+      : 'Epistemic term off: pure pragmatics. Expected distance to the prize points at the favorite door, so that is where it goes, and its success rate converges to the prior. Nothing is malfunctioning; curiosity was never in the objective.');
+  });
+  q('mode').classList.add('toggled');
+  q('restart').addEventListener('click',()=>{ s.tally={g:{ok:0,n:0},e:{ok:0,n:0}}; s.newEp(); });
+}
+const sims=[new Fig1(), new Fig2(), new Fig3(), new Fig4()];
+const io=new IntersectionObserver(es=>{
+  for(const e of es){ const s2=sims.find(x=>x.fig===e.target); if(s2) s2.active=e.isIntersecting; }
+},{threshold:0.02});
+for(const s2 of sims) io.observe(s2.fig);
+(function loop(){
+  if(!document.hidden) for(const s2 of sims) if(s2.active){ s2.step(); s2.draw(); }
+  requestAnimationFrame(loop);
+})();
+})();}
+</script>
+</body>
+</html>
