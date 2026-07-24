@@ -79,77 +79,30 @@ input[type=range]{accent-color:var(--blue);width:150px;vertical-align:middle}
 .legend span{white-space:nowrap}
 .sw{display:inline-block;width:1.4em;height:0;border-top:2px solid;vertical-align:middle;margin-right:.3em}
 footer{height:4rem}
-
-/* ---- back link, post meta, part indicator ---- */
-.backlink{
-  position:fixed;top:1rem;left:1.1rem;z-index:30;
-  font-family:var(--serif);font-size:1.6rem;line-height:1;
-  color:#bbb;text-decoration:none;padding:.1em .4em .25em;
-}
-.backlink:hover{color:var(--ink)}
-
-.postmeta{
-  margin-top:1.9rem;text-align:center;
-  font-size:.78rem;letter-spacing:.055em;color:var(--gray);
-}
-.postmeta span{white-space:nowrap}
-.postmeta .dot{margin:0 .6em;opacity:.45}
-
-#partnav{
-  position:fixed;left:1.45rem;top:50%;transform:translateY(-50%);z-index:25;
-  display:flex;flex-direction:column;gap:.5rem;
-}
-#partnav a{
-  font-family:var(--serif);font-size:.8rem;letter-spacing:.09em;
-  color:#777;text-decoration:none;line-height:1;
-  min-width:1.7em;text-align:center;padding:.2em 0;
-  transition:color .18s ease;
-}
-#partnav a:hover{color:var(--gray)}
-#partnav a.on{color:var(--ink)}
-@media (max-width:900px){#partnav{display:none}}
-@media (prefers-reduced-motion:reduce){#partnav a{transition:none}}
 </style>
 </head>
 <body>
-
-<a class="backlink" href="index.html" aria-label="Back to index" title="Back">&lsaquo;</a>
-
-<nav id="partnav" aria-label="Sections of this essay">
-  <a href="#s-intro" data-sec="s-intro" title="Introduction">&ndash;</a>
-  <a href="#s-1"     data-sec="s-1"     title="Part I: The Fokker&ndash;Planck equation">I</a>
-  <a href="#s-2"     data-sec="s-2"     title="Part II: The Helmholtz free energy">II</a>
-  <a href="#s-3"     data-sec="s-3"     title="Part III: The bridge">III</a>
-  <a href="#s-4"     data-sec="s-4"     title="Part IV: When the crowd builds its own landscape">IV</a>
-  <a href="#s-coda"  data-sec="s-coda"  title="Coda">C</a>
-</nav>
 
 <header>
   <div class="eyebrow">an ode to the</div>
   <h1 class="title">Fokker–Planck Equation</h1>
   <div class="hero-eq">$$\frac{\partial \rho}{\partial t} \;=\; \nabla\!\cdot\!\Big(\rho\,\nabla \frac{\delta F}{\delta \rho}\Big)$$</div>
-
-  <!-- ===================== POST META: edit here ===================== -->
-  <div class="postmeta">
-    <span class="author">Marv</span><span class="dot">&middot;</span><span class="published">published 14.07.26</span><span class="dot">&middot;</span><span class="edited">last edited 24.07.26</span>
-  </div>
-  <!-- =============================================================== -->
 </header>
 
-<section id="s-intro">
+<section>
   <div class="measure">
 	  <p>I first encountered this equation while I co-authored a <a href="https://onlinelibrary.wiley.com/doi/pdf/10.1002/mma.70343">paper</a> where we investigated a particle-based optimiser with noise. I only later understood the significance of this formula and its connections to basic probability, thermodynamics, and really anything that evolves in time.</p>
     <p>We will understand the way it's written above as we go along, but the more typical form is</p>
     <p>$$\frac{\partial \rho}{\partial t} \;=\; \nabla\!\cdot\!\big(\rho\,\nabla V\big)\;+\;T\,\Delta \rho,$$</p>
     <p>and it models, at a macroscopic level, what happens to any system of things that are pulled in some direction while being randomly kicked around: pollen in water, the membrane voltage of neurons, interest rates, stars moving through a galaxy, weights in a neural network under noisy gradients. Coarse-grain almost any system and this equation describes its time evolution.</p>
     <p>What I want to lay out in this post is that this equation is secretly doing something more significant. There is a quantity in thermodynamics called Helmholtz free energy, \(F\), that shows up in Bayesian statistics, neuroscience, and in the diffusion models currently flooding the internet. And the assertion \(\partial_t\rho = \nabla\!\cdot\!(\rho\,\nabla\,\delta F/\delta\rho)\) says that this diffusion is the steepest descent of this \(F\), in a geometry we are going to learn about below.</p>
-    <p>This essay has three main parts. First, we meet the Fokker–Planck equation and see why it is nearly universal. Then we meet the free energy, and see why <em>it</em> is nearly universal. Then we prove they are the same thing, with a theorem worth this ode. The figures are interactive; you can click underlined terms to open derivations and definitions, so not much is asserted here that we do not show. For the best reading experience, do click underlined terms as you come across them, even if you know what a term means.</p>
+    <p>This essay has three parts. First, we meet the Fokker–Planck equation and see why it is nearly universal. Then we meet the free energy, and see why <em>it</em> is nearly universal. Then we prove they are the same thing, with a theorem worth this ode. The figures are interactive; you can click underlined terms to open derivations and definitions, so not much is asserted here that we do not show. For the best reading experience, do click underlined terms as you come across them, even if you know what a term means.</p>
   </div>
 </section>
 
 <hr>
 
-<section id="s-1">
+<section>
   <div class="measure">
     <h2><span class="no">Part I</span>The Fokker–Planck equation</h2>
 
@@ -309,27 +262,27 @@ footer{height:4rem}
 
 <hr>
 
-<section id="s-2">
+<section>
   <div class="measure">
     <h2><span class="no">Part II</span>The Helmholtz free energy</h2>
-    <p>Now we set the Fokker–Planck equation aside for a while. There are no particles and no diffusion in this part, only a construction on distributions, and I want to stress that it is a piece of mathematics which physics happens to use rather than a piece of physics proper. Part III will show that we never left the subject of Part I.</p>
+    <p>We now set the Fokker–Planck equation aside completely. Forget particles, forget diffusion. What follows is a construction on distributions alone, and its point is that it is not a piece of physics but a piece of mathematics that physics happens to use. We will find in Part III that it was the same subject all along.</p>
 
     <h3>The functional</h3>
-    <p>Fix a landscape \(V\) and a temperature \(T\). To each probability density \(\rho\) we are going to assign two numbers. The first is its <em>energy</em>,</p>
+    <p>Fix a landscape \(V\) and a temperature \(T\). To each probability density \(\rho\) we assign two numbers. Its <em>energy</em>,</p>
     <p>$$E[\rho] \;=\; \int V(x)\,\rho(x)\,\mathrm dx,$$</p>
-    <p>the average height of the landscape under \(\rho\), which is small when \(\rho\) hides in the valleys. The second is its
+    <p>the average height of the landscape under \(\rho\), which is small when \(\rho\) hides in the valleys. And its
       <button class="pop" data-target="pp-entropy" aria-expanded="false">entropy</button>,</p>
     <div class="popbody" id="pp-entropy"><span class="ttl">entropy</span>
-      <p>\(S[\rho] = -\int\rho\log\rho\) measures how spread out, how noncommittal, a distribution is. A sharp spike puts all of its very negative \(\rho\log\rho\) contributions in one place and so has low entropy, while a broad smear has high entropy. There are three ways of reading the same formula.</p>
-      <p><em>Combinatorial (Boltzmann).</em> Distribute \(N\) particles among bins with occupancies \(\rho_i\). The number of microscopic arrangements consistent with that macroscopic profile is \(N!/\prod (N\rho_i)!\), and Stirling's formula turns \(\frac1N\log\) of it into \(-\sum \rho_i\log\rho_i\), so on this reading the entropy counts the ways a macrostate can be realized.</p>
-      <p><em>Informational (Shannon).</em> The same expression is the average number of nats needed to encode a sample from \(\rho\), so on this reading it counts how surprised we should expect to be.</p>
+      <p>\(S[\rho] = -\int\rho\log\rho\) measures how spread out, how noncommittal, a distribution is. A sharp spike has very negative \(\int\rho\log\rho\) contributions concentrated in one place and hence low entropy; a broad smear has high entropy. Three readings, all the same formula:</p>
+      <p><em>Combinatorial (Boltzmann).</em> Distribute \(N\) particles among bins with occupancies \(\rho_i\). The number of microscopic arrangements consistent with that macroscopic profile is \(N!/\prod (N\rho_i)!\), and Stirling's formula turns \(\frac1N\log\) of it into \(-\sum \rho_i\log\rho_i\). Entropy counts the ways.</p>
+      <p><em>Informational (Shannon).</em> The same expression is the average number of nats needed to encode a sample from \(\rho\). Entropy counts the surprise.</p>
       <p><em>Statistical.</em> It is the functional whose maximization, subject to constraints, yields the least-committed distribution consistent with what we know (Jaynes' maximum entropy principle).</p>
       <p>One technical caveat, since we are being careful: for continuous densities \(-\int\rho\log\rho\) is <em>differential</em> entropy, which is not coordinate-invariant and can be negative. Every use of it in this essay appears inside a difference where the offending term cancels, which is exactly the point of the KL identity below. The properly invariant object is always a relative entropy.</p>
     </div>
     <p>$$S[\rho] \;=\; -\int \rho(x)\,\log\rho(x)\,\mathrm dx,$$</p>
-    <p>the amount of spread, which is large when \(\rho\) is smeared out. The two numbers want opposite things: the energy wants the crowd down in a valley, the entropy wants it everywhere at once. Helmholtz's move, which I think is one of the great moves in the history of science, is to price them in a common currency and use the temperature as the exchange rate:</p>
+    <p>the amount of spread, which is large when \(\rho\) is smeared out. These two want opposite things. Helmholtz's move, and it is one of the great moves in the history of science, is to price them in a common currency, using temperature as the exchange rate:</p>
     <p>$$\boxed{\;F[\rho] \;=\; E[\rho] \;-\; T\,S[\rho]\;}$$</p>
-    <p>That is the whole definition. What follows are three theorems about it, and then the reason this modest-looking expression keeps turning up in fields that have nothing to do with heat.</p>
+    <p>That is the whole definition. What follows are three theorems, and then the reason this modest-looking expression keeps appearing in fields that have nothing to do with heat.</p>
 
     <h3>Theorem 1: its minimizer is the Boltzmann distribution</h3>
     <p>Minimize \(F\) over all probability densities. Using a
@@ -339,7 +292,7 @@ footer{height:4rem}
       <p>The gradient of an ordinary function tells us how \(f\) responds to nudging a coordinate. The functional derivative \(\delta F/\delta\rho\) tells us how a functional responds to nudging the value of \(\rho\) at a point: it is the unique function such that \(\frac{\mathrm d}{\mathrm d\epsilon}F[\rho+\epsilon\,\eta]\big|_{\epsilon=0} = \int \frac{\delta F}{\delta\rho}(x)\,\eta(x)\,\mathrm dx\) for all perturbations \(\eta\).</p>
       <p>For our two pieces: \(\frac{\delta}{\delta\rho}\int V\rho = V\), and \(\frac{\delta}{\delta\rho}\int\rho\log\rho = \log\rho + 1\). Hence</p>
       <p>$$\frac{\delta F}{\delta\rho} \;=\; V + T\big(\log\rho + 1\big).$$</p>
-      <p>Keep this line in hand, because it is the computation the whole essay turns on. It is what sits inside the title equation, and Part III is more or less the observation that taking its gradient gives you the Fokker–Planck equation.</p>
+      <p>Memorize this line. It is the single most important computation in the essay: it is what appears in the title equation, and Part III is essentially the observation that taking its gradient produces the Fokker–Planck equation.</p>
     </div>
     <div class="popbody" id="pp-lagrange"><span class="ttl">the minimization, in full</span>
       <p>Minimize \(F[\rho] - \lambda\big(\int\rho - 1\big)\). Stationarity requires the functional derivative to vanish pointwise:</p>
@@ -348,7 +301,7 @@ footer{height:4rem}
       <p>$$F[\rho_\infty] = \int V\rho_\infty + T\int \rho_\infty\big(\!-\tfrac{V}{T} - \log Z\big) = -T\log Z \;=:\; F_\infty.$$</p>
       <p>The minimum is genuine, not merely stationary: \(F\) is strictly convex in \(\rho\), because \(E\) is linear and \(-TS = T\int\rho\log\rho\) is strictly convex. So the minimizer is unique and there are no spurious critical points anywhere.</p>
     </div>
-    <p>the unique minimizer is \(\rho_\infty = e^{-V/T}/Z\), with minimal value \(F_\infty = -T\log Z\). We met this distribution in Part I, where it was the state at which the Fokker–Planck flux vanishes. Here it arrives from a completely different direction, as the answer to an optimization problem: <em>settle low, stay spread, and trade between the two at exchange rate \(T\).</em> Equilibrium stops being an ansatz and becomes a variational principle. Two routes this different have no business landing on the same distribution, and rather than be pleased about it we should find it suspicious. It is the first hint of Part III.</p>
+    <p>the unique minimizer is \(\rho_\infty = e^{-V/T}/Z\), with minimal value \(F_\infty = -T\log Z\). We have met this distribution before, in Part I, as the state where the Fokker–Planck flux vanishes. Here it arrives from a completely different direction, as the solution of an optimization problem: <em>settle low, stay spread, and trade between the two at exchange rate \(T\).</em> Equilibrium stops being an ansatz and becomes a variational principle. That the two derivations agree is the first hint of Part III, and we should find it suspicious.</p>
 
     <h3>Theorem 2: excess free energy is informational distance</h3>
     <p>Take any density \(\rho\) and compare its free energy to the minimum. Substituting \(V = -T\log\rho_\infty - T\log Z\) into the definition and simplifying, two lines
@@ -361,14 +314,14 @@ footer{height:4rem}
     </div>
     <p>$$\boxed{\;F[\rho] - F_\infty \;=\; T\cdot \mathrm{KL}\!\left(\rho\,\|\,\rho_\infty\right)\;},\qquad \mathrm{KL}(\rho\,\|\,\pi) = \int \rho\log\frac{\rho}{\pi}\,\mathrm dx,$$</p>
     <p>where the
-      <button class="pop" data-target="pp-kl" aria-expanded="false">Kullback–Leibler divergence</button> is information theory's measure of how distinguishable two distributions are. This identity is worth a pause. A thermodynamic potential from the 1880s and an information measure from the 1950s turn out to be the same object up to a factor of temperature, so that how far a system sits from equilibrium, measured in joules, is how surprised equilibrium would be to meet it, measured in nats.</p>
+      <button class="pop" data-target="pp-kl" aria-expanded="false">Kullback–Leibler divergence</button> is information theory's measure of how distinguishable two distributions are. Sit with this. A thermodynamic potential from the 1880s and an information measure from the 1950s are the same object up to a factor of temperature. How far a system sits from equilibrium, measured in joules, is how surprised equilibrium would be to meet it, measured in nats.</p>
     <div class="popbody" id="pp-kl"><span class="ttl">Kullback–Leibler divergence</span>
       <p>\(\mathrm{KL}(\rho\|\pi) = \int\rho\log(\rho/\pi)\) is the expected log-likelihood ratio between \(\rho\) and \(\pi\) under \(\rho\): the average evidence, per sample, that we are drawing from \(\rho\) rather than \(\pi\). It is nonnegative and zero only when the distributions coincide. It is not a metric: it is asymmetric and violates the triangle inequality, so calling it a "distance" is an abuse we permit ourselves and will pay for in Part III, where we need a real one.</p>
       <p>It also has a coding interpretation: \(\mathrm{KL}(\rho\|\pi)\) is the number of extra nats per sample we waste by encoding data from \(\rho\) using a code optimized for \(\pi\). Free energy, in this reading, is the cost of a mistaken belief about equilibrium.</p>
     </div>
 
     <h3>Theorem 3: why science cannot stop using it</h3>
-    <p>The identity above is why the free energy got out of physics. Watch what happens to it when we do nothing but rename the symbols. Set \(T=1\), let \(x\) be an unknown parameter, and let the landscape be a negative log joint density, \(V(x) = -\log p(x, \mathcal D)\) for observed data \(\mathcal D\). Then \(\rho_\infty\) is the Bayesian posterior \(p(x\mid \mathcal D)\), the partition function \(Z\) is the model evidence \(p(\mathcal D)\), and \(F_\infty = -\log Z\) is the negative log-evidence. Theorem 2 now reads</p>
+    <p>The identity above is why the free energy escaped physics. Watch what it becomes when we rename the symbols. Set \(T=1\), let \(x\) be an unknown parameter, and let the landscape be a negative log joint density, \(V(x) = -\log p(x, \mathcal D)\) for observed data \(\mathcal D\). Then \(\rho_\infty\) is the Bayesian posterior \(p(x\mid \mathcal D)\), the partition function \(Z\) is the model evidence \(p(\mathcal D)\), and \(F_\infty = -\log Z\) is the negative log-evidence. Theorem 2 now reads</p>
     <p>$$\underbrace{F[q]}_{\text{free energy of a guess }q} \;=\; \underbrace{-\log p(\mathcal D)}_{\text{what we want}} \;+\; \underbrace{\mathrm{KL}\big(q \,\big\|\, p(\cdot\mid\mathcal D)\big)}_{\ge 0},$$</p>
     <p>which is, exactly and not by analogy, the
       <button class="pop" data-target="pp-elbo" aria-expanded="false">evidence lower bound</button> of variational inference. Minimizing free energy over a family of guesses \(q\) is simultaneously the tightest possible bound on the evidence and the closest possible approximation to the posterior. Every variational autoencoder ever trained is minimizing a Helmholtz free energy with \(T=1\).</p>
@@ -387,7 +340,7 @@ footer{height:4rem}
       <span class="legend"><span><i class="sw" style="border-color:#1f8a63"></i>ordinary gradient</span>
       <span><i class="sw" style="border-color:#2b5fad"></i>natural gradient</span></span></div>
     <p class="fig-note" data-role="note">Left: the free energy over the two-parameter Gaussian family, as an honest landscape. Right: the best Gaussian so far (solid) against the true equilibrium (dashed). The vertical gap between the ball and the floor of the landscape is exactly \(T\cdot\mathrm{KL}\): the variational gap.</p>
-    <figcaption><span class="figno">Figure 3.</span> Variational inference, drawn. \(F\) restricted to Gaussians \(q=\mathcal N(\mu,\sigma)\) is a function of two numbers, so we can just look at it.</figcaption>
+    <figcaption><span class="figno">Figure 3.</span> Variational inference, drawn. \(F\) restricted to Gaussians \(q=\mathcal N(\mu,\sigma)\) is a function of two numbers, so we can simply look at it.</figcaption>
   </figure>
 
   <div class="measure">
@@ -405,7 +358,7 @@ footer{height:4rem}
       <p>The right side is manifestly nonpositive and vanishes only when \(\nabla(V + T\log\rho)=0\) everywhere, which is exactly the equilibrium condition of Part I. The integrand is a relative <em>Fisher information</em>, and the identity \(\frac{\mathrm d}{\mathrm dt}\mathrm{KL} = -\text{(Fisher information)}\) is called the de Bruijn identity. Combined with Theorem 2, this says the KL divergence to equilibrium decays monotonically, with a rate we can compute.</p>
     </div>
     <p>$$\frac{\mathrm dF}{\mathrm dt} \;=\; -\int \rho\,\big|\nabla\big(V + T\log\rho\big)\big|^2\,\mathrm dx \;\le\; 0.$$</p>
-    <p>The energy on its own can rise and the entropy on its own can fall, but the weighted difference of the two only ever falls. This is an H-theorem, which is to say a one-line arrow of time, and it comes with an explicit formula for how irreversible the process is at any given moment. In the figure, gather the crowd into a heap (low entropy, high free energy) and watch the ledger. Green and blue, the energy and the entropy, rise and fall and trade places freely, while their weighted sum in black only descends. The dashed curve is the KL divergence on a log scale, counting down the nats left to equilibrium. Try to make the black curve go up; you will not manage it, and failing at it is the instructive part.</p>
+    <p>Energy alone can rise. Entropy alone can fall. Their weighted difference cannot. This is an H-theorem: a one-line arrow of time, with an explicit formula for the current rate of irreversibility. In the figure, gather the crowd into a heap (low entropy, high free energy) and watch the ledger. Green and blue, energy and entropy, rise and fall and trade places freely. Their sum, in black, only descends. The dashed curve is the KL divergence on a log scale, counting down the nats to equilibrium. Try to make the black curve rise. The attempt is instructive precisely because it fails.</p>
   </div>
 
   <figure class="sim" id="fig3">
@@ -432,43 +385,43 @@ footer{height:4rem}
   </figure>
 
   <div class="measure">
-    <p>Two experiments in the figure are worth the time. Gather the density in a double well at low temperature and \(F\) drops fast, then stalls on a long plateau; that plateau is
-      <button class="pop" data-target="pp-kramers" aria-expanded="false">metastability</button>, probability trapped in the wrong valley and waiting for a kick large enough to get it over the ridge. Then quench a hot, spread-out system and watch the energy and the entropy exchange roles violently while their weighted sum glides down as though nothing were happening. Whatever drama the two components get up to, the free energy has already priced it.</p>
+    <p>Two experiments repay the time. Gather the density in a double well at low temperature and \(F\) drops fast, then stalls on a long plateau: that plateau is
+      <button class="pop" data-target="pp-kramers" aria-expanded="false">metastability</button>, probability trapped in the wrong valley, waiting for a kick large enough to cross. Then quench a hot, spread-out system and watch energy and entropy violently exchange roles while their weighted sum glides down as though nothing happened. The equation permits no drama the free energy has not already priced.</p>
     <div class="popbody" id="pp-kramers"><span class="ttl">metastability and Kramers' law</span>
       <p>To leave a well of depth \(\Delta V\), a particle must be carried uphill by noise alone. The probability of such a fluctuation is Boltzmann-suppressed, and Kramers showed in 1940 that the mean escape time grows like \(\tau \sim e^{\Delta V / T}\), with a prefactor set by the curvatures at the well bottom and at the saddle.</p>
-      <p>This single exponential is why chemistry has rates at all, why proteins fold on human timescales rather than cosmological ones, why magnetic memories are stable for years, and why simulated annealing must cool slowly. It also predicts the plateau in Figure 4: on the plateau, the free energy is waiting for an exponentially rare event, and the length of that wait is physics rather than a numerical artifact.</p>
+      <p>This single exponential is why chemistry has rates at all, why proteins fold on human timescales rather than cosmological ones, why magnetic memories are stable for years, and why simulated annealing must cool slowly. It also predicts the plateau in Figure 4: on the plateau, the free energy is waiting for an exponentially rare event, and the length of the wait is not a numerical artifact but the physics.</p>
     </div>
   </div>
 </section>
 
 <hr>
 
-<section id="s-3">
+<section>
   <div class="measure">
     <h2><span class="no">Part III</span>The bridge: Fokker–Planck is a gradient flow of the free energy</h2>
-    <p>So we have two objects: a PDE that is universal for continuous-path Markov dynamics, and a functional that is universal for reasoning under uncertainty. They were built by different people for different reasons, and they keep colliding. The same Boltzmann distribution turns up as the flux-free state of the one and as the minimizer of the other, and the functional decreases along the PDE for reasons nobody has given yet. Let us find out why.</p>
+    <p>We have two objects. A PDE, universal for continuous-path Markov dynamics. A functional, universal for reasoning under uncertainty. They were built independently and they keep colliding: the same Boltzmann distribution shows up as the flux-free state of one and the minimizer of the other, and the functional mysteriously decreases along the PDE. Something is going on.</p>
 
     <h3>The computation</h3>
     <p>Take the functional derivative from Part II,</p>
     <p>$$\frac{\delta F}{\delta \rho} \;=\; V + T\big(\log\rho + 1\big),$$</p>
-    <p>and take its gradient in \(x\). The constant dies, and \(\nabla\log\rho = \nabla\rho/\rho\), so</p>
+    <p>and simply take its gradient in \(x\). The constant dies, and \(\nabla\log\rho = \nabla\rho/\rho\), so</p>
     <p>$$\nabla \frac{\delta F}{\delta \rho} \;=\; \nabla V + T\,\frac{\nabla\rho}{\rho}.$$</p>
     <p>Multiply by \(\rho\), and the density cancels the denominator:</p>
     <p>$$\rho\,\nabla \frac{\delta F}{\delta \rho} \;=\; \rho\,\nabla V + T\,\nabla\rho.$$</p>
     <p>But this is exactly minus the flux from Part I: the drift flux plus the Fick flux. Taking the divergence and applying the continuity equation,</p>
     <p>$$\frac{\partial \rho}{\partial t} \;=\; \nabla\!\cdot\!\Big(\rho\,\nabla \frac{\delta F}{\delta \rho}\Big) \;=\; \nabla\!\cdot\!\big(\rho\,\nabla V\big) + T\,\Delta\rho.$$</p>
-    <p>These are <em>identically the same equation</em>, with no approximation made and no limit hidden anywhere. What the Fokker–Planck equation says, read this way, is that probability flows downhill along the gradient of \(\delta F/\delta\rho\), carried at a rate proportional to how much probability is there to be carried.</p>
-    <p>That was three lines, and it is the heart of the essay. The rest of Part III goes into understanding what we just wrote, because "flows downhill along the derivative of \(F\)" is doing more work than it appears to.</p>
+    <p>The two equations are <em>identically the same equation</em>. No approximation, no limit, no analogy. The Fokker–Planck equation is the statement that probability flows downhill along the gradient of the free energy's derivative, carried at a rate proportional to how much probability is there to carry.</p>
+    <p>That is a three-line computation and it is the heart of the essay. The rest of Part III is about understanding what we just wrote, because the phrase "flows downhill along the derivative of \(F\)" is doing something subtler than it looks.</p>
 
     <h3>What is a gradient flow, and why is the metric the whole story</h3>
-    <p>In ordinary calculus, the steepest descent of a function \(f\) is \(\dot x = -\nabla f(x)\). It is tempting to read this as a definition, when it is a theorem that hides a choice. Steepest descent means: among all steps of a given <em>length</em>, take the one that decreases \(f\) most, and the notion of length there is an input we have to supply from outside. Change the
+    <p>In ordinary calculus, the steepest descent of a function \(f\) is \(\dot x = -\nabla f(x)\). It is tempting to read this as a definition, but it is a theorem, and it hides a choice. Steepest descent means: among all steps of a given <em>length</em>, take the one that decreases \(f\) most. The notion of length is an input. Change the
       <button class="pop" data-target="pp-metric" aria-expanded="false">metric</button> and the same function has an entirely different steepest-descent direction.</p>
     <div class="popbody" id="pp-metric"><span class="ttl">gradient flow depends on the metric</span>
       <p>Formally, the gradient is defined by the requirement \(\langle \nabla f, v\rangle = \mathrm df(v)\) for all directions \(v\). The differential \(\mathrm df\) is metric-independent, the inner product is not, so the gradient is a metric-dependent object. On a Riemannian manifold with metric tensor \(g\), steepest descent reads \(\dot x = -g^{-1}\nabla f\).</p>
       <p>A familiar example: natural gradient descent in machine learning is ordinary gradient descent under the Fisher–Rao metric instead of the Euclidean one. Same loss, same parameters, different flow, because the ruler changed. Preconditioning, Newton's method, and mirror descent are all this same observation.</p>
-      <p>So "diffusion is gradient descent of free energy" is an empty claim until the ruler is named. Naming the ruler is the whole content of the theorem, and the ruler is optimal transport.</p>
+      <p>So "diffusion is gradient descent of free energy" is a claim that is empty until the ruler is named. Naming the ruler is the content of the theorem, and it is optimal transport.</p>
     </div>
-    <p>What we need, then, is the ruler that makes Fokker–Planck the steepest descent of \(F\). The space we are moving in is the space of probability densities, where each "point" is an entire shape, so to do calculus there we have to say how far apart two shapes are. KL will not serve: it compares densities pointwise, height against height, and is blind to geography. The ruler we want comes out of an eighteenth-century logistics problem.</p>
+    <p>So which ruler makes Fokker–Planck the steepest descent of \(F\)? The space we move in is the space of probability densities, where each "point" is an entire shape. To do calculus there we must say how far apart two shapes are. And the correct answer is not KL, which we already have and which compares densities pointwise, height against height, blind to geography. The correct answer comes from an eighteenth-century logistics problem.</p>
 
     <h3>Optimal transport, in one paragraph</h3>
     <p>In 1781 Monge asked: given a pile of sand and a hole of the same volume, what is the cheapest way to fill the hole, paying for each grain by the distance it travels? Take the price of moving a grain a distance \(d\) to be \(d^2\), minimize over all ways of matching pile to hole, and the minimum cost defines the
@@ -480,7 +433,7 @@ footer{height:4rem}
       <p>minimizing over all ways of continuously morphing \(\mu\) into \(\nu\) by <em>transporting</em> mass with a velocity field. The cost is the total kinetic energy of the motion. This reformulation is why Wasserstein space has a Riemannian flavor at all: it says the distance is the length of a shortest path, and shortest paths need a metric on velocities.</p>
       <p>And it tells us what the tangent space is. A perturbation of \(\rho\) is a velocity field \(v\), acting through the continuity equation, with squared length \(\int\rho|v|^2\). Every Fokker–Planck evolution is of this form with \(v = -\nabla\,\delta F/\delta\rho\), which is the observation that generates the entire theorem.</p>
     </div>
-    <p>Compare the two rulers on one example, because the contrast is the reason any of this works. Take two narrow spikes, far apart, with no overlap. Their KL divergence is infinite, and sliding one spike a little closer does not change it at all, so KL cannot see the approach happening. Their \(W_2\) distance is just the distance between the spikes and shrinks smoothly as they close. If we want a geometry in which moving mass a little counts as a small step, KL is useless and \(W_2\) is exactly right, and since diffusion is a process that moves mass, it lives in \(W_2\).</p>
+    <p>Now compare the two rulers on one example, because the contrast is the reason any of this works. Take two narrow spikes, far apart, with no overlap. Their KL divergence is infinite, and moving one spike slightly closer does not change it at all: KL cannot see the approach. Their \(W_2\) distance is the distance between the spikes, and shrinks smoothly as they approach. If we want a geometry in which "moving mass a little" is a small step, KL is useless and \(W_2\) is exactly right. Diffusion moves mass. It therefore lives in \(W_2\).</p>
 
   </div>
 
@@ -499,7 +452,7 @@ footer{height:4rem}
       <button class="pop" data-target="pp-otto" aria-expanded="false">Otto's formal Riemannian structure</button> takes the Benamou–Brenier picture seriously: the tangent space at \(\rho\) consists of velocity fields \(v\) acting through the continuity equation, with squared norm \(\int \rho|v|^2\). Compute the gradient of \(F\) in that geometry and the answer is \(-\nabla\,\delta F/\delta\rho\). Steepest descent then reads</p>
     <div class="popbody" id="pp-otto"><span class="ttl">Otto calculus, and the honesty clause</span>
       <p>The claim is that under the metric \(\|\dot\rho\|^2_\rho = \int\rho|v|^2\) (with \(\dot\rho = -\nabla\!\cdot\!(\rho v)\)), the Riemannian gradient of \(F\) is the vector field \(-\nabla\,\delta F/\delta\rho\). One line of verification: the differential of \(F\) along \(\dot\rho\) is \(\int \frac{\delta F}{\delta\rho}\dot\rho = -\int\frac{\delta F}{\delta\rho}\nabla\!\cdot\!(\rho v) = \int \rho\,\nabla\frac{\delta F}{\delta\rho}\cdot v\), which is exactly the metric inner product of \(v\) with \(\nabla\frac{\delta F}{\delta\rho}\). So that vector field <em>is</em> the gradient, by the defining property of gradients.</p>
-      <p>The honesty clause: this "infinite-dimensional Riemannian manifold" is a formal device. The space of probability measures with the \(W_2\) metric is a metric space, not a smooth manifold, and there is no theorem underwriting the calculus above at the level of rigor a differential geometer would want. What <em>is</em> rigorous is the JKO scheme below, which reconstructs the same dynamics using only distances and minimization, no derivatives on the manifold at all. The formalism is an excellent intuition pump, and the theorem it points at is proved by other means; it is worth holding on to both of those at once.</p>
+      <p>The honesty clause: this "infinite-dimensional Riemannian manifold" is a formal device. The space of probability measures with the \(W_2\) metric is a metric space, not a smooth manifold, and there is no theorem underwriting the calculus above at the level of rigor a differential geometer would want. What <em>is</em> rigorous is the JKO scheme below, which reconstructs the same dynamics using only distances and minimization, no derivatives on the manifold at all. The formalism is a superb intuition pump and the theorem is proved elsewhere. Both facts matter.</p>
     </div>
     <p>$$\partial_t \rho \;=\; -\,\mathrm{grad}_{W_2} F[\rho] \;=\; \nabla\!\cdot\!\Big(\rho\,\nabla\frac{\delta F}{\delta\rho}\Big),$$</p>
     <p>which is the equation we started this essay with, and which we have just shown is the Fokker–Planck equation. In words:</p>
@@ -515,7 +468,7 @@ footer{height:4rem}
       <p>The construction generalizes far past our setting. Replace \(F\) with other functionals and the same scheme generates the porous medium equation, the heat flow on manifolds, aggregation equations, chemotaxis models, and (with an interaction term) McKean–Vlasov dynamics. This one recipe organizes a large part of modern PDE theory.</p>
     </div>
     <p>$$\rho_{k+1} \;=\; \underset{\rho}{\arg\min}\;\Big\{\,\underbrace{\frac{1}{2\tau}\,W_2^2(\rho,\rho_k)}_{\text{cost of moving}} \;+\; \underbrace{F[\rho]}_{\text{free energy}}\Big\}.$$</p>
-    <p>Each step lowers the free energy and pays for the transport it took to get there. As \(\tau\to 0\) the scheme converges to the Fokker–Planck equation. Which means that diffusion, one of the most basic irreversible processes there is, amounts to a system asking over and over: <em>how do I most cheaply become a little more like equilibrium?</em></p>
+    <p>Each step lowers the free energy, but pays for transport. As \(\tau\to 0\), this converges to the Fokker–Planck equation. Diffusion, one of the most fundamental irreversible processes in nature, is a system repeatedly asking: <em>how do I most cheaply become a little more like equilibrium?</em></p>
 
   </div>
 
@@ -534,7 +487,7 @@ footer{height:4rem}
   <div class="measure">
 
     <h3>Three metrics, one free energy</h3>
-    <p>We can now put the claim that the metric is the whole story on trial, by running the <em>same</em> free energy down <em>three</em> different geometries, from the same starting heap and on the same landscape. All three are honest gradient flows of \(F\), and all three end at the same Boltzmann minimizer, since the minimizer belongs to \(F\) alone and knows nothing about metrics. What differs is the route, and the routes differ wildly.</p>
+    <p>We can now test the claim that the metric is the whole story, by running the <em>same</em> free energy down <em>three</em> different geometries, from the same starting heap, on the same landscape. All three are honest gradient flows of \(F\). All three converge to the same Boltzmann minimizer, since the minimizer is a property of \(F\) alone and knows nothing about metrics. Only the paths differ, and the paths differ wildly.</p>
     <p>The first is the naive one: treat densities as vectors and use the ordinary \(L^2\) distance, \(\|\rho-\sigma\|^2 = \int|\rho-\sigma|^2\). The flow is \(\partial_t\rho = -(\delta F/\delta\rho - \lambda)\), the constant \(\lambda\) enforcing conservation of mass. The second is the
       <button class="pop" data-target="pp-fisherrao" aria-expanded="false">Fisher–Rao</button> metric, the natural geometry of statistics, whose flow is \(\partial_t\rho = -\rho\big(\delta F/\delta\rho - \mathbb E_\rho[\delta F/\delta\rho]\big)\). The third is Wasserstein, which is Fokker–Planck. Start all three from a bump that is <em>exactly zero</em> outside the left well, and watch what each one does about the barrier.</p>
     <div class="popbody" id="pp-fisherrao"><span class="ttl">Fisher–Rao, and why it cannot cross a barrier</span>
@@ -555,7 +508,7 @@ footer{height:4rem}
     <h3>The payoff: noise, rewritten as transport</h3>
     <p>The velocity field the theorem hands us is worth staring at:</p>
     <p>$$v \;=\; -\nabla \frac{\delta F}{\delta\rho} \;=\; \underbrace{-\nabla V}_{\text{drift}} \;\underbrace{-\;T\,\nabla \log \rho}_{\text{the noise, as a velocity}}.$$</p>
-    <p>Notice that the diffusion term is gone. Where the Fokker–Planck equation had \(T\Delta\rho\), a second-order smoothing operator that cannot be read as motion at all, the gradient flow has an honest velocity field pointing away from crowded regions. This predicts something we can check: a crowd of particles carrying <em>no noise whatsoever</em>, each one following \(v\), has to reproduce the same evolving density as the dice-rolling Langevin crowd. Two completely different microscopic stories, one macroscopic law. The next figure runs both at once so you can see whether it holds up.</p>
+    <p>The diffusion term is gone. Where the Fokker–Planck equation had \(T\Delta\rho\), a second-order smoothing operator with no interpretation as motion, the gradient flow has an honest velocity field pointing away from crowded regions. And this predicts something falsifiable: a crowd of particles carrying <em>no noise at all</em>, each simply following \(v\), must reproduce the same evolving density as the dice-rolling Langevin crowd. Two completely different microscopic stories, one macroscopic law. The next figure runs both at once.</p>
   </div>
 
   <figure class="sim" id="fig4">
@@ -581,16 +534,16 @@ footer{height:4rem}
     </div>
     <p>One last look at the H-theorem, now with the geometry switched on. The dissipation rate is</p>
     <p>$$-\frac{\mathrm dF}{\mathrm dt} \;=\; \int \rho\,|v|^2\,\mathrm dx \;=\; \big\|\dot\rho\big\|^2_{W_2},$$</p>
-    <p>which is exactly the squared speed of the curve \(\rho(t)\) through Wasserstein space. Irreversibility, in this picture, is the kinetic energy of a single point sliding down a landscape whose height is the free energy, which makes entropy production a speed. Every figure up to here has been a projection of that one descent.</p>
+    <p>which is exactly the squared speed of the curve \(\rho(t)\) through Wasserstein space. Irreversibility, in this picture, is nothing but the kinetic energy of a single point sliding down a landscape whose height is free energy. Entropy production is a speed. Every figure in this essay has been a shadow of that one descent.</p>
   </div>
 </section>
 
 <hr>
 
-<section id="s-4">
+<section>
   <div class="measure">
     <h2><span class="no">Part IV</span>When the crowd builds its own landscape</h2>
-    <p>Everything so far assumed the landscape \(V\) was handed to us from outside and stayed put. Let us break that in the gentlest way available, by letting each particle be attracted to the average position of all the others. The landscape a particle feels is then</p>
+    <p>Everything so far assumed the landscape \(V\) was given from outside and stayed put. Let us break that, in the gentlest possible way: let each particle be attracted to the average position of all the others. The landscape a particle feels is now</p>
     <p>$$V_{\text{eff}}(x)\;=\;V(x)\;+\;\frac{\theta}{2}\big(x - m\big)^2,\qquad m \;=\; \int x\,\rho(x)\,\mathrm dx,$$</p>
     <p>which depends on \(\rho\), so the Fokker–Planck equation has become <em>nonlinear in its own solution</em>. This is the
       <button class="pop" data-target="pp-mckean" aria-expanded="false">McKean–Vlasov equation</button>, and the whole machine survives the change: it is still a Wasserstein gradient flow, of the free energy</p>
@@ -599,7 +552,7 @@ footer{height:4rem}
       <p>This is the mathematics of flocking, of chemotaxis, of opinion dynamics, of mean-field games, and (with \(W\) an attraction toward the mean) of the Desai–Zwanzig model simulated here. It is also the setting of consensus-based optimization, where a swarm of noisy particles is pulled toward a weighted average of itself in order to minimize a nonconvex objective.</p>
     </div>
     <p>$$F[\rho] \;=\; \underbrace{\int V\rho}_{\text{energy}} \;+\; \underbrace{\frac12\iint W(x-y)\,\rho(x)\rho(y)}_{\text{interaction}} \;-\; \underbrace{T\,S[\rho]}_{\text{entropy}},\qquad W(x-y)=\frac{\theta}{2}(x-y)^2 .$$</p>
-    <p>One line of Part II now fails, and its failure is the whole point of this part. Theorem 1 proved that the minimizer of \(F\) is <em>unique</em>, and the proof rested on \(F\) being convex: the energy is linear in \(\rho\), the entropy is strictly convex, done. The interaction term is <em>quadratic</em> in \(\rho\) and it is not convex. Take away the convexity and the conclusion evaporates: below a critical temperature there are two minimizers, mirror images of each other, and the system has to pick one of them.</p>
+    <p>One line of Part II now fails, and its failure is the entire point. Theorem 1 proved the minimizer of \(F\) is <em>unique</em>, and the proof rested on \(F\) being convex: energy is linear in \(\rho\), entropy is strictly convex, done. The interaction term is <em>quadratic</em> in \(\rho\), and it is not convex. Take away convexity and the theorem's conclusion evaporates: below a critical temperature there are two minimizers, mirror images of each other, and the system has to pick one.</p>
   </div>
 
   <figure class="sim" id="fig9">
@@ -613,20 +566,20 @@ footer{height:4rem}
 
   <div class="measure">
     <p>What we are watching in the figure is the oldest story in statistical mechanics. At high temperature entropy dominates, the crowd is spread across both wells, and the mean sits at the centre by symmetry. Cool through \(T_c\) and that symmetric state stops being a minimum and becomes a maximum: the crowd's own attraction outweighs its thermal spreading, any accidental imbalance amplifies itself, and the population collapses into one well or the other. The choice is made by noise, and the symmetry of the equations survives only as the fact that both outcomes are equally likely.</p>
-    <p>This is the Curie point of a ferromagnet, the condensation of a gas, the onset of consensus in a population of agents, and the moment a swarm optimizer commits to a basin. It is also a warning about how conditional our nice theorems are. Everything in Part III still holds here, in that the flow is still steepest descent of \(F\) in \(W_2\), and yet the conclusion we actually wanted, that the system converges to the unique Boltzmann state, is false. The gradient flow structure survives nonconvexity; uniqueness does not.</p>
+    <p>This is the Curie point of a ferromagnet, the condensation of a gas, the onset of consensus in a population of agents, and the moment a swarm optimizer commits to a basin. It is also a warning, in the specific technical sense that our beautiful theorems are conditional: everything in Part III still holds here (the flow is still steepest descent of \(F\) in \(W_2\)), and yet the conclusion we most wanted, "the system converges to the unique Boltzmann state", is simply false. The gradient flow structure survives nonconvexity. Uniqueness does not.</p>
   </div>
 </section>
 
 <hr>
 
-<section id="s-coda">
+<section>
   <div class="measure">
     <h2><span class="no">Coda</span>The fine print, and the road onward</h2>
-    <p>After praising the equation this much, I owe you an explanation of what it cannot do. Part I already put a fence around the Fokker–Planck equation: jumps, memory, and quantum negativity all sit outside it, each one corresponding to a broken hypothesis. Part III has a fence of its own, and it is a tighter one.</p>
+    <p>An honest ode names what the beloved cannot do. Part I already fenced the Fokker–Planck equation: jumps, memory, and quantum negativity are outside it, each corresponding to a broken hypothesis. Part III has a fence of its own, and it is tighter.</p>
     <p>Everything in Part III required the drift to be a <em>gradient</em>, \(b = -\nabla V\). Drop that, allow a rotational component that is not the gradient of anything, and we must be careful about what actually breaks, because the naive guess is wrong. The free energy does <em>not</em> stop falling. For any Markov process with a stationary density \(\rho_\infty\), the relative entropy \(\mathrm{KL}(\rho_t\,\|\,\rho_\infty)\) is still a Lyapunov function, and one can check that the rotational part contributes <em>exactly zero</em> to \(\mathrm dF/\mathrm dt\).</p>
     <p>What breaks is the geometry. The flow is no longer <em>steepest</em> descent: it picks up a component that transports probability sideways, orthogonally to \(\nabla\,\delta F/\delta\rho\) in the Wasserstein metric, doing no work on \(F\) whatsoever. The dynamics is a gradient flow <em>plus</em> a rotation, and only the first half is what Part III described. At the stationary state the descent has stopped but the rotation has not, so probability circulates forever in closed loops: a
       <button class="pop" data-target="pp-ness" aria-expanded="false">nonequilibrium steady state</button>, in which detailed balance fails, time-reversal symmetry is broken, and entropy is produced at a constant nonzero rate for as long as the system is kept running. Most systems in nature, and every living one, are of this kind.</p>
-    <p>The figure below makes the sharpest version of the point. The two panels have <em>identical</em> stationary densities, identical histograms, identical free energies, and identical everything else a static measurement could get at. One of them is at equilibrium and the other is a hurricane. A density cannot tell you whether it is at rest; only the currents can.</p>
+    <p>The figure below makes the sharpest version of the point. Both panels have <em>identical</em> stationary densities, identical histograms, identical free energies, and identical everything a static measurement could see. One of them is at equilibrium. The other is a hurricane. A density cannot tell you whether it is at rest; only the currents can.</p>
     <div class="popbody" id="pp-ness"><span class="ttl">nonequilibrium steady states</span>
       <p>Decompose a general drift as \(b = -\nabla V + b_\perp\), where \(b_\perp\) is divergence-free with respect to the stationary density: \(\nabla\!\cdot\!(\rho_\infty b_\perp)=0\). Two consequences follow, and they pull in opposite directions.</p>
       <p><em>The good news.</em> The stationary density is <em>unchanged</em>: it is still \(\rho_\infty \propto e^{-V/T}\). And \(F\) still decreases, because the rotational term contributes \(\int \rho_\infty\, b_\perp\cdot\nabla h = -\int h\,\nabla\!\cdot\!(\rho_\infty b_\perp) = 0\) (writing \(h=\rho/\rho_\infty\), integrating by parts). Zero, exactly. The rotation is orthogonal to the descent.</p>
@@ -650,37 +603,13 @@ footer{height:4rem}
   <div class="measure">
 
     <p>What remains is a road. <em>Curvature controls speed:</em> if \(V\) is uniformly convex with curvature at least \(\lambda\), the Bakry–Émery theory gives exponential decay of the KL curve at rate \(2\lambda\), through logarithmic Sobolev inequalities that are secretly statements about the curvature of Wasserstein space. Flatten the landscape in Figure 4 and watch convergence stall; that is geometry, not numerics. <em>Bridges:</em> condition a diffusion on its endpoints and one gets the Schrödinger bridge, an entropic relaxation of optimal transport, solved in practice by the Sinkhorn algorithm and converging to the \(W_2\) geodesic as the noise vanishes; stochastic and deterministic transport are two ends of one dial. <em>Interaction:</em> let the particles feel each other and the free energy grows an interaction term, the equation becomes nonlinear, and the same JKO scheme generates the mathematics of flocking, chemotaxis, and mean-field games. <em>Control:</em> ask how to change a landscape so as to move a system while dissipating as little as possible, and the optimal protocols turn out to be Wasserstein geodesics; the thermodynamics of small systems is transport geometry in disguise.</p>
-    <p>Praise, then, for an equation that holds lawless trajectories and lawful distributions in the same hand, that contains the heat equation and the Boltzmann distribution and the arrow of time as special cases, that was written down in 1914 for electrons in a radiation field and now spends its days painting pictures, and that had to wait eighty years for anyone to recognize it as geometry. Not many objects in mathematics work this hard while looking this calm.</p>
+    <p>Praise, then, for an equation that holds lawless trajectories and lawful distributions in one hand, that contains the heat equation, the Boltzmann distribution, and the arrow of time as special cases, that was written down in 1914 for electrons in a radiation field and now spends its days painting pictures, and that waited eighty years to be recognized as geometry. Few objects in mathematics work this hard while looking this calm.</p>
   </div>
 </section>
 
 <footer></footer>
 
 <script>
-/* ---- part indicator: highlight the section currently being read ---- */
-(function(){
-  var nav = document.getElementById('partnav');
-  if(!nav) return;
-  var links = [].slice.call(nav.querySelectorAll('a'));
-  var secs  = links.map(function(a){ return document.getElementById(a.dataset.sec); });
-  var queued = false;
-
-  function update(){
-    queued = false;
-    var mark = window.scrollY + window.innerHeight*0.28, idx = 0;
-    for(var i=0;i<secs.length;i++){
-      if(secs[i] && secs[i].getBoundingClientRect().top + window.scrollY <= mark) idx = i;
-    }
-    for(var j=0;j<links.length;j++) links[j].classList.toggle('on', j===idx);
-  }
-  function onScroll(){ if(!queued){ queued = true; requestAnimationFrame(update); } }
-
-  window.addEventListener('scroll', onScroll, {passive:true});
-  window.addEventListener('resize', onScroll);
-  // MathJax reflows the page after typesetting, so recompute once it settles
-  window.addEventListener('load', function(){ update(); setTimeout(update, 1200); });
-  update();
-})();
 /*CORE-BEGIN*/
 const N=240, X0=0, X1=10, DX=(X1-X0)/N;
 const XS=new Float64Array(N); for(let i=0;i<N;i++) XS[i]=X0+(i+0.5)*DX;
