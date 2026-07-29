@@ -79,28 +79,75 @@ input[type=range]{accent-color:var(--blue);width:150px;vertical-align:middle}
 .legend span{white-space:nowrap}
 .sw{display:inline-block;width:1.4em;height:0;border-top:2px solid;vertical-align:middle;margin-right:.3em}
 footer{height:4rem}
+
+/* ---- back link, post meta, part indicator ---- */
+.backlink{
+  position:fixed;top:1rem;left:1.1rem;z-index:30;
+  font-family:var(--serif);font-size:1.6rem;line-height:1;
+  color:#777;text-decoration:none;padding:.1em .4em .25em;
+}
+.backlink:hover{color:var(--ink)}
+
+.postmeta{
+  margin-top:1.9rem;text-align:center;
+  font-size:.78rem;letter-spacing:.055em;color:var(--gray);
+}
+.postmeta span{white-space:nowrap}
+.postmeta .dot{margin:0 .6em;opacity:.45}
+
+#partnav{
+  position:fixed;left:1.45rem;top:50%;transform:translateY(-50%);z-index:25;
+  display:flex;flex-direction:column;gap:.5rem;
+}
+#partnav a{
+  font-family:var(--serif);font-size:.8rem;letter-spacing:.09em;
+  color:#777;text-decoration:none;line-height:1;
+  min-width:1.7em;text-align:center;padding:.2em 0;
+  transition:color .18s ease;
+}
+#partnav a:hover{color:var(--gray)}
+#partnav a.on{color:var(--ink)}
+@media (max-width:900px){#partnav{display:none}}
+@media (prefers-reduced-motion:reduce){#partnav a{transition:none}}
 </style>
 
 </head>
 <body>
 
+<a class="backlink" href="index.html" aria-label="Back to index" title="Back">&lsaquo;</a>
+
+<nav id="partnav" aria-label="Sections of this essay">
+  <a href="#s-intro" data-sec="s-intro" title="Introduction">&ndash;</a>
+  <a href="#s-1"     data-sec="s-1"     title="Part I: The other Kolmogorov equation">I</a>
+  <a href="#s-2"     data-sec="s-2"     title="Part II: Wanting things">II</a>
+  <a href="#s-3"     data-sec="s-3"     title="Part III: The logarithm that linearizes">III</a>
+  <a href="#s-4"     data-sec="s-4"     title="Part IV: Planning by reweighting futures">IV</a>
+  <a href="#s-5"     data-sec="s-5"     title="Part V: Control is inference, exactly">V</a>
+  <a href="#s-coda"  data-sec="s-coda"  title="Coda">C</a>
+</nav>
+
 <header>
-  <div class="eyebrow">an ode, continued</div>
   <h1 class="title">Control is Inference</h1>
   <div class="hero-eq">$$V(x,t) \;=\; -\,\lambda\,\log \psi(x,t)$$</div>
+
+  <!-- ===================== POST META: edit here ===================== -->
+  <div class="postmeta">
+    <span class="author">Marv</span><span class="dot">&middot;</span><span class="published">published 26.07.26</span><span class="dot">&middot;</span><span class="edited">last edited 26.07.26</span>
+  </div>
+  <!-- =============================================================== -->
 </header>
 
-<section>
+<section id="s-intro">
   <div class="measure">
-    <p>In <a href="fpe.html">the previous essay</a> we spent a long time with the Fokker–Planck equation, the law obeyed by the probability density of anything that drifts and jitters, and we ended on a theorem: diffusion is the steepest descent of a free energy, in the geometry of optimal transport. That essay was about <em>prediction</em>. Given where the crowd is now, where will it be?</p>
-    <p>This essay is about the other question, the one engineers and animals actually care about: given where I want to <em>end up</em>, what should I <em>do</em>? That is a control problem, and control problems are governed by an equation we have not met, the Hamilton–Jacobi–Bellman equation, which is nonlinear, backward in time, and famously hard. The line above the title says what this essay will prove about it: for a large and natural class of problems, one logarithm turns the hard nonlinear equation of <em>wanting</em> into the easy linear equation of <em>expecting</em>. Solving for the optimal action becomes computing a conditional expectation. Planning becomes inference.</p>
-    <p>That slogan gets said often and vaguely. Our job is to earn it: to state exactly which problems it holds for, to derive the transform in full, to watch it run, and to name the price. Along the way the main characters of the previous essay will keep walking on stage uninvited: the score \(\nabla\log\) of something will turn out to be the optimal action, the value function will turn out to be a free energy \(-\lambda\log Z\), and the optimal policy will turn out to be a Boltzmann distribution. As before, underlined terms expand into derivations and definitions, and the figures are the argument.</p>
+    <p>In <a href="fpe.html">the previous essay</a> we spent a long time with the Fokker–Planck equation, the law obeyed by the probability density of anything that drifts and jitters, and ended on a theorem: diffusion is the steepest descent of a free energy, in the geometry of optimal transport. That essay was about <em>prediction</em>, which is to say about where the crowd will be given where it is now.</p>
+    <p>This essay is about the other question, the one engineers and animals actually care about: given where I want to <em>end up</em>, what should I <em>do</em>? That is a control problem, and control problems are governed by an equation we have not met yet, the Hamilton–Jacobi–Bellman equation, which is nonlinear, backward in time, and famously hard. The line under the title says what I want to prove about it. For a large and fairly natural class of problems, one logarithm turns the hard nonlinear equation of <em>wanting</em> into the easy linear equation of <em>expecting</em>, so that solving for the optimal action reduces to computing a conditional expectation, and planning reduces to inference.</p>
+    <p>That slogan gets thrown around a lot and usually stays vague, so what I want to do here is state which problems it holds for, derive the transform in full, watch it run, and name the price. Along the way the cast of the previous essay keeps wandering back on stage: the score \(\nabla\log\) of something turns out to be the optimal action, the value function turns out to be a free energy \(-\lambda\log Z\), and the optimal policy turns out to be a Boltzmann distribution. As before, underlined terms expand into derivations and definitions, and the figures carry a good part of the argument.</p>
   </div>
 </section>
 
 <hr>
 
-<section>
+<section id="s-1">
   <div class="measure">
     <h2><span class="no">Part I</span>The other Kolmogorov equation</h2>
     <p>We need one recap and one new object. The recap: our system is the Langevin diffusion \(\mathrm dX_t = b(X_t)\,\mathrm dt + \sqrt{2T}\,\mathrm dW_t\), with drift \(b=-\nabla V\), and everything about it is encoded in its
@@ -110,25 +157,25 @@ footer{height:4rem}
       <p>In the previous essay we used its <em>adjoint</em>: probability densities evolve by \(\partial_t\rho = \mathcal L^{*}\rho\), and writing \(\mathcal L^{*}\) out is the Fokker–Planck equation. Kolmogorov called that the <em>forward</em> equation, because it evolves the present forward. The name implies a sibling.</p>
     </div>
     <p>$$\mathcal L \;=\; b\cdot\nabla \;+\; T\,\Delta,$$</p>
-    <p>the operator whose adjoint drives the Fokker–Planck equation. We called Fokker–Planck by its probabilist's name once, Kolmogorov's <em>forward</em> equation, and moved on. The name was a loaded gun. Forward of what? There is a backward equation, it is the one this essay lives in, and it answers a different kind of question.</p>
+    <p>the operator whose adjoint drives the Fokker–Planck equation. Last time we mentioned in passing that probabilists call Fokker–Planck the Kolmogorov <em>forward</em> equation, and then moved on without asking what it was forward of. There is a backward equation, this essay lives in it, and it answers a different kind of question.</p>
     <p>Fix a future time \(T_{\!f}\) and a payoff \(\Phi\) to be evaluated then, and define</p>
     <p>$$u(x,t) \;=\; \mathbb E\big[\,\Phi(X_{T_{\!f}}) \,\big|\, X_t = x\,\big],$$</p>
-    <p>the expected payoff <em>given that we stand at \(x\) at time \(t\)</em>. This is a function of the present, about the future. A short
+    <p>the expected payoff <em>given that we stand at \(x\) at time \(t\)</em>, a function of the present that is about the future. A short
       <button class="pop" data-target="pp-kbe" aria-expanded="false">tower-property argument</button> shows it satisfies the <em>Kolmogorov backward equation</em>,</p>
     <div class="popbody" id="pp-kbe"><span class="ttl">deriving the backward equation</span>
       <p>Condition on the first instant. Standing at \(x\) at time \(t\), the process spends \(\mathrm ds\) diffusing to \(X_{t+\mathrm ds}\), after which the expected payoff is \(u(X_{t+\mathrm ds}, t+\mathrm ds)\). The tower property of conditional expectation says these must agree:</p>
       <p>$$u(x,t) \;=\; \mathbb E_x\big[u(X_{t+\mathrm ds},\, t+\mathrm ds)\big].$$</p>
       <p>Expand the right side to first order: the time argument contributes \(\partial_t u\,\mathrm ds\), and the space argument contributes \(\mathbb E_x[u(X_{t+\mathrm ds},t)] - u(x,t) = (\mathcal Lu)\,\mathrm ds\), by the definition of the generator. The zeroth-order terms cancel, and what remains is \(\partial_t u + \mathcal Lu = 0\).</p>
-      <p>Note the logical difference from the forward derivation. There, we pushed a density through time and needed the adjoint. Here the generator acts <em>directly</em>, no integration by parts, no adjoint: the backward equation is the generator's native habitat, and Fokker–Planck is its mirror image.</p>
+      <p>Note the logical difference from the forward derivation. There we pushed a density through time and needed the adjoint. Here the generator acts <em>directly</em>, with no integration by parts and no adjoint anywhere, which is to say that the backward equation is the generator's native habitat and Fokker–Planck is its mirror image.</p>
     </div>
     <p>$$\frac{\partial u}{\partial t} \;+\; \mathcal L u \;=\; 0, \qquad u(x, T_{\!f}) = \Phi(x),$$</p>
     <p>with the data given at the <em>end</em> and the equation solved toward the present. The two Kolmogorov equations are exact duals: the forward one evolves <em>what is</em> (a density, flowing out of the past), the backward one evolves <em>what to expect</em> (a value, flowing out of the future), and the pairing between them,
-      <button class="pop" data-target="pp-dual" aria-expanded="false">\(\int u(x,t)\,\rho(x,t)\,\mathrm dx\)</button>, is constant in time, because it equals the one number both equations are bookkeeping for: \(\mathbb E[\Phi(X_{T_{\!f}})]\). The first figure puts this conservation law on screen, and it is worth a minute of scrubbing to feel how strange and clean it is: two curves, moving in opposite temporal directions for opposite reasons, whose overlap never moves.</p>
+      <button class="pop" data-target="pp-dual" aria-expanded="false">\(\int u(x,t)\,\rho(x,t)\,\mathrm dx\)</button>, is constant in time, because it equals the one number both equations are bookkeeping for: \(\mathbb E[\Phi(X_{T_{\!f}})]\). The first figure puts this conservation law on screen, and it is worth a minute of scrubbing the slider to see how strange it is: two curves moving in opposite temporal directions for opposite reasons, whose overlap never moves.</p>
     <div class="popbody" id="pp-dual"><span class="ttl">the duality, in two lines</span>
       <p>Differentiate the pairing and substitute both equations:</p>
       <p>$$\frac{\mathrm d}{\mathrm dt}\!\int u\,\rho \;=\; \int (\partial_t u)\,\rho + \int u\,(\partial_t\rho) \;=\; -\!\int (\mathcal Lu)\,\rho + \int u\,(\mathcal L^{*}\rho) \;=\; 0,$$</p>
-      <p>the last step being the definition of the adjoint. Probabilistically the constant is obvious: \(\int u(x,t)\rho(x,t)\,\mathrm dx = \mathbb E\big[\mathbb E[\Phi(X_{T_f})|X_t]\big] = \mathbb E[\Phi(X_{T_f})]\), which does not depend on the intermediate time \(t\) we chose to condition at. The tower property, drawn as a conservation law.</p>
-      <p>In the figure, the discretization is chosen so this holds to machine precision: the backward solver is the exact matrix transpose of the forward solver from the previous essay. Duality is not approximated; it is inherited.</p>
+      <p>the last step being the definition of the adjoint. Probabilistically the constant is obvious: \(\int u(x,t)\rho(x,t)\,\mathrm dx = \mathbb E\big[\mathbb E[\Phi(X_{T_f})|X_t]\big] = \mathbb E[\Phi(X_{T_f})]\), which does not depend on the intermediate time \(t\) we chose to condition at. That is the tower property, drawn as a conservation law.</p>
+      <p>In the figure, the discretization is chosen so this holds to machine precision: the backward solver is the exact matrix transpose of the forward solver from the previous essay, so the duality here is not approximated, it is inherited.</p>
     </div>
   </div>
 
@@ -148,26 +195,26 @@ footer{height:4rem}
 
   <div class="measure">
     <p>Before control enters, take stock of how much the backward equation already owns. Any question of the form "starting from here, what is the expected value of something later" is a backward equation: hitting probabilities, expected exit times, ruin probabilities, and the
-      <button class="pop" data-target="pp-fk" aria-expanded="false">Feynman–Kac formula</button>, which extends it to payoffs accumulated <em>along the way</em> and is, among other things, how options are priced (the Black–Scholes equation is a Kolmogorov backward equation in light disguise) and how quantum mechanics in imaginary time becomes a statement about Brownian paths. The forward equation of the previous essay told us what the world does. The backward equation is the natural home of every question about consequences, and consequences are what control is made of.</p>
+      <button class="pop" data-target="pp-fk" aria-expanded="false">Feynman–Kac formula</button>, which extends it to payoffs accumulated <em>along the way</em> and is, among other things, how options are priced (the Black–Scholes equation is a Kolmogorov backward equation in light disguise) and how quantum mechanics in imaginary time becomes a statement about Brownian paths. The forward equation of the previous essay told us what the world does; the backward equation is where every question about consequences lives, and consequences are what control is made of.</p>
     <div class="popbody" id="pp-fk"><span class="ttl">Feynman–Kac</span>
       <p>Add a running rate: let \(q(x)\ge 0\) be a cost accrued per unit time, and define</p>
       <p>$$\psi(x,t) \;=\; \mathbb E\Big[\, e^{-\frac{1}{\lambda}\int_t^{T_f} q(X_s)\,\mathrm ds}\; e^{-\frac{1}{\lambda}\Phi(X_{T_f})} \,\Big|\, X_t=x \Big].$$</p>
       <p>The same tower argument as before, with one extra factor of \(e^{-q\,\mathrm ds/\lambda}\approx 1 - q\,\mathrm ds/\lambda\) peeled off, gives</p>
       <p>$$\partial_t \psi + \mathcal L\psi \;=\; \tfrac{q}{\lambda}\,\psi,$$</p>
       <p>a backward equation with a killing term: paths pay rent \(q\) for the territory they occupy, and the expectation discounts them accordingly. Read in the other direction, this is the miracle the formula is famous for: the linear PDE on the left is <em>solved</em> by the path average on the right. Kac proved it after hearing Feynman lecture on path integrals; the imaginary-time Schrödinger equation is exactly this, with \(q\) the potential.</p>
-      <p>File the exact shape of this expression away. An exponential of a negated, accumulated cost, averaged over paths: we are going to meet it again as the solution of a control problem, and the whole essay turns on that meeting.</p>
+      <p>Keep the exact shape of this expression in mind: an exponential of a negated, accumulated cost, averaged over paths. We are going to meet it again as the solution of a control problem, and the whole essay turns on that meeting.</p>
     </div>
   </div>
 </section>
 
 <hr>
 
-<section>
+<section id="s-2">
   <div class="measure">
     <h2><span class="no">Part II</span>Wanting things</h2>
     <p>Now we stop spectating. Give the particle a motor: a control \(u_t\) we choose, added to the drift,</p>
     <p>$$\mathrm dX_t \;=\; \big(b(X_t) + u_t\big)\,\mathrm dt \;+\; \sqrt{2T}\,\mathrm dW_t.$$</p>
-    <p>The noise stays; we do not get to switch off the weather, only to steer through it. And steering is priced. We fix a horizon \(T_{\!f}\), a terminal cost \(\Phi(x)\) saying where we would like to end up (low at the target), a running cost \(q(x)\ge0\) saying where we would rather not linger, and a quadratic price on effort. The problem is to choose the control policy minimizing the expected total,</p>
+    <p>The noise stays, since we do not get to switch off the weather, only to steer through it, and the steering costs something. We fix a horizon \(T_{\!f}\), a terminal cost \(\Phi(x)\) saying where we would like to end up (low at the target), a running cost \(q(x)\ge0\) saying where we would rather not linger, and a quadratic price on effort. The problem is to choose the control policy minimizing the expected total,</p>
     <p>$$C(x,t;u) \;=\; \mathbb E\Big[\, \Phi(X_{T_f}) \;+\; \int_t^{T_f}\Big( q(X_s) + \tfrac{\alpha}{2}\,|u_s|^2 \Big)\mathrm ds \,\Big|\, X_t = x\Big],$$</p>
     <p>and the central object is the <em>value function</em> \(V(x,t) = \min_u C(x,t;u)\): the cost of the future, assuming we play it perfectly from here. (The clash of symbols with the landscape \(V\) of the previous essay is a century-old tradition; context will keep them apart, and the landscape mostly appears as the drift \(b=-\nabla V\).) The value function satisfies a PDE, by the same stand-at-the-first-instant argument that gave us the backward equation, upgraded with a decision:
       <button class="pop" data-target="pp-dpp" aria-expanded="false">Bellman's principle</button> says that acting optimally over \([t,T_f]\) means acting optimally for one instant and then acting optimally from wherever that leaves us. Carrying out the expansion yields the
@@ -185,17 +232,16 @@ footer{height:4rem}
       <p>One honesty flag: value functions of degenerate or constrained problems can fail to be differentiable, and the modern meaning of "solves HJB" is the theory of <em>viscosity solutions</em> (Crandall–Lions), which makes everything above rigorous without smoothness. Our \(T>0\) diffusion smooths \(V\) enough that we will not need it, but the term is worth knowing: it is where the subject's analytic depth lives.</p>
     </div>
     <p>$$\boxed{\;-\,\frac{\partial V}{\partial t} \;=\; q \;+\; b\cdot\nabla V \;+\; T\,\Delta V \;-\; \frac{1}{2\alpha}\,\big|\nabla V\big|^{2}\;}\qquad V(x,T_f)=\Phi(x),$$</p>
-    <p>with the optimal control read off as \(u^{*} = -\nabla V/\alpha\): descend the value function, exactly as a passive particle descends the energy landscape. Compare this equation to the backward equation of Part I, term by term. Three of the four terms on the right are literally \(\mathcal LV + q\): the backward operator, plus rent. Wanting has added exactly one term, \(-|\nabla V|^2/2\alpha\), and that term ruins everything. It is nonlinear, so solutions do not superpose, Monte Carlo path averages no longer represent them, and the clean duality of Figure 1 is gone. One quadratic term separates expecting from wanting, and it separates a nineteenth-century linear theory from a twentieth-century nonlinear one.</p>
-    <p>Unless it can be made to disappear.</p>
+    <p>with the optimal control read off as \(u^{*} = -\nabla V/\alpha\): descend the value function, exactly as a passive particle descends the energy landscape. Now compare this to the backward equation of Part I, term by term. Three of the four terms on the right are literally \(\mathcal LV + q\), the backward operator plus rent. Wanting has added one single term, \(-|\nabla V|^2/2\alpha\), and that term ruins everything: it is nonlinear, so solutions do not superpose, Monte Carlo path averages no longer represent them, and the clean duality of Figure 1 is gone. One quadratic term is all that separates expecting from wanting, and the rest of this essay is about the conditions under which it can be made to vanish.</p>
   </div>
 </section>
 
 <hr>
 
-<section>
+<section id="s-3">
   <div class="measure">
     <h2><span class="no">Part III</span>The logarithm that linearizes</h2>
-    <p>Here is the observation the essay is named after. In the previous essay, exponentials of things kept turning nonlinear objects into linear ones: the Boltzmann distribution \(e^{-V/T}\) solved a flux balance, and \(F=-T\log Z\) turned products into sums. Try the same move on the value function. Pick a constant \(\lambda>0\), to be fixed shortly, and substitute</p>
+    <p>Here is the observation the essay is named after. Last time, exponentials kept turning nonlinear objects into linear ones: the Boltzmann distribution \(e^{-V/T}\) solved a flux balance, and \(F=-T\log Z\) turned products into sums. So let us try the same move on the value function. Pick a constant \(\lambda>0\), to be fixed shortly, and substitute</p>
     <p>$$V(x,t) \;=\; -\,\lambda\,\log\psi(x,t)$$</p>
     <p>into the HJB equation.
       <button class="pop" data-target="pp-hopf" aria-expanded="false">Carrying out the computation</button>, two second-order terms appear with \(|\nabla\psi|^2/\psi^2\) in them: one from the diffusion acting on the logarithm, one from the nonlinearity. They have opposite signs, and they cancel <em>identically</em> if and only if</p>
@@ -209,11 +255,11 @@ footer{height:4rem}
       <p>which is \(\partial_t\psi + \mathcal L\psi = \frac{q}{\lambda}\psi\): the Feynman–Kac equation of Part I, verbatim, for the <em>uncontrolled</em> generator. The substitution is due to Hopf and Cole (who used it on Burgers' equation, which is what HJB becomes in one dimension with \(q=0\)); its use in control runs through Fleming, Holland, and, in the form presented here, Kappen's path-integral control and Todorov's linearly solvable MDPs.</p>
     </div>
     <p>$$\lambda \;=\; 2\,\alpha\, T .$$</p>
-    <p>Pause on what this condition says before enjoying what it buys. \(\alpha\) is the price of effort; \(T\) is the violence of the noise; the transform exists when the temperature of your uncertainty and the cost of your actions are locked to one another, channel by channel. In several dimensions the condition reads \(\alpha^{-1} \propto \Sigma\): <em>you can only be cheaply clever in the directions nature is already noisy in</em>. Where the wind blows, steering is affordable; in directions the noise never explores, control is priced out of the theory. This is the fine print under everything that follows, and we will return to it in the coda. Grant it, and the reward is total: with \(\lambda = 2\alpha T\), the HJB equation becomes, exactly,</p>
+    <p>This condition deserves a look before we enjoy what it buys. \(\alpha\) is the price of effort and \(T\) is the violence of the noise, so the transform exists exactly when the temperature of your uncertainty and the cost of your actions are locked to each other, channel by channel. In several dimensions it reads \(\alpha^{-1} \propto \Sigma\): <em>you can only be cheaply clever in the directions nature is already noisy in</em>. Where the wind blows, steering is affordable; in directions the noise never explores, control is priced out of the theory altogether. This is the fine print under everything that follows and I come back to it in the coda. Grant it, and with \(\lambda = 2\alpha T\) the HJB equation becomes, exactly,</p>
     <p>$$\frac{\partial \psi}{\partial t} \;+\; \mathcal L\,\psi \;=\; \frac{q}{\lambda}\,\psi,\qquad \psi(x,T_f) = e^{-\Phi(x)/\lambda},$$</p>
-    <p>which is the Feynman–Kac equation from Part I, for the <em>passive</em> dynamics, with the costs demoted to a killing rate. The nonlinearity is gone. The equation of wanting was the equation of expecting all along, wearing a logarithm. The function \(\psi\), called the <em>desirability</em>, is a plain conditional expectation over uncontrolled paths, and the optimal control comes out as</p>
+    <p>which is the Feynman–Kac equation from Part I, written for the <em>passive</em> dynamics, with the costs demoted to a killing rate. The nonlinearity is gone, and the equation of wanting turns out to have been the equation of expecting all along, wearing a logarithm. The function \(\psi\), called the <em>desirability</em>, is a plain conditional expectation over uncontrolled paths, and the optimal control comes out as</p>
     <p>$$u^{*}(x,t) \;=\; -\frac{\nabla V}{\alpha} \;=\; 2T\,\nabla \log \psi(x,t).$$</p>
-    <p>Look at that formula. In the previous essay, \(2T\)-scaled gradients of log-densities were the <em>score</em>, the velocity field along which diffusion transports probability, the thing generative models learn. Here the identical object reappears with a new meaning: <em>the optimal action is the score of the desirability</em>. Acting well is flowing up the gradient of the log-probability of a good future. The figure below solves the linear equation and lets the resulting controller drive.</p>
+    <p>That formula is worth staring at. In the previous essay, \(2T\)-scaled gradients of log-densities were the <em>score</em>, the velocity field along which diffusion transports probability and the thing generative models are trained to estimate. The identical object reappears here with a new meaning: <em>the optimal action is the score of the desirability</em>, so acting well amounts to flowing up the gradient of the log-probability of a good future. The figure below solves the linear equation and lets the resulting controller drive.</p>
   </div>
 
   <figure class="sim" id="fig2">
@@ -232,13 +278,13 @@ footer{height:4rem}
   </figure>
 
   <div class="measure">
-    <p>Two things are worth trying. Paint a wall of running cost between the start and the target and watch the value function route the crowd around it, discovering a detour nobody programmed. Then slide \(\lambda\). Since \(\lambda=2\alpha T\) at fixed noise, sliding it is repricing effort: small \(\lambda\) buys sharp, nearly deterministic steering toward the exact slot; large \(\lambda\) buys a lazy controller content to nudge. The slider will matter again in a moment, because \(\lambda\) is about to become a temperature in the statistical-mechanics sense, and "lazy versus sharp" is about to become "hot versus cold".</p>
+    <p>Two things in the figure are worth trying. Paint a wall of running cost between the start and the target and watch the value function route the crowd around it, finding a detour nobody programmed. Then slide \(\lambda\). Since \(\lambda=2\alpha T\) at fixed noise, sliding it is repricing effort: small \(\lambda\) buys sharp, nearly deterministic steering into the exact slot, large \(\lambda\) buys a lazy controller content to nudge. The slider will matter again in a moment, because \(\lambda\) is about to become a temperature in the statistical-mechanics sense, and "lazy versus sharp" is about to become "hot versus cold".</p>
   </div>
 </section>
 
 <hr>
 
-<section>
+<section id="s-4">
   <div class="measure">
     <h2><span class="no">Part IV</span>Planning by reweighting futures</h2>
     <p>The transform did more than linearize a PDE. Feynman–Kac says the linear equation's solution <em>is</em> a path average, so we can write the desirability with no PDE at all:</p>
@@ -246,13 +292,13 @@ footer{height:4rem}
     <p>an average over <em>uncontrolled</em> futures, each weighted by the exponential of its own badness. And the corresponding statement upstairs, at the level of whole trajectories, is the theorem that gives this essay its name in practice: the <em>optimally controlled process is the passive process, reweighted</em>. Precisely, the probability the optimal controller assigns to a path \(\tau\) is</p>
     <p>$$p^{*}(\tau) \;=\; \frac{1}{Z}\; p_{\text{passive}}(\tau)\; e^{-\,\mathrm{cost}(\tau)/\lambda},$$</p>
     <p>a
-      <button class="pop" data-target="pp-gibbspath" aria-expanded="false">Boltzmann distribution over futures</button>, with the path cost as energy and \(\lambda\) as temperature. Planning, in this class of problems, is therefore an algorithm anyone can implement in ten lines: dream a bundle of ordinary, uncontrolled futures; grade each one; keep them all, weighted by \(e^{-\mathrm{cost}/\lambda}\); act as the weighted ensemble does. No equation is solved. The figure does exactly this, next to the exact answer.</p>
+      <button class="pop" data-target="pp-gibbspath" aria-expanded="false">Boltzmann distribution over futures</button>, with the path cost as energy and \(\lambda\) as temperature. Planning, in this class of problems, is therefore an algorithm anyone can implement in ten lines: dream a bundle of ordinary, uncontrolled futures, grade each one, keep them all weighted by \(e^{-\mathrm{cost}/\lambda}\), and act as the weighted ensemble does, with no equation solved anywhere. The figure does exactly this, next to the exact answer.</p>
     <div class="popbody" id="pp-gibbspath"><span class="ttl">why the optimal path measure is a reweighting</span>
       <p>Girsanov's theorem prices a change of drift: steering with \(u\) instead of drifting costs, in log-likelihood, \(\frac{1}{4T}\int |u|^2\,\mathrm dt\) (heuristically: each instant, a Gaussian increment of variance \(2T\,\mathrm dt\) must be displaced by \(u\,\mathrm dt\)). So for any controlled path law \(p_u\),</p>
       <p>$$\mathrm{KL}\big(p_u \,\|\, p_{\text{passive}}\big) \;=\; \mathbb E_{p_u}\Big[\tfrac{1}{4T}\!\int |u|^2\,\mathrm dt\Big] \;=\; \frac{1}{\lambda}\,\mathbb E_{p_u}\Big[\tfrac{\alpha}{2}\!\int |u|^2\,\mathrm dt\Big],$$</p>
       <p>using \(\lambda=2\alpha T\): <em>the control-effort cost is \(\lambda\) times a KL divergence</em>. The whole objective becomes</p>
       <p>$$\mathbb E_{p_u}\big[\Phi + \textstyle\int q\big] \;+\; \lambda\,\mathrm{KL}\big(p_u\|p_{\text{passive}}\big),$$</p>
-      <p>an expected state-cost plus an entropic penalty for disagreeing with nature. Minimizing an expression of the form \(\mathbb E_p[\mathcal E] + \lambda\,\mathrm{KL}(p\|p_0)\) over all distributions is a problem the previous essay solved twice: the minimizer is the tilted distribution \(p^* \propto p_0\,e^{-\mathcal E/\lambda}\), and the minimal value is a free energy, \(-\lambda\log \mathbb E_{p_0}[e^{-\mathcal E/\lambda}]\). Applied to path space, that minimizer is the boxed reweighting, and that free energy is exactly \(V = -\lambda\log\psi\). The value function of optimal control <em>is</em> the Helmholtz free energy of a Boltzmann distribution over futures. The hero equations of the two essays are the same equation.</p>
+      <p>an expected state-cost plus an entropic penalty for disagreeing with nature. Minimizing an expression of the form \(\mathbb E_p[\mathcal E] + \lambda\,\mathrm{KL}(p\|p_0)\) over all distributions is a problem the previous essay solved twice: the minimizer is the tilted distribution \(p^* \propto p_0\,e^{-\mathcal E/\lambda}\), and the minimal value is a free energy, \(-\lambda\log \mathbb E_{p_0}[e^{-\mathcal E/\lambda}]\). Applied to path space, that minimizer is the boxed reweighting, and that free energy is exactly \(V = -\lambda\log\psi\). The value function of optimal control <em>is</em> the Helmholtz free energy of a Boltzmann distribution over futures, which makes the \(-\lambda\log\psi\) above the title the same object as the \(-T\log Z\) of the previous essay.</p>
     </div>
   </div>
 
@@ -271,7 +317,7 @@ footer{height:4rem}
 
   <div class="measure">
     <p>Watch the
-      <button class="pop" data-target="pp-ess" aria-expanded="false">effective sample size</button> as you cool \(\lambda\). At high temperature every dreamed future contributes and the plan is mush. At low temperature the plan sharpens, but the weight concentrates onto a handful of paths, then onto one, and the estimate is balanced on a single lucky rollout. This is the practical Achilles' heel of the whole path-integral method, visible here as fading spaghetti: the variance of importance sampling explodes exactly when you most want precision. It is also, from the right angle, the rare-event problem of the previous essay's Kramers section, since the good futures are barrier crossings, and those are exponentially rare dreams.</p>
+      <button class="pop" data-target="pp-ess" aria-expanded="false">effective sample size</button> as you cool \(\lambda\). At high temperature every dreamed future contributes something and the plan is mush. At low temperature the plan sharpens, but the weight concentrates onto a handful of paths and then onto one, until the estimate is balanced on a single lucky rollout. This is the practical Achilles' heel of the whole path-integral method, visible here as fading spaghetti: the variance of importance sampling explodes exactly when you most want precision. It is also, from the right angle, the rare-event problem of the previous essay's Kramers section, since the good futures are barrier crossings, and those are exponentially rare dreams.</p>
     <div class="popbody" id="pp-ess"><span class="ttl">effective sample size</span>
       <p>With normalized weights \(w_i\), \(\mathrm{ESS} = 1/\sum_i w_i^2\): it equals \(K\) when all \(K\) weights are uniform and \(1\) when one weight is everything. It is the standard diagnostic of importance sampling, and its collapse at low \(\lambda\) is not a numerical accident: the weights are \(e^{-\mathrm{cost}/\lambda}\), so their variance grows exponentially as \(\lambda\to 0\). Practical systems fight this with receding horizons (replan every few steps so errors cannot compound), by sampling around the previous plan instead of the passive dynamics, and by annealing \(\lambda\). All three tricks are visible in the MPPI literature, and all three are importance-sampling hygiene, which is the correct way to think about them.</p>
     </div>
@@ -280,17 +326,17 @@ footer{height:4rem}
 
 <hr>
 
-<section>
+<section id="s-5">
   <div class="measure">
     <h2><span class="no">Part V</span>Control is inference, exactly</h2>
-    <p>Everything is now on the table for the slogan to become a theorem. Here is the inference problem. Take the <em>passive</em> dynamics as a prior over trajectories. Introduce a binary random variable \(\mathcal O\), read "things went well", whose likelihood given a trajectory is</p>
+    <p>Everything is now on the table for the slogan to become a theorem. Take the <em>passive</em> dynamics as a prior over trajectories, and introduce a binary random variable \(\mathcal O\), read as "things went well", whose likelihood given a trajectory is</p>
     <p>$$p(\mathcal O = 1 \mid \tau) \;=\; \exp\big(-\,\mathrm{cost}(\tau)/\lambda\big),$$</p>
     <p>so that cheap trajectories are likely to have gone well. Now do Bayes on path space: the posterior over trajectories given that things went well is prior times likelihood over evidence, which is</p>
     <p>$$p(\tau \mid \mathcal O=1) \;=\; \frac{p_{\text{passive}}(\tau)\, e^{-\mathrm{cost}(\tau)/\lambda}}{Z} \;=\; p^{*}(\tau),$$</p>
-    <p>the optimal control law of Part IV, symbol for symbol. The controller of Figure 2 is not <em>like</em> a posterior; it is one. Its evidence \(Z\) is \(\psi\), its negative log-evidence is the value function, and the optimal action \(2T\nabla\log\psi\) is the score of the evidence. Every element of the control problem has an inference name, and the dictionary is exact:</p>
+    <p>the optimal control law of Part IV, symbol for symbol. The controller of Figure 2 is not <em>like</em> a posterior; it is one. Every element of the control problem has an inference name, and the dictionary is exact:</p>
     <p style="margin-left:1.5rem;border-left:2px solid var(--line);padding-left:1rem">
       passive dynamics = prior &middot; cost = negative log-likelihood &middot; desirability = evidence &middot; value = negative log-evidence = free energy &middot; optimal control = score of the evidence &middot; temperature \(\lambda\) = how loosely "went well" is defined</p>
-    <p>There is one more face of the same theorem, and it is the most vivid one. Conditioning a Markov process on future information has a classical name, the
+    <p>There is one more face of the same theorem, and it is the one I find most vivid. Conditioning a Markov process on future information has a classical name, the
       <button class="pop" data-target="pp-doob" aria-expanded="false">Doob \(h\)-transform</button>, and its content is that the conditioned process is again a Markov diffusion, with the drift modified by \(2T\nabla\log h\), where \(h\) is the probability of the conditioning event. Set the event to "\(\mathcal O=1\)" and \(h\) is \(\psi\): <em>the optimally controlled process and the conditioned process are the same process</em>. Steering perfectly toward a goal is indistinguishable, in law, from being a passive particle that happens to be told the goal was reached. The figure tests this the hard way, by rejection.</p>
     <div class="popbody" id="pp-doob"><span class="ttl">the Doob h-transform</span>
       <p>Let \(h(x,t)\) be the probability (or density) of some future event, given \(X_t = x\); as a conditional expectation of the future it solves the backward equation, \(\partial_t h + \mathcal Lh = 0\). Bayes' rule at the level of transition kernels says the conditioned process moves as</p>
@@ -313,40 +359,64 @@ footer{height:4rem}
   </figure>
 
   <div class="measure">
-    <p>The dictionary keeps paying after the essay ends, and one entry deserves its own paragraph because half the audience uses it daily. Discretize the recursion of Bellman's principle under this framework and the hard minimum softens into a
+    <p>One entry in that dictionary deserves calling out, because a good part of the audience uses it daily. Discretize the recursion of Bellman's principle under this framework and the hard minimum softens into a
       <button class="pop" data-target="pp-soft" aria-expanded="false">log-sum-exp</button>:</p>
     <div class="popbody" id="pp-soft"><span class="ttl">the soft Bellman equation, and where RL keeps a partition function</span>
       <p>In a discrete-time, discrete-action version of this problem class, the value recursion comes out as</p>
       <p>$$V(x) \;=\; -\lambda\,\log \sum_a \exp\!\Big(\!-\tfrac{1}{\lambda}\,Q(x,a)\Big),$$</p>
-      <p>with \(Q(x,a)\) the cost-to-go of taking \(a\) now and continuing well. This is the <em>soft Bellman equation</em> of maximum-entropy reinforcement learning (soft Q-learning, SAC). Read it with Part II of the previous essay in mind: the sum is a partition function over actions, \(V\) is \(-\lambda\log Z\), a free energy, and the optimal policy is the corresponding Boltzmann distribution, \(\pi^{*}(a|x)\propto e^{-Q(x,a)/\lambda}\), i.e. a softmax over the negated \(Q\)-values. As \(\lambda\to0\) the log-sum-exp hardens into a max and greedy control returns; at \(\lambda>0\) the agent keeps its options deliberately open, paying a little cost for a lot of entropy. Readers from game theory will recognize the same object under yet another name: the quantal response / logit equilibrium, where softmax-rational play is exactly Boltzmann play. One functional, five fields, one temperature dial.</p>
+      <p>with \(Q(x,a)\) the cost-to-go of taking \(a\) now and continuing well. This is the <em>soft Bellman equation</em> of maximum-entropy reinforcement learning (soft Q-learning, SAC). Read it with Part II of the previous essay in mind: the sum is a partition function over actions, \(V\) is \(-\lambda\log Z\), a free energy, and the optimal policy is the corresponding Boltzmann distribution, \(\pi^{*}(a|x)\propto e^{-Q(x,a)/\lambda}\), i.e. a softmax over the negated \(Q\)-values. As \(\lambda\to0\) the log-sum-exp hardens into a max and greedy control returns; at \(\lambda>0\) the agent keeps its options deliberately open, paying a little cost for a lot of entropy. Readers from game theory will recognize the same object under yet another name: the quantal response / logit equilibrium, where softmax-rational play is exactly Boltzmann play.</p>
     </div>
-    <p>every value function in maximum-entropy RL is a free energy, every softmax policy is a Boltzmann distribution, and the "temperature" hyperparameter of those algorithms is the same \(\lambda\) that has been on a slider in every figure above. The previous essay ended by observing that its two universal objects, the Fokker–Planck equation and the free energy, were one; this one ends the same way. The value function is a free energy over futures. Bellman backups compute partition functions. Wanting, done optimally in the presence of noise, is thermodynamics pointed at the future.</p>
+    <p>every value function in maximum-entropy RL is a free energy, every softmax policy is a Boltzmann distribution, and the "temperature" hyperparameter of those algorithms is the same \(\lambda\) that has been sitting on a slider in every figure above. The previous essay ended by observing that its two universal objects, the Fokker–Planck equation and the free energy, were the same thing, and this one ends the same way: the value function is a free energy over futures, and Bellman backups are computing partition functions. Wanting, done optimally in the presence of noise, is thermodynamics pointed forward.</p>
   </div>
 </section>
 
 <hr>
 
-<section>
+<section id="s-coda">
   <div class="measure">
     <h2><span class="no">Coda</span>The fine print, and the road onward</h2>
-    <p>An honest sequel names its hypotheses as loudly as its theorems. Three pieces of fine print, in increasing order of subtlety.</p>
+    <p>Three pieces of fine print, in increasing order of subtlety.</p>
     <p><em>The channel condition.</em> Everything hinged on \(\lambda=2\alpha T\): noise and control entering through the same channel, at locked exchange rates. Steer a dimension the noise does not excite, or price actions non-quadratically, and the \(|\nabla V|^2\) term survives, HJB stays nonlinear, and one is back to viscosity solutions and grids. The linearly solvable problems are a rich and useful class, and they are a class, with a boundary.</p>
     <p><em>The variance.</em> Figure 3's ESS collapse is not a demo artifact; it is the method's tax. The exact reweighting theorem holds at every \(\lambda\), but estimating it from finitely many dreams degrades exponentially as \(\lambda\to0\), which is precisely the regime of sharp, confident control. Every deployed descendant of this idea is, at heart, a variance-reduction scheme wrapped around a Boltzmann average.</p>
-    <p><em>The optimism.</em> The subtlest one. Notice what the transform actually computed:
-      <button class="pop" data-target="pp-risk" aria-expanded="false">\(-\lambda\log\mathbb E[e^{-\mathrm{cost}/\lambda}]\)</button>, and an exponential average is not an average. It weights lucky outcomes more than unlucky ones, so the "control as inference" agent is mildly risk-seeking: it plans as if the noise were slightly on its side, because it conditions on things having gone well rather than making them go well in expectation. In benign problems the difference is a rounding error; in problems where a rare disaster lurks, it is the whole problem. The exactness of the theorem and the correctness of the objective are different questions, and this essay has only proved the first.</p>
+    <p><em>The optimism.</em> This is the subtle one. Notice what the transform actually computed,
+      <button class="pop" data-target="pp-risk" aria-expanded="false">\(-\lambda\log\mathbb E[e^{-\mathrm{cost}/\lambda}]\)</button>, which is not an average of the cost. It weights lucky outcomes more than unlucky ones, so the "control as inference" agent is mildly risk-seeking: it plans as if the noise were slightly on its side, because it conditions on things having gone well rather than making them go well in expectation. In benign problems the difference is a rounding error; in problems where a rare disaster lurks, it is the whole problem. The exactness of the theorem and the correctness of the objective are different questions, and this essay has only proved the first.</p>
     <div class="popbody" id="pp-risk"><span class="ttl">risk sensitivity of the exponential average</span>
       <p>Expand the log-exponential average in cumulants:</p>
       <p>$$-\lambda\log \mathbb E\big[e^{-C/\lambda}\big] \;=\; \mathbb E[C] \;-\; \frac{1}{2\lambda}\,\mathrm{Var}(C) \;+\; \cdots$$</p>
       <p>The leading correction <em>subtracts</em> variance: among plans with equal expected cost, the exponential criterion prefers the riskier one, since its lucky tail is exponentially rewarded. (Readers of the previous essay have seen this expansion before: it is the free energy again, \(F = E - TS\) in cumulant form, with variance playing entropy's role.) This is classical risk-sensitive control (Whittle), and it is the precise technical content of critiques of "everything is inference" framings, including parts of the active-inference literature: converting costs into log-likelihoods silently converts expectations into free energies, and free energies have opinions about risk. If one wants risk-neutral optimal control, the identification is an approximation, and the approximation is uncontrolled exactly where danger is rare and large.</p>
     </div>
-    <p>And the road. The two-sided version of the \(h\)-transform, conditioning on both endpoints, is the Schrödinger bridge, which is entropic optimal transport, which closes the loop back to the geometry of the previous essay; the modern samplers that steer diffusion models between distributions live there. The receding-horizon version of Figure 3 drives quadrotors and off-road vehicles as MPPI. The discrete-time version is maximum-entropy RL. The \(h\)-transform at sampling time is classifier guidance. And the equation all of them secretly solve is the one this essay started with: a linear backward equation, the oldest and mildest object in the theory, asked politely about the future.</p>
-    <p>Praise, then, for the backward equation: the forward equation's quiet twin, which prices options, ends gambler's ruin, and, given one logarithm, absorbs the entire theory of optimal behavior under noise into the theory of conditional expectation. Prediction and volition, the two things a mind does about the future, and the mathematics insists they were one subject. Few dualities in mathematics carry this much philosophy while looking this much like bookkeeping.</p>
+    <p>And then there is the road onward. The two-sided version of the \(h\)-transform, conditioning on both endpoints, is the Schrödinger bridge, which is entropic optimal transport, which closes the loop back to the geometry of the previous essay; the modern samplers that steer diffusion models between distributions live there. The receding-horizon version of Figure 3 drives quadrotors and off-road vehicles as MPPI. The discrete-time version is maximum-entropy RL. The \(h\)-transform at sampling time is classifier guidance. And the equation all of them secretly solve is the one this essay started with: a linear backward equation, the oldest and mildest object in the theory, asked politely about the future.</p>
+    <p>Praise, then, for the backward equation, the forward equation's quiet twin, which prices options, settles gambler's ruin, and, given one logarithm, absorbs the entire theory of optimal behavior under noise into the theory of conditional expectation. Prediction and volition are the two things a mind does about the future, and the mathematics insists they were one subject all along.</p>
   </div>
 </section>
 
 <footer></footer>
 
 <script>
+/* ---- part indicator: highlight the section currently being read ---- */
+(function(){
+  var nav = document.getElementById('partnav');
+  if(!nav) return;
+  var links = [].slice.call(nav.querySelectorAll('a'));
+  var secs  = links.map(function(a){ return document.getElementById(a.dataset.sec); });
+  var queued = false;
+
+  function update(){
+    queued = false;
+    var mark = window.scrollY + window.innerHeight*0.28, idx = 0;
+    for(var i=0;i<secs.length;i++){
+      if(secs[i] && secs[i].getBoundingClientRect().top + window.scrollY <= mark) idx = i;
+    }
+    for(var j=0;j<links.length;j++) links[j].classList.toggle('on', j===idx);
+  }
+  function onScroll(){ if(!queued){ queued = true; requestAnimationFrame(update); } }
+
+  window.addEventListener('scroll', onScroll, {passive:true});
+  window.addEventListener('resize', onScroll);
+  window.addEventListener('load', function(){ update(); setTimeout(update, 1200); });
+  update();
+})();
+
 /*CORE-BEGIN*/
 const N=240, X0=0, X1=10, DX=(X1-X0)/N;
 const XS=new Float64Array(N); for(let i=0;i<N;i++) XS[i]=X0+(i+0.5)*DX;
