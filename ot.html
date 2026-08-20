@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Four ways of doing Optimal Transport</title>
+<script>
+window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},svg:{fontCache:'global'},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};
+</script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+<style>
+:root{
+  --ink:#111;--gray:#666;--line:#ddd;--blue:#2b5fad;--green:#1f8a63;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font-family:var(--serif);
+  font-size:19px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.measure{max-width:42rem;margin:0 auto;padding:0 1.25rem}
+p{margin:0 0 1.05em}
+a{color:var(--blue)}
+::selection{background:#dbe7f6}
+
+header{padding:4.5rem 1rem 1.2rem;text-align:center}
+h1.title{font-weight:400;font-style:italic;margin:0;font-size:clamp(2.1rem,6vw,3.6rem);line-height:1.1}
+.hero-eq{margin:2rem 0 .4rem;font-size:clamp(1rem,2.5vw,1.4rem)}
+
+h2{font-weight:400;font-size:1.5rem;margin:3.4rem 0 .3rem;font-style:italic}
+h2 .no{font-style:normal;color:var(--gray);font-size:.8rem;letter-spacing:.22em;
+  text-transform:uppercase;display:block;margin-bottom:.45rem;font-family:var(--serif)}
+h3{font-weight:400;font-style:italic;font-size:1.13rem;margin:2.2rem 0 .6rem;color:#333}
+hr{border:0;border-top:1px solid var(--line);max-width:42rem;margin:3rem auto}
+mjx-container[jax="SVG"][display="true"]{margin:1.25em 0!important;overflow-x:auto;overflow-y:hidden;padding:2px 0}
+
+/* ---- gwern-style expandable notes ---- */
+.pop{
+  font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;
+  border-bottom:1px solid #9db8dd;text-decoration:none;line-height:inherit;
+}
+.pop:hover{border-bottom-color:var(--blue);background:#f0f5fb}
+.pop::after{content:"\2009\25B8";font-size:.68em;color:var(--blue);vertical-align:.12em}
+.pop[aria-expanded=true]::after{content:"\2009\25BE"}
+.pop[aria-expanded=true]{background:#f0f5fb;border-bottom-color:var(--blue)}
+.popbody{
+  display:none;margin:1.1em 0 1.4em;padding:.85em 1.1em .3em;
+  border-left:2px solid var(--blue);background:#f7f9fc;
+  font-size:.93rem;line-height:1.58;
+}
+.popbody.open{display:block}
+.popbody .ttl{font-style:italic;color:var(--blue);font-size:.8rem;letter-spacing:.1em;
+  text-transform:uppercase;display:block;margin-bottom:.5em}
+.popbody p{margin:0 0 .8em}
+.popbody mjx-container[jax="SVG"][display="true"]{margin:.85em 0!important}
+
+/* ---- figures ---- */
+figure.sim{max-width:54rem;margin:2.2rem auto;padding:0 1.25rem}
+.sim-frame{border:1px solid var(--line);border-radius:3px;background:#fff;padding:10px}
+.sim-frame canvas{display:block;width:100%;touch-action:none}
+.sim-frame .split{display:flex;gap:10px}
+.sim-frame .split>div{flex:1;min-width:0}
+@media (max-width:760px){.sim-frame .split{flex-direction:column}}
+figcaption{font-size:.85rem;color:var(--gray);margin-top:.6rem;line-height:1.5}
+figcaption .figno{font-style:italic}
+.controls{display:flex;flex-wrap:wrap;gap:.8rem 1.5rem;align-items:center;margin-top:.8rem;font-size:.9rem}
+.controls label{color:var(--gray);font-size:.82rem;letter-spacing:.05em;margin-right:.4em}
+button.ui{font-family:var(--serif);font-size:.88rem;background:#fff;border:1px solid var(--ink);
+  color:var(--ink);padding:.3rem .9rem;cursor:pointer;border-radius:2px}
+button.ui:hover{background:var(--ink);color:#fff}
+button.ui.toggled{background:var(--blue);border-color:var(--blue);color:#fff}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+input[type=range]{accent-color:var(--blue);width:150px;vertical-align:middle}
+.readout{font-style:italic;color:var(--gray);min-width:3.2em;display:inline-block}
+.fig-note{font-style:italic;color:#444;font-size:.92rem;margin-top:.7rem;
+  border-left:2px solid var(--green);padding-left:.8rem;min-height:2.4em;transition:opacity .25s}
+.fig-note.dim{opacity:0}
+.legend{display:inline-flex;gap:1em;flex-wrap:wrap}
+.legend span{white-space:nowrap}
+.sw{display:inline-block;width:1.4em;height:0;border-top:2px solid;vertical-align:middle;margin-right:.3em}
+footer{height:4rem}
+
+/* ---- the square ---- */
+.otsq{max-width:36rem;margin:2.4rem auto 1.2rem;padding:0 1.25rem;font-size:.9rem}
+.otsq .grid{display:grid;grid-template-columns:auto 1fr 1fr;grid-template-rows:auto 1fr 1fr;gap:0}
+.otsq .axh{grid-column:2/4;text-align:center;color:var(--gray);font-style:italic;
+  font-size:.82rem;letter-spacing:.06em;padding-bottom:.5rem}
+.otsq .axv{grid-row:2/4;display:flex;flex-direction:column;justify-content:center;align-items:center;
+  color:var(--gray);font-style:italic;font-size:.82rem;letter-spacing:.06em;padding-right:.55rem;gap:.1em}
+.otsq .cell{border:1px solid var(--line);padding:.7rem .8rem .5rem;text-decoration:none;color:var(--ink);
+  display:block;min-height:6.2rem;transition:background .15s}
+.otsq .cell:hover{background:#f7f9fc}
+.otsq .cell b{font-weight:400;font-style:italic;display:block;margin-bottom:.15rem}
+.otsq .cell .tag{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gray);display:block}
+.otsq .cell .eq{font-size:.82rem;color:#333}
+.otsq .grid a:nth-of-type(1){border-radius:3px 0 0 0}
+.otsq .grid a:nth-of-type(2){border-left:0;border-radius:0 3px 0 0}
+.otsq .grid a:nth-of-type(3){border-top:0;border-radius:0 0 0 3px}
+.otsq .grid a:nth-of-type(4){border-left:0;border-top:0;border-radius:0 0 3px 0}
+.otsq figcaption{max-width:none;padding:0}
+
+/* ---- reading list ---- */
+.refs{font-size:.88rem;line-height:1.55}
+.refs li{margin-bottom:.45em}
+
+/* ---- back link, post meta, part indicator ---- */
+.backlink{
+  position:fixed;top:1rem;left:1.1rem;z-index:30;
+  font-family:var(--serif);font-size:1.6rem;line-height:1;
+  color:#777;text-decoration:none;padding:.1em .4em .25em;
+}
+.backlink:hover{color:var(--ink)}
+
+.postmeta{
+  margin-top:1.9rem;text-align:center;
+  font-size:.78rem;letter-spacing:.055em;color:var(--gray);
+}
+.postmeta span{white-space:nowrap}
+.postmeta .dot{margin:0 .6em;opacity:.45}
+
+#partnav{
+  position:fixed;left:1.45rem;top:50%;transform:translateY(-50%);z-index:25;
+  display:flex;flex-direction:column;gap:.5rem;
+}
+#partnav a{
+  font-family:var(--serif);font-size:.8rem;letter-spacing:.09em;
+  color:#777;text-decoration:none;line-height:1;
+  min-width:1.7em;text-align:center;padding:.2em 0;
+  transition:color .18s ease;
+}
+#partnav a:hover{color:var(--gray)}
+#partnav a.on{color:var(--ink)}
+@media (max-width:900px){#partnav{display:none}}
+@media (prefers-reduced-motion:reduce){#partnav a{transition:none}}
+</style>
+
+</head>
+<body>
+
+<a class="backlink" href="index.html" aria-label="Back to index" title="Back">&lsaquo;</a>
+
+<nav id="partnav" aria-label="Sections of this essay">
+  <a href="#s-intro" data-sec="s-intro" title="Introduction">&ndash;</a>
+  <a href="#s-1"     data-sec="s-1"     title="Part I: Moving dirt">I</a>
+  <a href="#s-2"     data-sec="s-2"     title="Part II: Prices">II</a>
+  <a href="#s-3"     data-sec="s-3"     title="Part III: Making distance move">III</a>
+  <a href="#s-4"     data-sec="s-4"     title="Part IV: Blurring the plan">IV</a>
+  <a href="#s-5"     data-sec="s-5"     title="Part V: Schr&ouml;dinger's question">V</a>
+  <a href="#s-coda"  data-sec="s-coda"  title="Coda">C</a>
+</nav>
+
+<header>
+  <h1 class="title">Four ways of doing Optimal Transport</h1>
+  <div class="hero-eq">$$W_2^2(\mu,\nu) \;=\; \min_{\pi\,\in\,\Pi(\mu,\nu)}\;\int \|x-y\|^2 \,\mathrm d\pi(x,y)$$</div>
+
+  <!-- ===================== POST META: edit here ===================== -->
+  <div class="postmeta">
+    <span class="author">Marv</span><span class="dot">&middot;</span><span class="published">published 20.08.26</span><span class="dot">&middot;</span><span class="edited">last edited 20.08.26</span>
+  </div>
+  <!-- =============================================================== -->
+</header>
+
+<section id="s-intro">
+  <div class="measure">
+    <p>In 1781, Gaspard Monge, geometer of the French crown, asked how to move a pile of earth into an excavation of the same volume at the least total cost of haulage. Every grain must travel, every grain pays some cost for its journey, and the question is which grain goes where. It is an exercise in logistics, and it turned out to be interesting geometrically: Monge extracted some lovely geometry about routes that never cross and then the problem sat, essentially open, for a hundred and sixty years.</p>
+    <p>It was worth the wait. The mathematics that eventually grew out of the earth-moving question now prices goods in economics, defines curvature on spaces that are too rough for ordinary calculus, trains generative models, reconstructs the histories of embryonic cells and of the early universe, and collects prizes: a Nobel for Kantorovich in 1975 for the idea that cracked it, Fields medals for Villani in 2010 and Figalli in 2018 for what it became. My aim in this essay is to build up the subject from nothing but an undergraduate understanding of math, and to show you where each of the payoffs comes from.</p>
+    <p>The subjects of this essay lie on the square below. Parts I and II build a <em>distance</em> between probability distributions out of Monge's transport cost, and find a linear program that has associated with it a shadow economy of prices. From that corner the square offers two moves. Add <em>time</em>, and the distance becomes a <em>principle of least action</em> for moving crowds (Part III). Add <em>heat</em>, and the brittle optimal plan melts into a blur that a sixty-year-old scaling algorithm computes at an impressive speed (Part IV). Make both moves at once and we land on a question Schr&ouml;dinger asked in 1931, about the most probable history of a cloud of particles caught misbehaving, and the other three corners assemble themselves into its answer (Part V). You can click underlined terms for definitions and derivations, and interact with the figures to get intuition for the machinery that this essay introduces.</p>
+  </div>
+
+  <div class="otsq">
+    <div class="grid">
+      <span></span>
+      <span class="axh">add heat &epsilon; &#8594;</span>
+      <span class="axv"><span>add</span><span>time</span><span>&#8595;</span></span>
+      <a class="cell" href="#s-1"><span class="tag">static &middot; sharp</span><b>a plan</b>
+        <span class="eq">Monge, Kantorovich: \(\min_\pi \langle c,\pi\rangle\)</span></a>
+      <a class="cell" href="#s-4"><span class="tag">static &middot; blurred</span><b>an approximate plan</b>
+        <span class="eq">entropic OT, Sinkhorn: \(\min_\pi \langle c,\pi\rangle + \varepsilon\,\mathrm{KL}\)</span></a>
+      <a class="cell" href="#s-3"><span class="tag">dynamic &middot; sharp</span><b>a motion</b>
+        <span class="eq">Benamou&ndash;Brenier: \(\min \int\!\!\int \rho\,|v|^2\)</span></a>
+      <a class="cell" href="#s-5"><span class="tag">dynamic &middot; blurred</span><b>a cloud</b>
+        <span class="eq">Schr&ouml;dinger bridge: \(\min\,\mathrm{KL}(P\,\|\,\text{Wiener})\)</span></a>
+    </div>
+    <figcaption>The square this essay walks. Right adds heat, down adds time, and the far corner was asked first.</figcaption>
+  </div>
+</section>
+
+<hr>
+<section id="s-1">
+  <div class="measure">
+    <h2><span class="no">Part I</span>Moving dirt</h2>
+    <p>Let's start where Monge did, with a cost. There is stuff distributed as \(\mu\) (the pile), a desired distribution \(\nu\) (the hole), and a price \(c(x,y)\) for hauling one unit of stuff from \(x\) to \(y\); throughout this essay the price will be the squared distance \(c=\|x-y\|^2\), a choice that looks arbitrary now and become better motivated by Part III. Monge asked for a <em>map</em>: an assignment \(T\) sending each point of the pile to a point of the hole, moving \(\mu\) onto \(\nu\), at least total cost</p>
+    <p>$$\min_{T:\ T_\#\mu=\nu}\ \int c\big(x,\,T(x)\big)\,\mathrm d\mu(x),$$</p>
+    <p>where
+      <button class="pop" data-target="pp-push" aria-expanded="false">\(T_\#\mu=\nu\)</button>
+      says that the map really does turn the pile into the hole. The cost is a sum over grains, which is as tame as objectives get. All of the trouble lives in the constraint: the set of maps pushing \(\mu\) onto \(\nu\) is a horrible, non-convex thing, small perturbations of a valid \(T\) are invalid, and there is no calculus to do. This is why the problem stalled for so long, and it stalled in good company; the Academy offered a prize for it, and the young Kantorovich did not know of Monge at all when he broke it from the other side.</p>
+    <div class="popbody" id="pp-push"><span class="ttl">pushforward measure</span>
+      <p>\(T_\#\mu = \nu\) means \(\nu(A) = \mu(T^{-1}(A))\) for every set \(A\): the amount of mass \(T\) delivers into \(A\) is the amount \(\nu\) demands there. For densities in \(\mathbb R^d\) and nice enough \(T\) this is the change-of-variables formula \(\rho_\mu(x) = \rho_\nu(T(x))\,|\!\det DT(x)|\), whose nonlinearity in \(T\) is the technical face of everything I just complained about.</p>
+    </div>
+    <p>To see the structure of the question with nothing in the way, let's make everything finite for a moment: \(n\) bakeries, \(n\) caf&eacute;s, one truckload each, and an \(n\times n\) matrix of haulage prices. A map is now a permutation, the problem is the <em>assignment problem</em>, and you can play with it below. There are \(n!\) permutations, so brute force stops being computable at around \(n=15\), and it is worth knowing that this particular wall was demolished:
+      <button class="pop" data-target="pp-lp" aria-expanded="false">the assignment problem is a linear program</button>, solvable in polynomial time, and its study is entangled with the birth of linear programming itself.</p>
+    <div class="popbody" id="pp-lp"><span class="ttl">optimal transport and linear programming</span>
+      <p>Leonid Kantorovich published the relaxation you are about to meet in 1942, in a three-page note, having already invented linear programming in 1939 to schedule Soviet plywood production. George Dantzig built the simplex method in 1947 without knowledge of it; Koopmans connected the two worlds; Kantorovich and Koopmans shared the 1975 Nobel prize in economics. Transport is the continuous linear program, the one the founders kept in their heads as the meaning of the subject.</p>
+      <p>For the finite case, specialized algorithms beat generic simplex methods: the Hungarian method of Kuhn (1955, assembled from lemmas of K&odblac;nig and Egerv&aacute;ry, hence the name) solves the \(n\times n\) assignment problem in \(O(n^3)\), and transport with unequal weights is a minimum-cost flow problem, one of the workhorse models of operations research. If you have ever seen matching markets analyzed in economics, kidney exchanges, or ad auctions, you have seen this LP wearing work clothes.</p>
+    </div>
+    <p>The figure below has a toggle between two costs, and they disagree in a way worth understanding before you start dragging points around. One is the plain distance \(c(x,y)=\|x-y\|\), the un-squared one, what a truck's odometer would charge. The other is the squared distance \(c(x,y)=\|x-y\|^2\), which punishes a long haul quadratically and is the cost we'll commit to in this essay. Under one of them the optimal routes provably never cross, under the other they sometimes do, and
+      <button class="pop" data-target="pp-cross" aria-expanded="false">which is which surprises most people</button>.</p>
+    <div class="popbody" id="pp-cross"><span class="ttl">what each cost forbids</span>
+      <p>Take two shipments, \(x_1\to y_1\) and \(x_2\to y_2\), and ask whether swapping their destinations would be cheaper. Whatever the cost, the plan can only be optimal if the answer is no, for every pair. Run that test for each of our two costs.</p>
+      <p><em>Plain distance.</em> Suppose the two segments cross, at a point \(z\). Then each route's length splits at \(z\), and we can regroup the four pieces:</p>
+      <p>$$\|x_1-y_1\|+\|x_2-y_2\| \;=\; \underbrace{\big(\|x_1-z\|+\|z-y_2\|\big)}_{\ge\ \|x_1-y_2\|} \;+\; \underbrace{\big(\|x_2-z\|+\|z-y_1\|\big)}_{\ge\ \|x_2-y_1\|},$$</p>
+      <p>each bracket bounded below by the triangle inequality. So the swapped pairing costs no more, and strictly less unless all four points sit on one line. An optimal matching for the distance cost therefore has no crossings at all, in any dimension. This is the geometry Monge found, and his cost was distance.</p>
+      <p><em>Squared distance.</em> Now the same comparison is pure algebra. Expand all four squares and watch everything except the cross terms cancel:</p>
+      <p>$$\big[\|x_1-y_1\|^2+\|x_2-y_2\|^2\big] - \big[\|x_1-y_2\|^2+\|x_2-y_1\|^2\big] \;=\; -\,2\,(x_1-x_2)\cdot(y_1-y_2).$$</p>
+      <p>So the swap fails to help precisely when \((x_1-x_2)\cdot(y_1-y_2)\ge 0\): supply points that are far apart in some direction should send their mass far apart in <em>that same direction</em>. That is a condition on an inner product, which is a weaker demand than a condition on the picture. On a line the two demands coincide, because there the inner product is a product of two numbers and "same sign" means "same order" means "no crossing", which is where Part I's quantile formula will come from. In the plane they part company: two segments can cross while their difference vectors still point the same way. About two thirds of the random six-point instances the figure generates do exactly that, so a nonzero crossing counter under squared cost is the theory working, not the solver failing.</p>
+      <p>The inner-product condition is the one that survives and generalizes. Part II extends it from pairs to cycles of any length (cyclical monotonicity), and Brenier's theorem then identifies the maps satisfying it: gradients of convex functions, the multidimensional meaning of "nondecreasing".</p>
+    </div>
+  </div>
+
+  <figure class="sim" id="fig1">
+    <div class="sim-frame"><canvas height="330"></canvas></div>
+    <div class="controls">
+      <button class="ui" data-role="cost">cost: squared distance</button>
+      <button class="ui" data-role="shuffle">new points</button>
+      <span class="legend"><span><i class="sw" style="border-color:#2b5fad"></i>supply \(\mu\)</span>
+      <span><i class="sw" style="border-color:#1f8a63"></i>demand \(\nu\)</span></span>
+    </div>
+    <p class="fig-note" data-role="note">Drag any point; the optimal assignment is recomputed from scratch by pricing all 720 permutations, and the counter at the bottom reports how many of the chosen routes cross. Under plain distance it stays at zero forever. Under squared distance, which is what the toggle starts on, drag for a while and you will catch crossings: circled where they happen, optimal anyway, and explained in the box above.</p>
+    <figcaption><span class="figno">Figure 1.</span> The assignment problem. Six truckloads, six destinations, one best matching, and two costs that disagree about it.</figcaption>
+  </figure>
+
+  <div class="measure">
+    <p>Where Monge's formulation fails: One bakery, two caf&eacute;s, each wanting half the bread: no map exists, because a map must send the bakery somewhere, entire. Mass sometimes has to <em>split</em>, and maps cannot split. Kantorovich's move, one of the great acts of lateral thinking in applied mathematics, is to stop asking where each grain goes and ask instead <em>how much</em> goes from here to there. The unknown becomes a <em>plan</em> (formally a coupling between measures): a joint distribution \(\pi(x,y)\) whose first marginal is the supply and whose second is the demand,</p>
+    <p>$$\min_{\pi\,\in\,\Pi(\mu,\nu)}\ \int c(x,y)\,\mathrm d\pi(x,y), \qquad \Pi(\mu,\nu)=\Big\{\pi\ :\ \textstyle\int_y \pi(\cdot,y)=\mu,\ \int_x \pi(x,\cdot)=\nu\Big\}.$$</p>
+    <p>Look at what has happened to the geometry of the problem. The objective is <em>linear</em> in \(\pi\), the constraints are linear equalities, the feasible set is convex and never empty (the independent coupling \(\mu\otimes\nu\) always qualifies), and minima of linear functions over convex sets are found at extreme points. Our problem has become a linear program. And the relaxation costs nothing:
+      <button class="pop" data-target="pp-birk" aria-expanded="false">in the balanced discrete case, the optimal plan is a permutation anyway</button>, so allowing mass to split never helps unless splitting was forced, as at the lone bakery. You give up the map formulation and the map comes back as a theorem.</p>
+    <div class="popbody" id="pp-birk"><span class="ttl">Birkhoff, and why the relaxation is free</span>
+      <p>With \(n\) unit supplies and \(n\) unit demands, plans are doubly stochastic matrices (nonnegative, all row and column sums one). Birkhoff's theorem: the extreme points of this polytope are exactly the permutation matrices, every doubly stochastic matrix being a convex average of them. A linear objective attains its minimum at an extreme point, hence at a permutation. The general principle, that linear programs are honest about combinatorial problems whenever the constraint polytope has integral vertices, grew into the field of polyhedral combinatorics; transport is its founding example.</p>
+    </div>
+    <p>With the plan formulation in hand, let's define the central object of the essay. For \(p\ge 1\), the <em>Wasserstein distance</em> of order \(p\) between two distributions with finite \(p\)-th moments is</p>
+    <p>$$W_p(\mu,\nu) \;=\; \Big(\min_{\pi\in\Pi(\mu,\nu)} \int \|x-y\|^p \,\mathrm d\pi\Big)^{1/p},$$</p>
+    <p>the cheapest transport bill, read as a distance. It
+      <button class="pop" data-target="pp-metric" aria-expanded="false">is a metric</button>, and it is a different animal from the pointwise comparisons of densities you may know. Kullback&ndash;Leibler and its relatives compare \(\mu\) and \(\nu\) <em>vertically</em>, ratio of heights at each point, and become infinite once the supports stop overlapping. \(W_p\) compares the two densitities <em>horizontally</em>: two narrow spikes a millimeter apart are close in \(W_p\) because moving one onto the other is cheap, while their KL divergence is infinite. A distance that incorporates the geometry of the underlying space, that metrizes weak convergence, and that is finite between anything and anything is a distance you can do analysis with, and this property is behind most of its adoptions: it is why \(W_1\) was taken for training GANs whose generator starts on a low-dimensional manifold, and why comparing point clouds, images, and shapes is often done with a Wasserstein distance.</p>
+    <div class="popbody" id="pp-metric"><span class="ttl">the metric axioms, at speed</span>
+      <p>Symmetry: transpose the plan. Identity: \(W_p(\mu,\mu)=0\) via the diagonal coupling, and positivity because a zero-cost plan is supported on \(x=y\). The triangle inequality is the one with content: given good plans \(\pi_{12}\) and \(\pi_{23}\), the <em>gluing lemma</em> builds a three-variable coupling with those two as marginals, and Minkowski's inequality on \(\|x-z\|\le\|x-y\|+\|y-z\|\) finishes it. Gluing is intuitively obvious (chain the shipments through the middle distribution) and slightly fussy to prove; e.g. Villani's book (linked at the end) does it in brief.</p>
+    </div>
+    <p>One case can be solved by hand, and it anchors everything: dimension one. On the line, with \(c=(x-y)^2\), the best plan never lets two routes cross, because
+      <button class="pop" data-target="pp-1d" aria-expanded="false">uncrossing any crossed pair lowers the cost</button>. A plan with no crossings preserves order, so it must ship the leftmost fraction of supply to the leftmost fraction of demand, quantile to quantile: with \(F\) and \(G\) the cumulative distribution functions,</p>
+    <div class="popbody" id="pp-1d"><span class="ttl">uncrossing, and the quantile formula</span>
+      <p>Suppose a plan ships \(x_1\to y_2\) and \(x_2\to y_1\) with \(x_1&lt;x_2\), \(y_1&lt;y_2\) (a crossing). Swap the destinations. The change in cost is</p>
+      <p>$$\big[(x_1-y_1)^2+(x_2-y_2)^2\big]-\big[(x_1-y_2)^2+(x_2-y_1)^2\big] \;=\; -2\,(x_2-x_1)(y_2-y_1)\;&lt;\;0,$$</p>
+      <p>which is the one-dimensional case of the algebra we did for the figure above, now with the extra information that \(x_2-x_1\) and \(y_2-y_1\) are both positive numbers, so the whole expression is negative. Every crossing is therefore a saving left on the table, and the optimal plan is monotone.</p>
+      <p>This is where the line is special. Above, in the plane, monotone was weaker than non-crossing; here they are the same condition, because "the difference vectors point the same way" is nothing but "the order is preserved". And a monotone plan is unique once the marginals are fixed, since there is only one order-preserving way to pour \(\mu\) into \(\nu\): the leftmost \(q\) fraction of the pile has to become the leftmost \(q\) fraction of the hole, for every \(q\). That is the quantile coupling, mass at quantile level \(q\) of \(\mu\) going to quantile level \(q\) of \(\nu\), and integrating the squared displacement \(|F^{-1}(q)-G^{-1}(q)|^2\) over all levels \(q\in[0,1]\) gives the formula below.</p>
+      <p>Keep the swap argument in view. Run it over cycles of every length instead of pairs and it becomes cyclical monotonicity, the subject of Part II; the one-dimensional case is the whole theory in miniature.</p>
+    </div>
+    <p>$$W_2^2(\mu,\nu) \;=\; \int_0^1 \big|F^{-1}(q) - G^{-1}(q)\big|^2 \,\mathrm dq,$$</p>
+    <p>which is an explicit formula with no optimization left to be done. Sorting solves transport on the line, which is why the 1D figures in this essay can show you <em>exact</em> optima and not approximations. In higher dimension there is no sorting and no formula, and the honest routes to the optimum are the LP (this part), the dual (next part), or the two deformations of the problem that the rest of the essay is about.</p>
+  </div>
+</section>
+
+<hr>
+<section id="s-2">
+  <div class="measure">
+    <h2><span class="no">Part II</span>Prices</h2>
+    <p>Every linear program has a dual, and the dual of transport is a small economics lesson. Suppose you own the bakeries and the caf&eacute;s and are dreading the haulage. A shipping company makes an offer: it will buy bread at bakery \(x\) for a price \(\varphi(x)\), handle everything in between, and sell bread at caf&eacute; \(y\) for a price \(\psi(y)\). You will accept only if no route is a ripoff, that is, only if</p>
+    <p>$$\varphi(x) + \psi(y) \;\le\; c(x,y) \qquad \text{for all pairs } (x,y),$$</p>
+    <p>since otherwise it'd be cheaper for you to transport bread between that pair yourself at cost \(c\). The company, subject to keeping you on board, maximizes its revenue \(\int \varphi\,\mathrm d\mu + \int \psi\,\mathrm d\nu\). Revenue can never exceed the true haulage cost (integrate the constraint against any feasible plan). The theorem, Kantorovich duality, is that a clever enough company loses nothing:</p>
+    <p>$$\min_{\pi\in\Pi(\mu,\nu)} \int c\,\mathrm d\pi \;=\; \max_{\varphi(x)+\psi(y)\le c(x,y)} \;\int \varphi\,\mathrm d\mu + \int \psi\,\mathrm d\nu,$$</p>
+    <p>haulage and pricing are the same number, computed by
+      <button class="pop" data-target="pp-dual" aria-expanded="false">opposite professions</button>. The prices \(\varphi,\psi\) are the Lagrange multipliers of the marginal constraints, the shadow value of one extra unit of supply here or demand there, and economists use exactly this machinery on matching markets, from labor to marriage models.</p>
+    <div class="popbody" id="pp-dual"><span class="ttl">where duality comes from, and the c-transform</span>
+      <p>In the finite case this is textbook LP duality: dualize the two families of marginal constraints, and the multipliers are \(\varphi_i\) and \(\psi_j\). In the continuum one route is a minimax swap: write the constrained minimum as \(\min_{\pi\ge0}\max_{\varphi,\psi}\big[\langle c,\pi\rangle + \langle\varphi,\mu-\pi\mathbf 1\rangle + \langle\psi,\nu-\pi^{\mathsf T}\mathbf 1\rangle\big]\) and exchange min and max; making the exchange rigorous is a compactness argument (or Fenchel&ndash;Rockafellar duality), and holds in vast generality.</p>
+      <p>Given \(\psi\), the best feasible \(\varphi\) is forced: \(\varphi(x) = \min_y\, [\,c(x,y)-\psi(y)\,]\), called the <em>c-transform</em> \(\psi^{c}\). Optimal price pairs are fixed points of transforming back and forth, exactly as convex functions are fixed points of the double Legendre transform. File the shape of this update away: in Part IV an algorithm will do nothing except apply a softened c-transform, alternately, until it converges.</p>
+    </div>
+    <p>The dual is where structure enters, through the complementary slackness of the LP: at the optimum, <em>mass flows only where the price is tight</em>, that is, the optimal plan lives on the set where \(\varphi(x)+\psi(y)=c(x,y)\). On every used route the company breaks even against the haulage; the slack routes carry nothing. From tightness, one differentiation away, comes a geometric fingerprint of optimality:
+      <button class="pop" data-target="pp-cyc" aria-expanded="false">the support of an optimal plan is cyclically monotone</button>, meaning that rerouting any finite cycle of shipments can only raise the total cost. The figure lets you feel this with your hands.</p>
+    <div class="popbody" id="pp-cyc"><span class="ttl">cyclical monotonicity</span>
+      <p>A set \(S\) of routes is c-cyclically monotone if for every finite cycle \((x_1,y_1),\dots,(x_k,y_k)\in S\),</p>
+      <p>$$\sum_{i=1}^k c(x_i,y_i) \;\le\; \sum_{i=1}^k c(x_i,y_{i+1}),\qquad y_{k+1}:=y_1,$$</p>
+      <p>every cyclic reshuffle of destinations is a loss. Optimal plans are supported on such sets (if a profitable cycle existed you could reroute a little mass around it and beat the optimum), and, for reasonable costs, the converse holds too: cyclical monotonicity plus the marginals pins down optimality. The quantifier over <em>all</em> cycle lengths matters. Pairwise swaps alone can be locally unbeatable while a three-cycle still saves money, which you can occasionally verify below by getting stuck.</p>
+    </div>
+  </div>
+
+  <figure class="sim" id="fig2">
+    <div class="sim-frame"><canvas height="330"></canvas></div>
+    <div class="controls">
+      <button class="ui" data-role="scramble">scramble</button>
+      <button class="ui" data-role="restore">back to optimal</button>
+      <span class="readout" data-role="cost" style="min-width:14em"></span>
+    </div>
+    <p class="fig-note" data-role="note">Click one supply point, then another: their destinations swap. Starting from the optimum, every swap you can make raises the bill, which is cyclical monotonicity for cycles of length two. Scramble and try to walk back down by swaps alone; if you get stuck above the optimum, you have met a longer cycle, and the definition's quantifier over all cycle lengths has earned its keep.</p>
+    <figcaption><span class="figno">Figure 2.</span> Optimality as unbeatability: no reshuffle of an optimal plan saves money.</figcaption>
+  </figure>
+
+  <div class="measure">
+    <p>Now let's see why we're using a quadratic cost. Take \(c(x,y)=\tfrac12\|x-y\|^2\); the one half halves every bill and moves no minimizer, it is there to keep the algebra clean. Write out the price constraint we just imposed, expanding the square:</p>
+    <p>$$\varphi(x)+\psi(y) \;\le\; \tfrac12\|x-y\|^2 \;=\; \tfrac12\|x\|^2 \;-\; x\cdot y \;+\; \tfrac12\|y\|^2 .$$</p>
+    <p>Both quadratic pieces on the right depend on one variable each, so each can be moved to the left and absorbed into the price living on that side. Define</p>
+    <p>$$u(x) \;=\; \tfrac12\|x\|^2-\varphi(x), \qquad w(y) \;=\; \tfrac12\|y\|^2-\psi(y),$$</p>
+    <p>which is a change of unknowns and nothing more: from \(u\) and \(w\) we can read the prices back off, and vice versa. In the new variables the constraint becomes</p>
+    <p>$$u(x)+w(y) \;\ge\; x\cdot y \quad \text{for all } x,y, \qquad\text{that is,}\qquad u(x) \;\ge\; x\cdot y - w(y) \quad \text{for every } y.$$</p>
+    <p>Read the second form one \(x\) at a time. Fix a destination \(y\). The function \(x \mapsto x\cdot y - w(y)\) is <em>affine</em> in \(x\): a straight line in one dimension, a hyperplane in general, whose slope is the vector \(y\) and whose height is set by the number \(w(y)\). So the constraint says: the graph of \(u\) lies above each member of a whole family of hyperplanes, one for every possible destination.</p>
+    <p>Which member is binding, and how high does \(u\) sit? Recall what the company wants. Its revenue grows with \(\varphi\), and \(\varphi = \tfrac12\|x\|^2 - u\), so making the company richer means pushing \(u\) <em>down</em>, as far as the constraint allows. It allows exactly down to the highest hyperplane in the family. At the optimum, therefore,</p>
+    <p>$$u(x) \;=\; \sup_y\ \big[\,x\cdot y \;-\; w(y)\,\big] \;=\; w^{*}(x),$$</p>
+    <p>the <button class="pop" data-target="pp-leg" aria-expanded="false">Legendre transform</button> of \(w\). Two things follow immediately, and they are the whole theorem.</p>
+    <div class="popbody" id="pp-leg"><span class="ttl">the Legendre transform</span>
+      <p>For a function \(f\) on \(\mathbb R^d\), its Legendre transform is</p>
+      <p>$$f^{*}(y) \;=\; \sup_x\ \big[\,x\cdot y - f(x)\,\big].$$</p>
+      <p>Here is what the supremum is measuring. Fix a slope \(y\) and slide the linear function \(x\mapsto x\cdot y\) downward until it stops touching the graph of \(f\) from below. How far you had to slide is \(f^{*}(y)\), and the line you end up with is \(x\mapsto x\cdot y - f^{*}(y)\), the highest affine minorant of \(f\) with that slope. So \(f^{*}\) is a catalogue: for every slope, the intercept of the best line with that slope. Convex functions are precisely the ones this catalogue can reconstruct, which is the content of the involution \(f^{**}=f\) (for convex, lower semicontinuous \(f\)).</p>
+      <p>Two properties are the ones we use above. First, \(f^{*}\) is a supremum of functions that are affine in \(y\), and a supremum of affine functions is convex no matter what \(f\) was, which is why the \(u\) built in the main text is convex without anyone having assumed it. Second, for smooth strictly convex \(f\) the gradients invert each other, \(\nabla f^{*} = (\nabla f)^{-1}\), and the supremum defining \(f^{*}(y)\) is attained at the \(x\) where \(\nabla f(x)=y\). That attainment is exactly the tightness condition the main text turns into the transport map.</p>
+      <p>Examples worth carrying: \(f(x)=\tfrac12\|x\|^2\) has \(f^{*}=f\), the self-dual case; \(f(x)=\tfrac12 x^{\mathsf T}\!Ax\) has \(f^{*}(y)=\tfrac12 y^{\mathsf T}\!A^{-1}y\); \(f(x)=e^{x}\) has \(f^{*}(y)=y\log y - y\), which is where entropy comes from and why the transform keeps showing up in Part IV.</p>
+      <p>You have probably met this transform already, wearing other hats. It is what takes a Lagrangian to a Hamiltonian in mechanics, trading velocity for momentum, and what takes energy to free energy in thermodynamics, trading entropy for temperature. Each time the move is the same: describe a convex function not by its values but by its slopes.</p>
+      <p>And it is the quadratic-cost special case of Part II's c-transform \(\psi^{c}(x)=\min_y[c(x,y)-\psi(y)]\). Replace the family of hyperplanes \(x\cdot y - \text{const}\) by the family of cost functions \(x \mapsto c(x,y) - \text{const}\), and everything above goes through with \"convex\" replaced by \"c-concave\". The quadratic cost is the case where the cost-shaped family is the hyperplane family, which is why it, and only it, hands us convexity.</p>
+    </div>
+    <p>First, \(u\) is a supremum of affine functions, hence <em>convex</em>, and nobody assumed convexity anywhere. It fell out of the price constraint.</p>
+    <p>Second, remember complementary slackness from a moment ago: mass moves only along tight routes. Tightness at a used route \((x,y)\) means \(u(x)+w(y)=x\cdot y\), which says that of all the hyperplanes in the family, the one indexed by this particular \(y\) is the one that actually touches the graph of \(u\) at this particular \(x\). A hyperplane touching a convex function from below at a point is called a supporting hyperplane, and its slope is called a subgradient there. So the destination \(y\) of the mass sitting at \(x\) is a subgradient of \(u\) at \(x\).</p>
+    <p>That last step is where the splitting problem dies. A convex function can have several subgradients at a point, but only at its kinks, and a convex function on \(\mathbb R^d\) has kinks only on a set of measure zero. So if \(\mu\) has a density, then at \(\mu\)-almost every \(x\) the function \(u\) is differentiable, the subgradient is one single vector, and the mass at \(x\) has exactly one destination:</p>
+    <p>$$y \;=\; \nabla u(x).$$</p>
+    <p>Kantorovich let mass split; the prices have just told us it does not, and where it goes. This is
+      <button class="pop" data-target="pp-brenier" aria-expanded="false">Brenier's theorem</button> (1991), the structural heart of the quadratic theory: <em>the optimal plan is a map, and the map is the gradient of a convex function</em>,</p>
+    <p>$$T \;=\; \nabla u, \qquad u \text{ convex}.$$</p>
+    <div class="popbody" id="pp-brenier"><span class="ttl">Brenier's theorem, and the equation behind it</span>
+      <p>Statement: if \(\mu\) has a density (no mass concentrated on small sets, so no bakery is ever forced to split), the quadratic problem has a unique optimal plan, it is induced by a map \(T\) which is the gradient of a convex potential, and conversely any gradient of a convex function pushing \(\mu\) to \(\nu\) is optimal. Uniqueness and structure in one stroke, from bookkeeping about prices.</p>
+      <p>The main text derived the forward direction. The converse is worth a sentence because it is the one you use in practice, to certify that a map you have built is the right one. Gradients of convex functions satisfy \((\nabla u(x_1)-\nabla u(x_2))\cdot(x_1-x_2)\ge0\), and more generally the cyclic version of that inequality; by the criterion of the previous box, a plan supported on such a set cannot be improved by any reshuffle, so it is optimal. Monotone map, optimal plan, and convex potential are three descriptions of one object.</p>
+      <p>Where do the hypotheses bite? Drop the density assumption on \(\mu\) and the argument breaks exactly where you would expect: an atom of mass sitting on a kink of \(u\) has several subgradients and does split, which is Kantorovich's relaxation earning its keep. Nothing is required of \(\nu\), which may be discrete; that asymmetric case has its own name, semi-discrete transport, and its own algorithms.</p>
+      <p>If we insert \(T=\nabla u\) into the change-of-variables formula, the mass balance becomes a PDE for the potential, the <em>Monge&ndash;Amp&egrave;re equation</em>: \(\det D^2u(x) = \rho_\mu(x)\,/\,\rho_\nu(\nabla u(x))\), a fully nonlinear second-order equation, degenerate where densities vanish. Its regularity theory (when is the optimal map smooth? continuous? where does it tear?) is extensive: Caffarelli's work in the 1990s opened it, the map can be discontinuous outright when the target's support is non-convex, and sharpened partial regularity in this family of problems is part of what Figalli's 2018 Fields medal cites.</p>
+      <p>In one dimension, gradients of convex functions are the nondecreasing functions, and Brenier's theorem collapses to Part I's monotone rearrangement.</p>
+    </div>
+    <p>Pause on how strange this is. We fed in a shipping problem and a bill of prices; out came the statement that optimal rearrangements of mass are exactly the gradients of convex potentials, a class of maps with no rotation in them, no shear, no swirl, the multidimensional meaning of <em>monotone</em>. Convexity was nowhere in the assumptions. It condensed out of complementary slackness, the way crystal structure condenses out of a cooling liquid, and most of modern transport theory is built on this one identification. The 2D figures that follow can only be exact because Gaussians hand us their Brenier maps
+      <button class="pop" data-target="pp-gauss" aria-expanded="false">in closed form</button>.</p>
+    <div class="popbody" id="pp-gauss"><span class="ttl">the Gaussian case, fully solved</span>
+      <p>Between \(\mathcal N(m_0,\Sigma_0)\) and \(\mathcal N(m_1,\Sigma_1)\) the Brenier map is affine, \(T(x) = m_1 + A\,(x-m_0)\) with</p>
+      <p>$$A \;=\; \Sigma_0^{-1/2}\big(\Sigma_0^{1/2}\Sigma_1\Sigma_0^{1/2}\big)^{1/2}\Sigma_0^{-1/2},$$</p>
+      <p>symmetric positive definite (hence a gradient of the convex quadratic \(\tfrac12 x^{\mathsf T}\!Ax + \dots\)), and the distance comes out as \(W_2^2 = \|m_0-m_1\|^2 + \operatorname{tr}\!\big(\Sigma_0+\Sigma_1 - 2(\Sigma_0^{1/2}\Sigma_1\Sigma_0^{1/2})^{1/2}\big)\), the Bures metric of quantum information under another name. Figure 3 runs exactly this formula.</p>
+    </div>
+    <p>Before we move on, one more thing duality provides us. For \(p=1\) the two prices collapse into one:
+      <button class="pop" data-target="pp-w1" aria-expanded="false">\(W_1\) is a supremum over 1-Lipschitz test functions</button>, which is the form in which transport entered deep learning.</p>
+    <div class="popbody" id="pp-w1"><span class="ttl">Kantorovich&ndash;Rubinstein, and GANs</span>
+      <p>For \(c=\|x-y\|\), feasibility forces \(\psi=-\varphi\) with \(\varphi\) 1-Lipschitz, and duality reads \(W_1(\mu,\nu) = \sup_{\mathrm{Lip}(\varphi)\le1} \int\varphi\,\mathrm d\mu - \int\varphi\,\mathrm d\nu\). The Wasserstein GAN (Arjovsky, Chintala, Bottou 2017) trains a neural network to play \(\varphi\), the critic, against a generator minimizing the estimated \(W_1\); the horizontal character of the distance is the point, since a generator supported on a thin manifold gets useful gradients from \(W_1\) where likelihood-style objectives saturate. The Lipschitz constraint is enforced only loosely in practice, and an honest reading is that WGANs are transport-flavored rather than transport-exact; the flavor was enough to matter.</p>
+    </div>
+  </div>
+</section>
+
+<hr>
+<section id="s-3">
+  <div class="measure">
+    <h2><span class="no">Part III</span>Making distance move</h2>
+    <p>So far the transport plan is a ledger: it says what leaves \(x\) for \(y\) and says nothing about the trip. When I took a class on optimal transport, I used to joke with friends that transport plans are "optimal teleport", not optimal <em>transport</em>. The square in the introduction has a downward arrow labelled "add time", and this part is that arrow: we move from the top-left corner, where the answer is a ledger, to the bottom-left corner, where the answer is a motion. Fix a unit of time and ask for the whole history: a curve of densities \(\rho_t\) with \(\rho_0=\mu\), \(\rho_1=\nu\).</p>
+    <p>There is a lazy way to interpolate that you should look at once and then discard forever: the blend \((1-t)\,\mu + t\,\nu\), which fades the old density out and the new one in. Nothing <em>travels</em>; mass at the source dwindles while mass at the target swells, as if teleported. The transport answer instead carries each grain along a road. Take the Brenier map \(T\) and walk every grain a fraction \(t\) of its journey:</p>
+    <p>$$\rho_t \;=\; \big((1-t)\,\mathrm{id} + t\,T\big)_{\#}\,\mu,$$</p>
+    <p>McCann's <em>displacement interpolation</em> (1997). The figure puts the two side by side, and the difference is not subtle: one is a crossfade, the other is traffic.
+      <button class="pop" data-target="pp-mccann" aria-expanded="false">Convexity along the traffic</button> is a story of its own, and it is the door through which transport entered pure geometry.</p>
+    <div class="popbody" id="pp-mccann"><span class="ttl">displacement convexity, and geometry out of nothing</span>
+      <p>Some functionals of a density, the entropy \(\int\rho\log\rho\) foremost, fail to be convex along blends yet are convex along displacement interpolations. McCann introduced the interpolation to prove uniqueness results with exactly this trick, and the idea scaled astonishingly: on a curved space, <em>how</em> convex the entropy is along these paths measures Ricci curvature. Lott, Sturm, and Villani turned that observation into a definition of curvature bounds needing no derivatives at all, valid on metric measure spaces where classical Ricci curvature is meaningless. That line of work is a large part of Villani's 2010 Fields citation, and it started with watching entropy along moving mass.</p>
+    </div>
+  </div>
+
+  <figure class="sim" id="fig3">
+    <div class="sim-frame">
+      <div class="split"><div><canvas height="250"></canvas></div><div><canvas height="250"></canvas></div></div>
+    </div>
+    <div class="controls">
+      <span><label>time t</label><input type="range" data-role="tcur" min="0" max="1" step="0.004" value="0"><span class="readout" data-role="tlab">0.00</span></span>
+      <button class="ui" data-role="play">play</button>
+      <span class="legend"><span>left: blend \((1-t)\mu+t\nu\)</span><span>right: displacement \(((1-t)\,\mathrm{id}+tT)_\#\mu\)</span></span>
+    </div>
+    <p class="fig-note" data-role="note">Two Gaussians, exact formulas on both panels. Drag either blob by its center, in either panel. On the left, mass dies here and is born there, passing through nowhere; scrub slowly and watch the corridor between them stay empty. On the right every particle walks a straight line at constant speed, and the traced dots are ten of them doing it.</p>
+    <figcaption><span class="figno">Figure 3.</span> Teleportation versus traffic. The blend and the displacement interpolation of the same pair.</figcaption>
+  </figure>
+
+  <div class="measure">
+    <p>Displacement interpolation looks like mechanics, and the resemblance can be stated as a theorem. Benamou and Brenier (2000) proved that the static distance \(W_2\) can be equivalently formulated as the solution of a least-action problem over all conceivable traffic: among every density curve \(\rho_t\) and velocity field \(v_t\) that move \(\mu\) to \(\nu\) while conserving mass,</p>
+    <p>$$W_2^2(\mu,\nu) \;=\; \min_{(\rho,v)}\ \int_0^1\!\!\int \rho_t(x)\,\|v_t(x)\|^2\,\mathrm dx\,\mathrm dt \qquad \text{s.t.}\quad \partial_t\rho_t + \nabla\!\cdot\!(\rho_t v_t)=0,\quad \rho_0=\mu,\ \rho_1=\nu,$$</p>
+    <p>the total <em>kinetic energy</em> of the crowd, minimized subject to the
+      <button class="pop" data-target="pp-cont" aria-expanded="false">continuity equation</button>. The
+      <button class="pop" data-target="pp-bb" aria-expanded="false">proof</button> is two inequalities, and the optimizer is exactly the displacement interpolation: the squared distance of Part I is the least kinetic energy needed to physically execute the move in unit time. This is why the exponent \(p=2\) was the right choice all along; squared distance is what kinetic energy charges for straight-line travel.</p>
+    <div class="popbody" id="pp-cont"><span class="ttl">the continuity equation</span>
+      <p>\(\partial_t\rho + \nabla\cdot(\rho v)=0\) is local conservation of mass. Take any small region: the amount of stuff inside it can change only by stuff crossing the boundary, and the flux carrying it across is \(\rho v\), density times velocity. Summing the crossings over the boundary and shrinking the region is what the divergence does, and the equation says the accumulation inside is exactly minus that. Nothing is created, nothing is destroyed, and this is the same equation that keeps the books for charge in electromagnetism and for probability in fluid form.</p>
+      <p>Its role in the formula above is to be the promise that \(v\) really carries \(\rho\), rather than being some unrelated arrow field we drew on top of a movie of densities. One technical remark worth having: the equation is <em>linear</em> in the pair \((\rho,\ m)\) where \(m=\rho v\) is the momentum field, and in those variables the kinetic energy \(\int\!\!\int \|m\|^2/\rho\) is jointly convex. So the whole least-action problem is a convex problem in disguise, which is what let Benamou and Brenier solve it numerically at all.</p>
+    </div>
+    <div class="popbody" id="pp-bb"><span class="ttl">the Benamou&ndash;Brenier formula, both directions</span>
+      <p>We want to show that two numbers are equal: the least kinetic energy \(\mathcal K\) over all traffic obeying the constraints, and the static \(W_2^2\) from Part I. As usual with a claimed equality between two optimization problems, we show each is at most the other.</p>
+      <p><em>Why the objective is called kinetic energy.</em> A single particle of mass \(m\) and velocity \(v\) carries \(\tfrac12 m\|v\|^2\). Here the "mass" sitting at \(x\) at time \(t\) is \(\rho_t(x)\,\mathrm dx\) and its velocity is \(v_t(x)\), so the crowd's instantaneous energy is \(\tfrac12\int\rho_t\|v_t\|^2\,\mathrm dx\) and the action is its time integral. The factor \(\tfrac12\) is dropped by convention, which is why the formula lands on \(W_2^2\) rather than \(\tfrac12W_2^2\).</p>
+      <p><em>Step one: \(\mathcal K \le W_2^2\).</em> Exhibit one legal traffic pattern with that energy. Take the Brenier map \(T\) from Part II and let every grain drive straight from \(x\) to \(T(x)\) at constant speed, arriving at time one. Its position at time \(t\) is \(X_t(x)=(1-t)x+t\,T(x)\) and its velocity is \(T(x)-x\), the same at all times. The density of the crowd at time \(t\) is then \(\rho_t=(X_t)_\#\mu\), which is McCann's displacement interpolation, and the pair \((\rho_t,v_t)\) built this way satisfies the continuity equation for free, since it was made by physically moving mass around. Its energy is</p>
+      <p>$$\int_0^1\!\!\int \rho_t\|v_t\|^2\,\mathrm dx\,\mathrm dt \;=\; \int_0^1\!\!\int \|T(x)-x\|^2\,\mathrm d\mu(x)\,\mathrm dt \;=\; \int \|T(x)-x\|^2\,\mathrm d\mu(x) \;=\; W_2^2(\mu,\nu).$$</p>
+      <p>The middle equality is the change of variables \(y=X_t(x)\): integrating a quantity against the crowd at time \(t\) is the same as integrating it against the original crowd, since the mass at \(X_t(x)\) came from \(x\). The time integral then does nothing, because the speed of each grain does not depend on \(t\). So legal traffic with energy \(W_2^2\) exists, and the minimum can only be lower.</p>
+      <p><em>Step two: \(\mathcal K \ge W_2^2\).</em> Now take <em>any</em> legal traffic \((\rho_t,v_t)\) and show it pays at least \(W_2^2\). Follow the velocity field: let \(X_t(x)\) solve \(\dot X_t = v_t(X_t)\) with \(X_0(x)=x\). The continuity equation is precisely the statement that this flow carries the crowd, \(\rho_t = (X_t)_\#\mu\), so \(X_1\) pushes \(\mu\) to \(\nu\). Then the pair \(\pi=(X_0,X_1)_\#\mu\), read as "the grain that started at \(x\) ended at \(X_1(x)\)", is a feasible transport plan, and by definition of the minimum in Part I,</p>
+      <p>$$W_2^2(\mu,\nu) \;\le\; \int \|X_1(x)-x\|^2\,\mathrm d\mu(x).$$</p>
+      <p>It remains to bound that displacement by the energy. Each grain's net displacement is the integral of its velocity, \(X_1(x)-x=\int_0^1 v_t(X_t(x))\,\mathrm dt\), and squared norms do not commute with averaging: by Jensen's inequality (equivalently Cauchy&ndash;Schwarz on the time interval),</p>
+      <p>$$\Big\|\int_0^1 v_t(X_t)\,\mathrm dt\Big\|^2 \;\le\; \int_0^1 \big\|v_t(X_t)\big\|^2\,\mathrm dt .$$</p>
+      <p>Integrate over the crowd and change variables back, exactly as in step one, to recognize the right-hand side as the kinetic energy of the traffic we started with. Chaining the three displays gives \(W_2^2\le \mathcal K\), which is what we wanted.</p>
+      <p><em>What equality costs.</em> Jensen is an equality only when the thing being averaged is constant, so a traffic pattern achieving the minimum must move every grain at a velocity that never changes in time: straight lines, constant speed. That pins the optimizer down to the displacement interpolation and nothing else, which is the sentence the main text was waiting for. In words, the crowd that spends the least energy is the crowd in which nobody accelerates and nobody swerves.</p>
+      <p>The paper also provided an algorithm: solved as a convex problem in \((\rho,\rho v)\) by an augmented Lagrangian scheme, it was the standard way to compute large transport problems for a decade, and it earned the authors a central place in OT.</p>
+    </div>
+    <p>The minimizer has more structure than feasibility requires. At the optimum the velocity is the gradient of a potential, \(v_t=\nabla\phi_t\), and the latter solves the
+      <button class="pop" data-target="pp-hj" aria-expanded="false">Hamilton&ndash;Jacobi equation</button> \(\partial_t\phi + \tfrac12\|\nabla\phi\|^2 = 0\); the particles of the optimal crowd feel no force and never collide. Read as a control problem, which is what it is: steer a crowd from \(\mu\) so that it lands <em>exactly</em> on \(\nu\) at time one, paying \(\int\!\!\int\rho\|v\|^2\) for effort, with no randomness anywhere. \(\phi\) is the value function of that problem, its characteristics are the straight roads of Figure 3, and this reading of \(W_2\) as the cost of deterministic optimal control is the lower left corner of the square, which we'll diffuse in Part V.</p>
+    <div class="popbody" id="pp-hj"><span class="ttl">why a gradient, and why Hamilton&ndash;Jacobi</span>
+      <p>Fix the traffic density \(\rho_t\) and minimize kinetic energy over velocity fields carrying it: any component of \(v\) orthogonal (in \(L^2(\rho)\)) to gradients stirs mass without changing \(\rho\)'s evolution, pure waste, so optimal velocities are gradients \(v=\nabla\phi\). Inserting \(v=\nabla\phi\) and taking the variation of \(\int\!\!\int\rho\,\|\nabla\phi\|^2\) subject to continuity, the multiplier computation yields \(\partial_t\phi+\tfrac12\|\nabla\phi\|^2=0\) along the optimum (Burgers' equation for \(\nabla\phi\)): each particle keeps its initial velocity, i.e. free streaming, a pressureless gas. The pair (continuity for \(\rho\), Hamilton&ndash;Jacobi for \(\phi\)) is the geodesic equation of an infinite-dimensional geometry, which is the next paragraph.</p>
+    </div>
+    <p>Benamou&ndash;Brenier licenses a change of self-image for the whole subject. If \(W_2\) is a least action of the kinetic type, then \(W_2\) is a <em>Riemannian distance</em>: the space of probability densities becomes a manifold whose tangent vectors at \(\rho\) are the velocity fields \(v=\nabla\phi\), with kinetic energy \(\int\rho\|v\|^2\) as the metric, displacement interpolations as its geodesics. Otto worked out this calculus around 2000, and its famous dividend is thermodynamic:
+      <button class="pop" data-target="pp-otto" aria-expanded="false">in this geometry, diffusion is downhill motion</button>. The heat equation, of all things, is the steepest descent of the Boltzmann entropy with respect to the transport metric, and dissipative PDE after dissipative PDE turned out to be a gradient flow of a free energy in the same sense. That single sentence is a bridge between this essay and statistical mechanics, and I will cross it once more, from the other side, at the end of Part V.</p>
+    <div class="popbody" id="pp-otto"><span class="ttl">JKO, Otto, and heat as steepest descent</span>
+      <p>Jordan, Kinderlehrer, and Otto (1998) discretized time and showed that the scheme</p>
+      <p>$$\rho_{k+1} \;=\; \arg\min_{\rho}\ \Big[\ \int \rho\log\rho \;+\; \frac{1}{2\tau}\,W_2^2(\rho,\rho_k)\ \Big]$$</p>
+      <p>converges, as \(\tau\to0\), to the heat equation \(\partial_t\rho=\Delta\rho\): each step trades entropy gained against transport spent, and the continuum limit of that bargain is diffusion. With an energy \(\int V\rho\) added to the entropy the same scheme produces the Fokker&ndash;Planck equation, so the dissipative dynamics of statistical mechanics are gradient flows in the Benamou&ndash;Brenier geometry. Otto's formal Riemannian calculus turns this into a computational device (geodesics, Hessians, curvature of the density manifold), and it is the reason "Wasserstein gradient flow" is now a standard phrase in PDE, sampling theory, and the analysis of learning dynamics.</p>
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<section id="s-4">
+  <div class="measure">
+    <h2><span class="no">Part IV</span>Blurring the plan</h2>
+    <p>Now back to the static case; which has three practical issues. The LP is expensive: algorithms that are cubic-ish in time stall around a few thousand points and are therefore hopeless for millions of pixels or cells. The optimal plan is brittle: supported on a lower-dimensional set (a permutation, a map), it jumps around discontinuously when the data wiggles even slightly, and estimating so singular an object from samples is statistically cursed. And the LP value is a piecewise-linear function of its inputs, so gradients (i.e. learning) give only very localized information. The repair for all three of these problems is the same and it is thermodynamically flavored: stop demanding the cheapest plan and ask instead for the cheapest <em>warm</em> plan,</p>
+    <p>$$\pi_\varepsilon \;=\; \arg\min_{\pi\in\Pi(\mu,\nu)}\ \int c\,\mathrm d\pi \;+\; \varepsilon\,\mathrm{KL}\big(\pi\,\|\,\mu\otimes\nu\big),$$</p>
+    <p>haulage plus \(\varepsilon\) times the
+      <button class="pop" data-target="pp-kl" aria-expanded="false">relative entropy</button> against the independent coupling \(\mu\otimes\nu\), the plan that ships from everywhere to everywhere in proportion to supply and demand and pays no attention to distance. Relative entropy measures how far a plan has moved away from that reference, so the second term is a fee for being opinionated, and it fattens whatever the first term wants to sharpen. Turning \(\varepsilon\) down recovers the linear program; turning it up drives the plan back to \(\mu\otimes\nu\).</p>
+    <p>Calling \(\varepsilon\) a temperature is not decoration. The objective is an energy \(\langle c,\pi\rangle\) plus temperature times negative entropy, which is a free energy, this time over shipping ledgers rather than over microstates, and free energies have Boltzmann minimizers. Setting the derivative to zero, which the box below does line by line, gives the</p>
+    <div class="popbody" id="pp-kl"><span class="ttl">relative entropy, and the Gibbs computation</span>
+      <p>First the object. For two distributions \(\pi\) and \(R\) over the same set of routes,</p>
+      <p>$$\mathrm{KL}(\pi\|R) \;=\; \sum_{i,j} \pi_{ij}\,\log\frac{\pi_{ij}}{R_{ij}} \;\ge\; 0,$$</p>
+      <p>with equality only when \(\pi=R\). The usual reading is in bits: it is the excess description length you pay if you compress data drawn from \(\pi\) using a code designed for \(R\). For our purposes the shape matters more than the interpretation. It is finite only when \(\pi\) puts mass nowhere \(R\) does not, it blows up logarithmically as \(\pi\) concentrates, and, since \(t\mapsto t\log t\) is strictly convex, \(\mathrm{KL}\) is strictly convex in \(\pi\). That last property is why the warm problem has exactly one solution while the linear program can have a flat face full of them.</p>
+      <p>Now the computation. We minimize</p>
+      <p>$$\sum_{i,j} c_{ij}\pi_{ij} \;+\; \varepsilon \sum_{i,j}\pi_{ij}\log\frac{\pi_{ij}}{\mu_i\nu_j}$$</p>
+      <p>over nonnegative \(\pi\) with row sums \(\mu_i\) and column sums \(\nu_j\). Attach a multiplier \(\varphi_i\) to each row constraint and \(\psi_j\) to each column constraint, exactly as in Part II, and write the Lagrangian</p>
+      <p>$$L(\pi,\varphi,\psi) \;=\; \sum_{i,j} c_{ij}\pi_{ij} + \varepsilon \sum_{i,j}\pi_{ij}\log\frac{\pi_{ij}}{\mu_i\nu_j} \;-\; \sum_i \varphi_i\Big(\sum_j \pi_{ij}-\mu_i\Big) \;-\; \sum_j \psi_j\Big(\sum_i \pi_{ij}-\nu_j\Big).$$</p>
+      <p>Differentiate with respect to one entry \(\pi_{ij}\). The first term contributes \(c_{ij}\). The entropy term contributes \(\varepsilon\big(\log\frac{\pi_{ij}}{\mu_i\nu_j}+1\big)\), the \(+1\) coming from differentiating \(t\log t\). The two constraint terms contribute \(-\varphi_i\) and \(-\psi_j\). Setting the sum to zero:</p>
+      <p>$$c_{ij} + \varepsilon\log\frac{\pi_{ij}}{\mu_i\nu_j} + \varepsilon - \varphi_i - \psi_j \;=\; 0 .$$</p>
+      <p>Solve for \(\pi_{ij}\) by isolating the logarithm and exponentiating:</p>
+      <p>$$\pi_{ij} \;=\; \mu_i\,\nu_j\ \exp\!\Big(\frac{\varphi_i+\psi_j-c_{ij}}{\varepsilon}-1\Big) \;=\; \mu_i\,\nu_j\ e^{\varphi_i/\varepsilon}\,e^{-c_{ij}/\varepsilon}\,e^{\psi_j/\varepsilon},$$</p>
+      <p>where the stray \(e^{-1}\) has been absorbed by shifting \(\varphi\) by the constant \(\varepsilon\), which no constraint notices. This is the displayed Gibbs form: a fixed kernel \(e^{-c_{ij}/\varepsilon}\) built from the cost alone, multiplied by one positive number per row and one per column.</p>
+      <p>Two observations before you leave the box. The exponential is automatically positive, so the constraint \(\pi\ge0\) never has to be enforced; the entropy term has quietly removed the inequality constraints that make the linear program combinatorial. And the pattern here, "linear cost plus \(\varepsilon\) times relative entropy to a reference, minimized under linear constraints, yields an exponential tilt of the reference", is the same computation that produces the Boltzmann distribution in statistical mechanics, with energy playing the role of \(c\) and the multiplier on the normalization playing the role of the free energy. Here the physical system is a shipping ledger; in Part V it will turn out to be an actual gas.</p>
+    </div>
+    <p><em>Gibbs form</em> of the solution: with \(K = e^{-c/\varepsilon}\) the kernel of the cost,</p>
+    <p>$$\pi_\varepsilon \;=\; \operatorname{diag}(a)\ K\ \operatorname{diag}(b) \qquad \text{for some positive vectors } a, b.$$</p>
+    <p>Sit with what this says about degrees of freedom. An \(n\times n\) plan had \(n^2\) unknowns; the warm plan is a fixed known matrix \(K\) corrected by \(2n\) numbers, one price per bakery and one per caf&eacute; (the multipliers \(a=e^{\varphi/\varepsilon}\), \(b=e^{\psi/\varepsilon}\) are Part II's dual prices, exponentiated). And the two constraints suggest their own algorithm, so obvious it has been discovered at least three times: fix \(b\), then matching the row sums to \(\mu\) determines \(a\) in closed form; fix \(a\), match the column sums, get \(b\); repeat. The two updates are one line each,</p>
+    <p>$$a_i \;\leftarrow\; \frac{\mu_i}{(Kb)_i}, \qquad\qquad b_j \;\leftarrow\; \frac{\nu_j}{(K^{\mathsf T}a)_j},$$</p>
+    <p>and that is the entire algorithm. It is
+      <button class="pop" data-target="pp-sink" aria-expanded="false">Sinkhorn's algorithm</button>, and each half-step turns out to be Part II's c-transform with the hard minimum softened into a log-sum-exp at temperature \(\varepsilon\): the duality of Part II, running as a while-loop. Watch it work:</p>
+    <div class="popbody" id="pp-sink"><span class="ttl">Sinkhorn: where the updates come from, and three births</span>
+      <p><em>The updates.</em> We know from the previous box that the answer looks like \(\pi_{ij}=a_i K_{ij} b_j\) with \(K_{ij}=\mu_i\nu_j e^{-c_{ij}/\varepsilon}\) folded together, and we need the row sums to be \(\mu\) and the column sums \(\nu\). Impose the row constraint on that form:</p>
+      <p>$$\sum_j a_i K_{ij} b_j \;=\; \mu_i \quad\Longleftrightarrow\quad a_i \,(Kb)_i \;=\; \mu_i \quad\Longleftrightarrow\quad a_i \;=\; \frac{\mu_i}{(Kb)_i}.$$</p>
+      <p>Since \(a_i\) appears in row \(i\) and nowhere else, the row constraints do not interact, and one division fixes all of them at once. The same argument on the columns gives \(b_j=\nu_j/(K^{\mathsf T}a)_j\). Each update makes its own family of constraints exact and, in general, breaks the other family; alternate, and both errors shrink. At the fixed point both hold and you are looking at the unique warm plan.</p>
+      <p><em>Why this is a softened c-transform.</em> Undo the exponentials by writing \(a_i=e^{\varphi_i/\varepsilon}\) and \(b_j=e^{\psi_j/\varepsilon}\), so the unknowns are the prices themselves. The row update becomes</p>
+      <p>$$\varphi_i \;\leftarrow\; -\,\varepsilon\,\log \sum_j \nu_j\, e^{(\psi_j-c_{ij})/\varepsilon}.$$</p>
+      <p>Look at what happens as \(\varepsilon\to0\). Let \(m_i=\min_j\,[c_{ij}-\psi_j]\), factor \(e^{-m_i/\varepsilon}\) out of the sum, and the remaining terms are \(e^{-(\text{something}\ \ge\ 0)/\varepsilon}\), which die unless they belong to the minimizing \(j\). What survives is \(\varphi_i\to \min_j[c_{ij}-\psi_j]\), which is exactly the c-transform of Part II. So Sinkhorn is the c-transform iteration with \(\min\) replaced by a soft minimum at temperature \(\varepsilon\), and \(\varepsilon\) controls how soft. Implementations run it in this logarithmic form, because \(e^{-c/\varepsilon}\) underflows to zero long before \(\varepsilon\) is as small as one would like.</p>
+      <p><em>Why it converges.</em> Each half-step is an exact maximization of the entropic dual over one block of variables with the other held fixed, and that dual is smooth and concave, so the loop is textbook block coordinate ascent and cannot get stuck. The sharp statement is stronger and older: the iteration is a contraction in Hilbert's projective metric, so the error decays geometrically, with a rate that degrades like \(e^{-\mathrm{osc}(c)/\varepsilon}\) as the temperature falls (Franklin&ndash;Lorenz 1989). That is the theory behind the iteration counter in the figure climbing as you cool it: sharpness is bought with sweeps, and the exchange rate is exponential.</p>
+      <p><em>Three births.</em> Statisticians invented the loop in 1940 as iterative proportional fitting (Deming&ndash;Stephan), to force census tables to agree with known margins. Sinkhorn proved the matrix-scaling convergence theorems in the 1960s. And Fortet ran essentially the same iteration in 1940 to prove existence for the Schr&ouml;dinger system you will meet in Part V, decades before anyone knew these were the same fixed point. The modern era starts with Cuturi (2013), who noticed the updates are two matrix-vector products, embarrassingly parallel, GPU-native, and differentiable end to end, whereupon transport went from a specialist's tool to a layer you can drop into a network.</p>
+    </div>
+  </div>
+
+  <figure class="sim" id="fig4">
+    <div class="sim-frame"><canvas height="430"></canvas></div>
+    <div class="controls">
+      <button class="ui" data-role="drawmu">draw &mu; (top)</button>
+      <button class="ui" data-role="drawnu">draw &nu; (right)</button>
+      <span><label>temperature &epsilon;</label><input type="range" data-role="eps" min="0" max="1" step="0.005" value="0.55"><span class="readout" data-role="epslab"></span></span>
+      <button class="ui" data-role="presets">preset marginals</button>
+    </div>
+    <p class="fig-note" data-role="note">The square is the plan \(\pi_\varepsilon(x,y)\), computed live by Sinkhorn; the dashed curve is the exact \(\varepsilon=0\) optimum from Part I's quantile formula. Cool the temperature and watch the blur condense onto the curve while the iteration counter, the price of sharpness, climbs. Heat it and the plan forgets the cost and drifts toward the independent product. Then draw your own marginals and watch the row and column sums being alternately snapped into place.</p>
+    <figcaption><span class="figno">Figure 4.</span> The warm plan. Entropic transport interpolates between the LP and independence, and Sinkhorn computes it by alternating soft c-transforms.</figcaption>
+  </figure>
+
+  <div class="measure">
+    <p>What did the blur buy? Speed, first: the figure's plan on a \(96\times96\) grid resolves in milliseconds, and the same loop runs on millions of points on a GPU, which no exact LP solver approaches. Uniqueness and stability, second: the warm objective is strictly convex, the plan depends smoothly on the data, and gradients of the entropic cost with respect to anything (the marginals, the point positions, parameters upstream) exist and backpropagate. Third, and less advertised,
+      <button class="pop" data-target="pp-stats" aria-expanded="false">statistics</button>: the exact distance estimated from \(n\) samples converges at the cursed rate \(n^{-1/d}\), while entropic quantities achieve \(n^{-1/2}\) with the dimension demoted into the constant. The blur is regularization in the statistical sense too, and in high dimension it is arguably the only version of the distance whose measurement from data means anything.</p>
+    <div class="popbody" id="pp-stats"><span class="ttl">sample complexity, and the debiasing trick</span>
+      <p>Empirical measures of \(n\) samples in \(\mathbb R^d\) satisfy \(\mathbb E\,W_2(\hat\mu_n,\mu) \asymp n^{-1/d}\) for \(d&gt;4\) (Dudley's argument: a sample cloud cannot fill space faster than that), so in dimension 50 the plain distance between empirical measures reflects sample noise long before it reflects \(\mu\) and \(\nu\). For fixed \(\varepsilon>0\) the entropic cost concentrates at the parametric rate \(n^{-1/2}\) with constants growing as \(\varepsilon\) shrinks (Genevay, Chizat, Bach, Cuturi, Peyr&eacute; 2019), interpolating the two regimes. One wart: the entropic cost of \(\mu\) against itself is not zero; the repair \(S_\varepsilon(\mu,\nu) = \mathrm{OT}_\varepsilon(\mu,\nu) - \tfrac12\mathrm{OT}_\varepsilon(\mu,\mu) - \tfrac12\mathrm{OT}_\varepsilon(\nu,\nu)\), the Sinkhorn divergence, is nonnegative, zero only at equality, and metrizes weak convergence, a fully respectable discrepancy that happens to be computable.</p>
+    </div>
+    <p>The adoption list is long and I will keep only the vivid entries. Single-cell biology: cells are destroyed by measurement, so a developing tissue is seen as unpaired snapshots at successive times, and entropic transport between consecutive snapshots reconstructs which ancestors likely became which descendants; the Waddington-OT pipeline (Schiebinger et al. 2019) did this for tens of thousands of reprogramming cells and is by now a standard trick in the field. Graphics moves color palettes between photographs along transport plans. Economists fit matching markets with entropic transport because the blur models unobserved heterogeneity, the Gibbs form <em>is</em> their logit choice model. And cosmologists, in the other temporal direction, reconstructed the early universe's density field by solving one gigantic assignment problem between today's galaxy positions and a uniform primordial soup (Frisch et al. 2002), Monge's earth at the largest available scale.</p>
+    <p>There is one more thing the blur bought, and it is the strangest. Tilt your head and the warm plan stops looking like a numerical compromise: a Gibbs distribution over routes, prices playing potentials, a temperature dial, an algorithm that equilibrates it. Part V shows this is no analogy. The entropically blurred plan is exactly the endpoint statistics of a cloud of physical Brownian particles, and the question it answers was asked by Schr&ouml;dinger before any of the computational motivations existed.</p>
+  </div>
+</section>
+
+<hr>
+<section id="s-5">
+  <div class="measure">
+    <h2><span class="no">Part V</span>Schr&ouml;dinger's question</h2>
+    <p>In 1931, between inventing wave mechanics and acquiring his cat, Schr&ouml;dinger published a thought experiment about hot gas. Release a huge number of independent Brownian particles, observe the cloud's density to be \(\mu\) at time zero, look away, and look back at time one to find the density is \(\nu\), where \(\nu\) is <em>not</em> what diffusion predicts from \(\mu\). You have witnessed something exponentially unlikely, a conspiracy of the noise. His question: given that the anomaly happened, what is the most probable history of the cloud in between? What did the gas most likely <em>do</em>?</p>
+    <p>The modern formulation, which
+      <button class="pop" data-target="pp-sanov" aria-expanded="false">large-deviation theory</button> makes exact, is a projection in the geometry of information: among all stochastic processes \(P\) whose time-zero law is \(\mu\) and time-one law is \(\nu\), find the one closest in relative entropy to the physics that was supposed to happen,</p>
+    <p>$$\min_{P:\ P_0=\mu,\ P_1=\nu}\ \mathrm{KL}\big(P \,\|\, W^{\varepsilon}\big),$$</p>
+    <p>where \(W^\varepsilon\) is the law of Brownian motion with diffusivity \(\varepsilon\) (started from \(\mu\)). This is the fourth corner of the square: the unknown is an entire evolving cloud, as in Part III, and the objective is an entropy relative to a noisy reference, as in Part IV. And it dismantles beautifully, in two moves.</p>
+    <div class="popbody" id="pp-sanov"><span class="ttl">why relative entropy, exactly</span>
+      <p>Sanov's theorem: the empirical distribution of \(N\) independent copies of a process with law \(R\) satisfies a large deviation principle, \(\Pr[\hat P_N \approx P] \sim e^{-N\,\mathrm{KL}(P\|R)}\). Conditioning on a rare event (the observed marginals) therefore concentrates, as \(N\to\infty\), on the conditional mode: the \(P\) satisfying the constraints with least \(\mathrm{KL}(P\|R)\). "Most probable history of the cloud" is the informal reading of that concentration, and F&ouml;llmer made the connection to Schr&ouml;dinger's problem precise in the 1980s. Schr&ouml;dinger, writing before large deviation theory existed, got the right functional by a combinatorial Boltzmann-counting argument, which is very much the same proof in period costume.</p>
+    </div>
+    <p>First move: a path is an endpoint pair plus a story in between, so split the entropy
+      <button class="pop" data-target="pp-split" aria-expanded="false">accordingly</button>. The in-between term is minimized to zero by letting particles travel exactly as the reference physics travels when its endpoints are known, which for Brownian motion means Brownian <em>bridges</em>, pinned random walks with variance \(\varepsilon\,t(1-t)\). All actual freedom collapses onto the endpoints: only the coupling \(\pi(x,y)\), who starts where and ends where, remains to be chosen, and its objective is</p>
+    <div class="popbody" id="pp-split"><span class="ttl">the disintegration, and the static reduction</span>
+      <p>A path is two pieces of information: where it starts and ends, and what it does in between. Both our laws can be written that way. Write \(P = \pi \otimes P^{x,y}\), meaning "draw endpoints from \(\pi\), then draw a path conditioned on those endpoints from \(P^{x,y}\)", and likewise \(W^\varepsilon = R_{01}\otimes W^{x,y}\), where \(R_{01}\) is the endpoint law of the reference Brownian motion and \(W^{x,y}\) is a Brownian motion conditioned to start at \(x\) and finish at \(y\), which is called a Brownian bridge. The chain rule for relative entropy splits the objective along that seam:</p>
+      <p>$$\mathrm{KL}(P\|W^\varepsilon) \;=\; \underbrace{\mathrm{KL}(\pi\|R_{01})}_{\text{endpoints}} \;+\; \underbrace{\int \mathrm{KL}\big(P^{x,y}\,\|\,W^{x,y}\big)\,\mathrm d\pi(x,y)}_{\text{the story in between}}.$$</p>
+      <p>The second term is an average of relative entropies, so it is nonnegative, and it is zero exactly when \(P^{x,y}=W^{x,y}\) for (almost) every pair. Nothing in the constraints touches it: we only constrained the marginals at times \(0\) and \(1\), which are properties of \(\pi\) alone. So the optimal cloud travels by ordinary Brownian bridges, and the only real decision left is the endpoint coupling \(\pi\).</p>
+      <p>Now identify the problem that \(\pi\) solves. The reference endpoint law is \(R_{01}(x,y)=\mu(x)\,k_\varepsilon(x,y)\) with the heat kernel \(k_\varepsilon(x,y)=(2\pi\varepsilon)^{-d/2}e^{-\|x-y\|^2/2\varepsilon}\): start from \(\mu\), diffuse for one unit of time. Insert it and split the logarithm by multiplying and dividing by \(\nu(y)\):</p>
+      <p>$$\mathrm{KL}(\pi\|R_{01}) \;=\; \int \log\frac{\pi(x,y)}{\mu(x)\nu(y)}\,\mathrm d\pi \;+\; \int \log\frac{\nu(y)}{k_\varepsilon(x,y)}\,\mathrm d\pi .$$</p>
+      <p>The first integral is \(\mathrm{KL}(\pi\|\mu\otimes\nu)\), the entropic penalty of Part IV. In the second, \(\int\log\nu(y)\,\mathrm d\pi = \int \log\nu\,\mathrm d\nu\) depends only on the fixed marginal, and \(-\log k_\varepsilon(x,y)=\frac{\|x-y\|^2}{2\varepsilon}+\frac d2\log(2\pi\varepsilon)\) contributes the squared cost plus another constant. Collecting,</p>
+      <p>$$\mathrm{KL}(\pi\|R_{01}) \;=\; \frac{1}{2\varepsilon}\int\|x-y\|^2\,\mathrm d\pi \;+\; \mathrm{KL}(\pi\|\mu\otimes\nu) \;+\; \text{const},$$</p>
+      <p>and multiplying by \(\varepsilon\), which changes no minimizer, gives \(\tfrac12\int\|x-y\|^2\,\mathrm d\pi + \varepsilon\,\mathrm{KL}(\pi\|\mu\otimes\nu)\): the entropic transport problem of Part IV, coefficients and all. The regularization strength was never a knob we chose; it is the diffusivity of the gas, and the Gibbs kernel \(e^{-c/\varepsilon}\) was the heat kernel all along.</p>
+    </div>
+    <p>$$\min_{\pi\in\Pi(\mu,\nu)}\ \int \tfrac12\|x-y\|^2\,\mathrm d\pi \;+\; \varepsilon\,\mathrm{KL}\big(\pi\,\|\,\mu\otimes\nu\big)\quad(+\ \mathrm{const}),$$</p>
+    <p>Part IV verbatim, with the temperature revealed as the diffusivity of the gas and the Gibbs kernel revealed as the heat kernel. Nothing about the warm plan was a numerical metaphor: entropic transport <em>is</em> the endpoint bookkeeping of Schr&ouml;dinger's cloud, Sinkhorn's fixed-point system was written down by Schr&ouml;dinger himself (existence proved by Fortet in 1940, by running the iteration), and the algorithm of Figure 4, applied to the heat-kernel cost, computes most-likely histories of a physical gas. Second move: sample endpoints from the plan, hang Brownian bridges between them. That full object, the <em>Schr&ouml;dinger bridge</em>, is what Figure 5 shows.</p>
+  </div>
+
+  <figure class="sim" id="fig5">
+    <div class="sim-frame"><canvas height="400"></canvas></div>
+    <div class="controls">
+      <span><label>diffusivity &epsilon;</label><input type="range" data-role="eps" min="0" max="1" step="0.005" value="0.5"><span class="readout" data-role="epslab"></span></span>
+      <button class="ui" data-role="resample">resample cloud</button>
+      <button class="ui" data-role="play">pause</button>
+      <span class="legend"><span><i class="sw" style="border-color:#2b5fad"></i>bridge paths</span>
+      <span><i class="sw" style="border-color:#bbb"></i>&epsilon;=0 geodesic</span></span>
+    </div>
+    <p class="fig-note" data-role="note">Time runs left to right between the two drawn densities; each blue thread is one particle of the most probable cloud, endpoints sampled from the Sinkhorn plan, interior filled in by a Brownian bridge. The grey lines are the zero-temperature answer, Part III's displacement interpolation. Cool &epsilon; and the threads lay themselves down onto the geodesic; heat it and the plan loosens while the bridges thrash.</p>
+    <figcaption><span class="figno">Figure 5.</span> The Schr&ouml;dinger bridge: entropic transport for the endpoints, Brownian bridges in between, Benamou&ndash;Brenier in the freezing limit.</figcaption>
+  </figure>
+
+  <div class="measure">
+    <p>The figure makes a claim in its corner that deserves its theorem. As \(\varepsilon\to0\) the Schr&ouml;dinger problem
+      <button class="pop" data-target="pp-gamma" aria-expanded="false">converges to Benamou&ndash;Brenier</button>: the fourth corner of the square sits directly above the third and settles onto it as the heat is withdrawn. The precise statement identifies the finite-\(\varepsilon\) problem as least-action too, for a corrected action: the bridge minimizes kinetic energy <em>plus \(\tfrac{\varepsilon^2}{8}\) times the Fisher information</em> of the evolving density. The extra term charges for sharpness, a penalty on \(\int\rho\,\|\nabla\log\rho\|^2\), so the hot crowd keeps itself smooth in a way the cold crowd never bothers to; you can see the reluctance to focus in the figure at high \(\varepsilon\).</p>
+    <div class="popbody" id="pp-gamma"><span class="ttl">the entropic action, and the freezing limit</span>
+      <p>Write the bridge's density flow \(\rho_t\) and its current velocity \(v_t\) (the gradient part of the probability flux). A computation going back to Yasue and made systematic by L&eacute;onard and by Gentil, L&eacute;onard, and Ripani turns \(\varepsilon\,\mathrm{KL}(P\|W^\varepsilon)\), up to boundary terms depending only on \(\mu,\nu\), into</p>
+      <p>$$\int_0^1\!\!\int \Big(\ \tfrac12\|v_t\|^2 \;+\; \tfrac{\varepsilon^2}{8}\,\big\|\nabla\log\rho_t\big\|^2\ \Big)\rho_t\,\mathrm dx\,\mathrm dt,$$</p>
+      <p>minimized over solutions of the continuity equation with pinned ends: Benamou&ndash;Brenier plus a Fisher-information regularizer. As \(\varepsilon\to0\) the problems \(\Gamma\)-converge to the kinetic action, optimal values converging to \(\tfrac12 W_2^2\) and the bridges to the displacement interpolation (Mikami 2004, L&eacute;onard 2012). So "entropic interpolation" deserves the name: it is displacement interpolation for a world that refuses to be perfectly sharp.</p>
+    </div>
+    <p>What does the optimal cloud <em>do</em>, particle by particle? The solution has a closed structural form: the bridge is a diffusion with the reference noise and a modified drift,</p>
+    <p>$$\mathrm dX_t \;=\; \varepsilon\,\nabla\log\phi_t(X_t)\,\mathrm dt \;+\; \sqrt{\varepsilon}\;\mathrm dB_t,$$</p>
+    <p>where
+      <button class="pop" data-target="pp-hsys" aria-expanded="false">\(\phi\) solves a backward heat equation coupled to a forward one</button>, and the density factorizes as \(\rho_t = \phi_t\,\hat\phi_t\), one factor propagating from each endpoint constraint. The drift is worth reading aloud: <em>the gradient of the log of a probability</em>, the score, aimed at futures compatible with the destination. A particle of Schr&ouml;dinger's cloud drifts along the score of where it must end up, and this mechanism, steering a diffusion by adding a score to its drift, is precisely how modern generative models sample: score-based diffusion models learn \(\nabla\log\) of noised data and run it as a drift, and their guided and bridge-matching variants (Diffusion Schr&ouml;dinger Bridge and descendants) are numerical Schr&ouml;dinger problems between the data distribution and something easy, trained with neural surrogates in place of Fortet's iterates. The 1931 gas has a very direct line to the image generators of the 2020s.</p>
+    <div class="popbody" id="pp-hsys"><span class="ttl">the Schr&ouml;dinger system</span>
+      <p>Ansatz \(\rho_t=\phi_t\hat\phi_t\) with \(\partial_t\phi = -\tfrac{\varepsilon}{2}\Delta\phi\) (backward) and \(\partial_t\hat\phi = \tfrac{\varepsilon}{2}\Delta\hat\phi\) (forward): the product then solves the Fokker&ndash;Planck equation of the displayed SDE, as one checks by differentiating. The boundary conditions \(\phi_0\hat\phi_0=\mu\), \(\phi_1\hat\phi_1=\nu\) constitute the <em>Schr&ouml;dinger system</em>; its unknowns are two positive functions, exactly the \(a\) and \(b\) of Part IV's Gibbs form promoted to function space, and Fortet's 1940 existence proof iterates them alternately, which is Sinkhorn before Sinkhorn. Probabilistically, the drift correction \(\varepsilon\nabla\log\phi\) is Doob's h-transform: conditioning a Markov process on future information tilts its drift by the score of the conditional probability of that future. Schr&ouml;dinger noted the eerie resemblance of the \((\phi,\hat\phi)\) pair to quantum mechanics' \((\psi,\bar\psi)\); that resemblance, in imaginary time, is a rabbit hole I am closing the lid on here.</p>
+    </div>
+    <p>And thermodynamics collects its dividend in both directions. Part III showed diffusion running downhill in the transport geometry; here is the converse trade, transport priced in dissipation:
+      <button class="pop" data-target="pp-thermo" aria-expanded="false">for an overdamped system dragged from state \(\mu\) to state \(\nu\) in finite time \(\tau\), the least possible entropy production is \(W_2^2(\mu,\nu)/\tau\)</button>. The Wasserstein distance is the price sheet of finite-time thermodynamics: rushing a transformation costs dissipation in proportion to squared transport per unit time, a refinement of Landauer's bound with the geometry of this essay sitting inside a physical inequality. The square, which entered as a table of contents, exits as physics on every edge: its right edge heats a ledger into a gas, its bottom edge turns a distance into least action, and its corners are joined by limits that commute.</p>
+    <div class="popbody" id="pp-thermo"><span class="ttl">minimal dissipation is transport</span>
+      <p>For overdamped Langevin dynamics steered by a time-dependent potential, the total entropy production of a protocol carrying \(\rho_0=\mu\) to \(\rho_\tau=\nu\) equals \(\frac{1}{T}\!\int_0^\tau\!\!\int \rho\,\|v\|^2\), the kinetic action of the realized density flow (in units with unit mobility, temperature \(T\)). Minimizing over protocols is then exactly Benamou&ndash;Brenier on a stretched clock, giving \(\Delta S_{\mathrm{tot}}^{\min} = W_2^2(\mu,\nu)\,/\,(T\tau)\) (Aurell, Mej&iacute;a-Monasterio, Muratore-Ginanneschi 2011). Consequences include finite-time corrections to Landauer erasure and "thermodynamic speed limits": you cannot transform a state quickly and reversibly, and the irreversibility floor is a Wasserstein length. Optimal transport turns out to be the geometry in which nonequilibrium thermodynamics keeps its accounts.</p>
+    </div>
+    <p>Kantorovich priced the routes, Brenier bent the prices into a gradient, Benamou and Brenier melted the ledger into motion, and Schr&ouml;dinger had asked, a decade before any of them wrote, what the ledger could mean in a world that jitters. The subject reads as if it were planned backwards from his question. Moving mass optimally and conditioning noise on its destination are the same calculation, carried out at different temperatures.</p>
+  </div>
+</section>
+
+<hr>
+
+<section id="s-coda">
+  <div class="measure">
+    <h2><span class="no">Coda</span>Fine print, and the doors I left shut</h2>
+    <p>Three pieces of fine print, in increasing order of importance.</p>
+    <p><em>Existence is not regularity.</em> Kantorovich plans always exist; Brenier maps need the source to have a density, and even then the map can be discontinuous, tearing mass apart wherever the target's support has dents. The regularity theory of the Monge&ndash;Amp&egrave;re equation is a subject of its own, and any application that silently assumes a smooth transport map is writing checks that Caffarelli's theorems only sometimes cash.</p>
+    <p><em>The curse is real.</em> In high dimension, exact Wasserstein distances between empirical measures mostly measure sample noise (\(n^{-1/d}\) does not forgive), and the honest quantities are the entropic ones, at a temperature you must choose and report. The \(\varepsilon\to0\) limit exists on paper; on data, chasing it re-buys the curse and the iteration count of Figure 4 at once. Practitioners anneal \(\varepsilon\), work in log-space for stability, and debias with Sinkhorn divergences, and all three habits concede the same point, that the blur is doing statistical work and cannot be waved away.</p>
+    <p><em>The cost is a modeling decision.</em> Everything downstream of Part II leaned on the quadratic cost: Brenier, the Riemannian picture, the heat-kernel identity of Part V. Change the cost and the structure changes species: \(c=\|x-y\|\) forgets direction along rays, concave costs reward consolidating shipments, general costs on manifolds carry their own geometry. The square is the quadratic square; other costs have other essays.</p>
+    <p>Doors I pointed at without opening, each one room deep: Wasserstein <em>barycenters</em>, averaging several distributions at once (Agueh&ndash;Carlier), which is how one builds atlases of shapes and templates of anatomies; <em>unbalanced</em> transport, where mass may be created and destroyed at a price, indispensable for growing tissues and imperfect measurements; <em>Gromov&ndash;Wasserstein</em>, transport between spaces with no common coordinates, matching graphs to graphs and proteins to proteins by their internal geometry alone; <em>semi-discrete</em> transport, densities against point masses, whose optimal plans are Laguerre cell diagrams and whose solvers power the cosmological reconstruction mentioned in Part IV; the <em>multi-marginal</em> and mean-field versions, where many populations negotiate at once; and the ongoing project of putting neural surrogates inside every corner of the square, from input-convex networks playing Brenier potentials to the bridge-matching samplers of Part V.</p>
+    <p>If this essay did its job, the square is now furniture in your head: a distance, its prices, its motion, its heat. For the longer road, the sources below are the ones I actually recommend.</p>
+    <h3>Further reading</h3>
+    <ul class="refs">
+      <li>Gabriel Peyr&eacute; &amp; Marco Cuturi, <em>Computational Optimal Transport</em>. <a href="https://arxiv.org/abs/1803.00567">arXiv:1803.00567</a>. The algorithmic canon; Parts I, II, IV of this essay in full detail.</li>
+      <li>Filippo Santambrogio, <em>Optimal Transport for Applied Mathematicians</em>. <a href="https://link.springer.com/book/10.1007/978-3-319-20828-2">Springer, 2015</a>. The best single book for the analysis, at exactly one level above this essay.</li>
+      <li>C&eacute;dric Villani, <em>Optimal Transport: Old and New</em>. <a href="https://link.springer.com/book/10.1007/978-3-540-71050-9">Springer, 2009</a>. The encyclopedia, including the curvature story.</li>
+      <li>Yann Brenier, <em>Polar factorization and monotone rearrangement of vector-valued functions</em>. <a href="https://doi.org/10.1002/cpa.3160440402">CPAM 44 (1991)</a>.</li>
+      <li>Robert McCann, <em>A convexity principle for interacting gases</em>. <a href="https://doi.org/10.1006/aima.1997.1634">Adv. Math. 128 (1997)</a>. Displacement interpolation and convexity.</li>
+      <li>Jean-David Benamou &amp; Yann Brenier, <em>A computational fluid mechanics solution to the Monge&ndash;Kantorovich mass transfer problem</em>. <a href="https://doi.org/10.1007/s002110050002">Numer. Math. 84 (2000)</a>.</li>
+      <li>Richard Jordan, David Kinderlehrer &amp; Felix Otto, <em>The variational formulation of the Fokker&ndash;Planck equation</em>. <a href="https://doi.org/10.1137/S0036141096303359">SIAM J. Math. Anal. 29 (1998)</a>. Heat flow as Wasserstein gradient flow.</li>
+      <li>Marco Cuturi, <em>Sinkhorn distances: lightspeed computation of optimal transport</em>. <a href="https://arxiv.org/abs/1306.0895">arXiv:1306.0895</a> (NeurIPS 2013).</li>
+      <li>Christian L&eacute;onard, <em>A survey of the Schr&ouml;dinger problem and some of its connections with optimal transport</em>. <a href="https://arxiv.org/abs/1308.0215">arXiv:1308.0215</a>. The bridge, historically and technically.</li>
+      <li>Aude Genevay, L&eacute;na&iuml;c Chizat, Francis Bach, Marco Cuturi &amp; Gabriel Peyr&eacute;, <em>Sample complexity of Sinkhorn divergences</em>. <a href="https://arxiv.org/abs/1810.02733">arXiv:1810.02733</a> (AISTATS 2019).</li>
+      <li>Martin Arjovsky, Soumith Chintala &amp; L&eacute;on Bottou, <em>Wasserstein GAN</em>. <a href="https://arxiv.org/abs/1701.07875">arXiv:1701.07875</a>.</li>
+      <li>Geoffrey Schiebinger et al., <em>Optimal-transport analysis of single-cell gene expression identifies developmental trajectories in reprogramming</em>. <a href="https://doi.org/10.1016/j.cell.2019.01.006">Cell 176 (2019)</a>.</li>
+      <li>Uriel Frisch, Sabino Matarrese, Roya Mohayaee &amp; Andrei Sobolevski, <em>A reconstruction of the initial conditions of the Universe by optimal mass transportation</em>. <a href="https://arxiv.org/abs/astro-ph/0109483">arXiv:astro-ph/0109483</a> (Nature 417, 2002).</li>
+      <li>Valentin De Bortoli, James Thornton, Jeremy Heng &amp; Arnaud Doucet, <em>Diffusion Schr&ouml;dinger Bridge with applications to score-based generative modeling</em>. <a href="https://arxiv.org/abs/2106.01357">arXiv:2106.01357</a> (NeurIPS 2021).</li>
+      <li>Erik Aurell, Carlos Mej&iacute;a-Monasterio &amp; Paolo Muratore-Ginanneschi, <em>Optimal protocols and optimal transport in stochastic thermodynamics</em>. <a href="https://arxiv.org/abs/1012.2037">arXiv:1012.2037</a> (PRL 106, 2011).</li>
+    </ul>
+  </div>
+</section>
+
+<footer></footer>
+<script>
+/* ---- part indicator: highlight the section currently being read ---- */
+(function(){
+  var nav = document.getElementById('partnav');
+  if(!nav) return;
+  var links = [].slice.call(nav.querySelectorAll('a'));
+  var secs  = links.map(function(a){ return document.getElementById(a.dataset.sec); });
+  var queued = false;
+  function update(){
+    queued = false;
+    var mark = window.scrollY + window.innerHeight*0.28, idx = 0;
+    for(var i=0;i<secs.length;i++){
+      if(secs[i] && secs[i].getBoundingClientRect().top + window.scrollY <= mark) idx = i;
+    }
+    for(var j=0;j<links.length;j++) links[j].classList.toggle('on', j===idx);
+  }
+  function onScroll(){ if(!queued){ queued = true; requestAnimationFrame(update); } }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  window.addEventListener('resize', onScroll);
+  window.addEventListener('load', function(){ update(); setTimeout(update, 1200); });
+  update();
+})();
+</script>
+<script>
+/*CORE-BEGIN*/
+// ---------- grid for the 1D coupling figures ----------
+const GN=96;
+const GX=new Float64Array(GN); for(let i=0;i<GN;i++) GX[i]=(i+0.5)/GN;
+function normalize(w){ let s=0; for(let i=0;i<w.length;i++){ if(w[i]<0)w[i]=0; s+=w[i]; }
+  if(s<=0){ for(let i=0;i<w.length;i++) w[i]=1/w.length; return; }
+  for(let i=0;i<w.length;i++) w[i]/=s; }
+function floorify(w,f){ for(let i=0;i<w.length;i++) if(w[i]<f) w[i]=f; normalize(w); }
+function smoothArr(A,passes){
+  const n=A.length, t=new Float64Array(n);
+  for(let p=0;p<passes;p++){
+    for(let i=0;i<n;i++){ const a=Math.max(0,i-1), b=Math.min(n-1,i+1);
+      t[i]=0.25*A[a]+0.5*A[i]+0.25*A[b]; }
+    A.set(t);
+  }
+}
+function gaussMix(cs,ms,ss){ // centers, masses, sigmas -> weights on GX
+  const w=new Float64Array(GN);
+  for(let i=0;i<GN;i++){ let v=0;
+    for(let k=0;k<cs.length;k++){ const d=(GX[i]-cs[k])/ss[k]; v+=ms[k]*Math.exp(-0.5*d*d); }
+    w[i]=v; }
+  normalize(w); return w;
+}
+// ---------- exact 1D optimum: quantile (monotone) coupling ----------
+function quantileMap(mu,nu){
+  // T[i] = position in [0,1] receiving the mass of bin i (matched at the bin's median quantile)
+  const T=new Float64Array(GN);
+  const cn=new Float64Array(GN+1); for(let j=0;j<GN;j++) cn[j+1]=cn[j]+nu[j];
+  let cm=0, j=0;
+  for(let i=0;i<GN;i++){
+    const q=cm+0.5*mu[i]; cm+=mu[i];
+    while(j<GN-1 && cn[j+1]<q) j++;
+    const den=cn[j+1]-cn[j];
+    const f=den>1e-15?Math.min(1,Math.max(0,(q-cn[j])/den)):0.5;
+    T[i]=(j+f)/GN;
+  }
+  return T;
+}
+function w2ofMap(mu,T){ let s=0; for(let i=0;i<GN;i++){ const d=GX[i]-T[i]; s+=mu[i]*d*d; } return s; }
+// ---------- log-domain Sinkhorn on the GN grid, cost (x-y)^2 ----------
+function makeSink(mu,nu,eps){
+  const S={mu:mu,nu:nu,eps:eps,f:new Float64Array(GN),g:new Float64Array(GN),
+           iters:0,err:1,lnu:new Float64Array(GN),lmu:new Float64Array(GN)};
+  for(let i=0;i<GN;i++){ S.lmu[i]=Math.log(mu[i]); S.lnu[i]=Math.log(nu[i]); }
+  return S;
+}
+function sinkIter(S,nsteps){
+  const eps=S.eps, f=S.f, g=S.g, lmu=S.lmu, lnu=S.lnu;
+  const t=new Float64Array(GN);
+  for(let it=0;it<nsteps;it++){
+    // f_i = -eps * LSE_j[ (g_j - C_ij)/eps + log nu_j ]
+    for(let i=0;i<GN;i++){
+      let M=-Infinity;
+      for(let j=0;j<GN;j++){ const d=GX[i]-GX[j];
+        const e=(g[j]-d*d)/eps+lnu[j]; t[j]=e; if(e>M)M=e; }
+      let s=0; for(let j=0;j<GN;j++) s+=Math.exp(t[j]-M);
+      f[i]=-eps*(M+Math.log(s));
+    }
+    for(let j=0;j<GN;j++){
+      let M=-Infinity;
+      for(let i=0;i<GN;i++){ const d=GX[i]-GX[j];
+        const e=(f[i]-d*d)/eps+lmu[i]; t[i]=e; if(e>M)M=e; }
+      let s=0; for(let i=0;i<GN;i++) s+=Math.exp(t[i]-M);
+      g[j]=-eps*(M+Math.log(s));
+    }
+    S.iters++;
+  }
+  // after g-update columns are exact; measure row-marginal violation
+  let err=0;
+  for(let i=0;i<GN;i++){
+    let r=0;
+    for(let j=0;j<GN;j++){ const d=GX[i]-GX[j];
+      r+=Math.exp((f[i]+g[j]-d*d)/eps+lmu[i]+lnu[j]); }
+    err+=Math.abs(r-S.mu[i]);
+  }
+  S.err=err;
+  return err;
+}
+function sinkPlanRow(S,i,row){ // fill row: pi(i,j), returns row sum
+  const eps=S.eps; let s=0;
+  for(let j=0;j<GN;j++){ const d=GX[i]-GX[j];
+    const v=Math.exp((S.f[i]+S.g[j]-d*d)/eps+S.lmu[i]+S.lnu[j]); row[j]=v; s+=v; }
+  return s;
+}
+// ---------- 2x2 SPD linear algebra for the Gaussian figure ----------
+function sqrtm2(S){ // S=[a,b,c] for [[a,b],[b,c]] SPD
+  const a=S[0],b=S[1],c=S[2];
+  const det=Math.max(a*c-b*b,1e-14), s=Math.sqrt(det), t=Math.sqrt(a+c+2*s);
+  return [(a+s)/t, b/t, (c+s)/t];
+}
+function inv2(S){ const a=S[0],b=S[1],c=S[2], d=a*c-b*b; return [c/d,-b/d,a/d]; }
+function mul2(A,B){ // symmetric result assumed only when valid; general 2x2 as [m00,m01,m10,m11]
+  return [A[0]*B[0]+A[1]*B[2], A[0]*B[1]+A[1]*B[3], A[2]*B[0]+A[3]*B[2], A[2]*B[1]+A[3]*B[3]];
+}
+function sym2full(S){ return [S[0],S[1],S[1],S[2]]; }
+function gaussOTMatrix(S0,S1){ // returns full 2x2 A with A S0 A = S1, A SPD
+  const R=sqrtm2(S0), Ri=inv2(R);
+  const M=mul2(mul2(sym2full(R),sym2full(S1)),sym2full(R)); // R S1 R, symmetric
+  const Mh=sqrtm2([M[0],0.5*(M[1]+M[2]),M[3]]);
+  return mul2(mul2(sym2full(Ri),sym2full(Mh)),sym2full(Ri));
+}
+function gaussPdf(x,y,m,S){ // S=[a,b,c]
+  const dx=x-m[0], dy=y-m[1], det=S[0]*S[2]-S[1]*S[1];
+  const q=(S[2]*dx*dx-2*S[1]*dx*dy+S[0]*dy*dy)/det;
+  return Math.exp(-0.5*q)/(2*Math.PI*Math.sqrt(det));
+}
+function applyA(A,vx,vy){ return [A[0]*vx+A[1]*vy, A[2]*vx+A[3]*vy]; }
+// covariance of displacement interpolant: Mt S0 Mt^T with Mt=(1-t)I+tA
+function dispCov(S0,A,t){
+  const Mt=[(1-t)+t*A[0], t*A[1], t*A[2], (1-t)+t*A[3]];
+  const MS=mul2(Mt,sym2full(S0));
+  const C=mul2(MS,[Mt[0],Mt[2],Mt[1],Mt[3]]); // Mt S0 Mt^T
+  return [C[0],0.5*(C[1]+C[2]),C[3]];
+}
+// ---------- brute-force assignment for n<=7 ----------
+function bruteMatch(P,Q,p){
+  const n=P.length, idx=[]; for(let i=0;i<n;i++) idx.push(i);
+  let best=null, bestC=Infinity;
+  const cost=function(perm){
+    let s=0;
+    for(let i=0;i<n;i++){ const dx=P[i][0]-Q[perm[i]][0], dy=P[i][1]-Q[perm[i]][1];
+      const d2=dx*dx+dy*dy; s+= (p===1)?Math.sqrt(d2):d2; }
+    return s;
+  };
+  const heap=function(k,arr){
+    if(k===1){ const c=cost(arr); if(c<bestC){ bestC=c; best=arr.slice(); } return; }
+    for(let i=0;i<k;i++){
+      heap(k-1,arr);
+      const sw=(k%2===0)?i:0, tmp=arr[sw]; arr[sw]=arr[k-1]; arr[k-1]=tmp;
+    }
+  };
+  heap(n,idx);
+  return {perm:best,cost:bestC};
+}
+function permCost(P,Q,perm,p){
+  let s=0;
+  for(let i=0;i<P.length;i++){ const dx=P[i][0]-Q[perm[i]][0], dy=P[i][1]-Q[perm[i]][1];
+    const d2=dx*dx+dy*dy; s+=(p===1)?Math.sqrt(d2):d2; }
+  return s;
+}
+/*CORE-END*/
+if (typeof module!=='undefined' && typeof window==='undefined'){
+  module.exports={GN,GX,normalize,floorify,smoothArr,gaussMix,quantileMap,w2ofMap,
+    makeSink,sinkIter,sinkPlanRow,sqrtm2,inv2,mul2,sym2full,gaussOTMatrix,gaussPdf,
+    applyA,dispCov,bruteMatch,permCost};
+}
+</script>
+<script>
+if(typeof window!=='undefined'){(function(){
+'use strict';
+const INK='#111', GRAY='#999', LINE='#ddd', BLUE='#2b5fad', GREEN='#1f8a63';
+let sp=null;
+function rnd(){ if(sp!==null){const v=sp;sp=null;return v;}
+  let u,v,s2; do{u=Math.random()*2-1;v=Math.random()*2-1;s2=u*u+v*v;}while(s2>=1||s2===0);
+  const f=Math.sqrt(-2*Math.log(s2)/s2); sp=v*f; return u*f; }
+function fit(c){
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  const w=Math.round(c.clientWidth*dpr), h=Math.round(c.clientHeight*dpr);
+  if(c.width!==w||c.height!==h){ c.width=w; c.height=h; }
+  const x=c.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); return x;
+}
+function lab(ctx,t,x,y,col){ ctx.font='11px Palatino, Georgia, serif'; ctx.fillStyle=col||GRAY; ctx.fillText(t,x,y); }
+function say(fig,html){
+  const n=fig.querySelector('[data-role=note]'); if(!n) return;
+  n.classList.add('dim');
+  clearTimeout(n._t);
+  n._t=setTimeout(()=>{ n.innerHTML=html; n.classList.remove('dim');
+    if(window.MathJax&&MathJax.typesetPromise) MathJax.typesetPromise([n]).catch(()=>{}); },240);
+}
+function canvasPos(c,ev){
+  const r=c.getBoundingClientRect();
+  return [(ev.clientX-r.left), (ev.clientY-r.top)];
+}
+// heat ramp: 0 -> white, 1 -> BLUE, overshoot -> ink
+function rampRGB(v){
+  v=Math.max(0,Math.min(1,v));
+  const r=Math.round(255+(43-255)*v), g=Math.round(255+(95-255)*v), b=Math.round(255+(173-255)*v);
+  return [r,g,b];
+}
+// proper crossing of two segments; returns the intersection point or null
+function orient2(p,q,r){ return (q[0]-p[0])*(r[1]-p[1])-(q[1]-p[1])*(r[0]-p[0]); }
+function segInt(a,b,c,d){
+  const d1=orient2(a,b,c), d2=orient2(a,b,d), d3=orient2(c,d,a), d4=orient2(c,d,b);
+  const proper=((d1>0&&d2<0)||(d1<0&&d2>0))&&((d3>0&&d4<0)||(d3<0&&d4>0));
+  if(!proper) return null;
+  const t=d1/(d1-d2);
+  return [c[0]+t*(d[0]-c[0]), c[1]+t*(d[1]-c[1])];
+}
+
+// =================== FIGURE 1: the assignment problem ===================
+function Fig1(){
+  const s=this, fig=document.getElementById('fig1');
+  s.fig=fig; s.active=false; s.c=fig.querySelector('canvas');
+  s.p=2;
+  s.P=[[.13,.30],[.20,.62],[.30,.42],[.16,.80],[.34,.71],[.26,.18]];
+  s.Q=[[.68,.24],[.62,.55],[.82,.40],[.72,.76],[.88,.66],[.80,.14]];
+  s.match=null; s.drag=null; s.dirty=true;
+  s.solve=function(){ s.match=bruteMatch(s.P,s.Q,s.p); };
+  s.solve();
+  s.randomize=function(){
+    function jitter(pts,cx){ for(let i=0;i<pts.length;i++){ pts[i][0]=cx+ (Math.random()-0.5)*0.30; pts[i][1]=0.15+0.7*Math.random(); } }
+    jitter(s.P,0.24); jitter(s.Q,0.75); s.solve(); s.dirty=true;
+  };
+  function hit(px,py,w,h){
+    let best=null,bd=196;
+    const test=(pts,which)=>{ for(let i=0;i<pts.length;i++){
+      const dx=pts[i][0]*w-px, dy=pts[i][1]*h-py, d=dx*dx+dy*dy;
+      if(d<bd){bd=d; best=[which,i];} } };
+    test(s.P,0); test(s.Q,1);
+    return best;
+  }
+  s.c.addEventListener('pointerdown',ev=>{
+    const [px,py]=canvasPos(s.c,ev), w=s.c.clientWidth, h=s.c.clientHeight;
+    s.drag=hit(px,py,w,h);
+    if(s.drag){ s.c.setPointerCapture(ev.pointerId); ev.preventDefault(); }
+  });
+  s.c.addEventListener('pointermove',ev=>{
+    if(!s.drag) return;
+    const [px,py]=canvasPos(s.c,ev), w=s.c.clientWidth, h=s.c.clientHeight;
+    const pts=s.drag[0]?s.Q:s.P;
+    pts[s.drag[1]][0]=Math.max(0.03,Math.min(0.97,px/w));
+    pts[s.drag[1]][1]=Math.max(0.05,Math.min(0.95,py/h));
+    s.solve(); s.dirty=true;
+  });
+  const up=()=>{ s.drag=null; };
+  s.c.addEventListener('pointerup',up); s.c.addEventListener('pointercancel',up);
+  s.step=function(){};
+  s.draw=function(){
+    if(!s.dirty) return; s.dirty=false;
+    const ctx=fit(s.c), w=s.c.clientWidth, h=s.c.clientHeight;
+    ctx.clearRect(0,0,w,h);
+    const perm=s.match.perm;
+    const segs=[];
+    for(let i=0;i<s.P.length;i++)
+      segs.push([[s.P[i][0]*w,s.P[i][1]*h],[s.Q[perm[i]][0]*w,s.Q[perm[i]][1]*h]]);
+    const xpts=[];
+    for(let i=0;i<segs.length;i++) for(let j=i+1;j<segs.length;j++){
+      const z=segInt(segs[i][0],segs[i][1],segs[j][0],segs[j][1]);
+      if(z) xpts.push(z);
+    }
+    ctx.strokeStyle='rgba(17,17,17,0.35)'; ctx.lineWidth=1.4;
+    for(const sg of segs){
+      ctx.beginPath(); ctx.moveTo(sg[0][0],sg[0][1]); ctx.lineTo(sg[1][0],sg[1][1]); ctx.stroke();
+    }
+    for(const z of xpts){
+      ctx.beginPath(); ctx.arc(z[0],z[1],6.5,0,7);
+      ctx.strokeStyle=INK; ctx.lineWidth=1.3; ctx.stroke();
+    }
+    for(let i=0;i<s.P.length;i++){
+      ctx.beginPath(); ctx.arc(s.P[i][0]*w,s.P[i][1]*h,7,0,7); ctx.fillStyle=BLUE; ctx.fill();
+    }
+    for(let j=0;j<s.Q.length;j++){
+      ctx.beginPath(); ctx.arc(s.Q[j][0]*w,s.Q[j][1]*h,7,0,7);
+      ctx.fillStyle='#fff'; ctx.fill(); ctx.lineWidth=2.2; ctx.strokeStyle=GREEN; ctx.stroke();
+    }
+    lab(ctx,'cost: '+(s.p===2?'squared distance \u2016x\u2212y\u2016\u00b2':'distance \u2016x\u2212y\u2016')+
+      '    total = '+s.match.cost.toFixed(4)+' (cheapest of 720 permutations)    crossings: '+xpts.length,12,h-10,INK);
+  };
+  const q=r=>fig.querySelector('[data-role='+r+']');
+  q('cost').addEventListener('click',function(){
+    s.p=(s.p===2)?1:2; this.textContent='cost: '+(s.p===2?'squared distance':'distance');
+    s.solve(); s.dirty=true;
+    say(fig, s.p===2?
+      'Squared distance. All that swapping now forbids is (x\u2081\u2212x\u2082)\u00b7(y\u2081\u2212y\u2082) < 0, a condition on inner products rather than on pictures, and that does permit crossings. Drag until the counter reads 1 or 2: those plans are optimal, and no swap you can make will improve them.':
+      'Plain distance, the un-squared one. Here a crossing is always wasteful, by the triangle inequality applied at the intersection point, so the counter stays at zero no matter how you drag. This was Monge\u2019s own observation, for his own cost.');
+  });
+  q('shuffle').addEventListener('click',function(){ s.randomize();
+    say(fig,'Fresh points, same procedure: all 720 permutations priced, cheapest kept. At n=15 this brute force would need more evaluations than there are stars in the galaxy, which is why the Hungarian algorithm and the LP view matter.'); });
+}
+
+// =================== FIGURE 2: swaps never help ===================
+function Fig2(){
+  const s=this, fig=document.getElementById('fig2');
+  s.fig=fig; s.active=false; s.c=fig.querySelector('canvas');
+  s.P=[[.12,.25],[.18,.55],[.10,.78],[.30,.38],[.26,.70],[.34,.16]];
+  s.Q=[[.66,.18],[.60,.48],[.72,.68],[.86,.32],[.80,.84],[.90,.55]];
+  s.opt=bruteMatch(s.P,s.Q,2);
+  s.assign=s.opt.perm.slice();
+  s.sel=-1; s.dirty=true;
+  s.cost=function(){ return permCost(s.P,s.Q,s.assign,2); };
+  s.c.addEventListener('pointerdown',ev=>{
+    const [px,py]=canvasPos(s.c,ev), w=s.c.clientWidth, h=s.c.clientHeight;
+    let best=-1,bd=260;
+    for(let i=0;i<s.P.length;i++){
+      const dx=s.P[i][0]*w-px, dy=s.P[i][1]*h-py, d=dx*dx+dy*dy;
+      if(d<bd){bd=d;best=i;}
+    }
+    if(best<0){ s.sel=-1; s.dirty=true; return; }
+    if(s.sel<0){ s.sel=best; }
+    else if(s.sel===best){ s.sel=-1; }
+    else{
+      const t=s.assign[s.sel]; s.assign[s.sel]=s.assign[best]; s.assign[best]=t;
+      s.sel=-1;
+      const ex=s.cost()-s.opt.cost;
+      if(ex<1e-9) say(fig,'Back at the optimum. Every swap available to you from here raises the bill; that unbeatability against two-cycles, extended to cycles of every length, is exactly what cyclical monotonicity asserts.');
+      else say(fig,'That reshuffle costs an extra '+(100*ex/s.opt.cost).toFixed(1)+'%. Keep swapping pairs; if the excess refuses to reach zero no matter which pair you pick, the route back down requires rerouting three or more shipments at once.');
+    }
+    s.dirty=true; ev.preventDefault();
+  });
+  s.step=function(){};
+  s.draw=function(){
+    if(!s.dirty) return; s.dirty=false;
+    const ctx=fit(s.c), w=s.c.clientWidth, h=s.c.clientHeight;
+    ctx.clearRect(0,0,w,h);
+    // ghost: optimal edges
+    ctx.strokeStyle='rgba(31,138,99,0.22)'; ctx.lineWidth=4; 
+    for(let i=0;i<s.P.length;i++){
+      ctx.beginPath(); ctx.moveTo(s.P[i][0]*w,s.P[i][1]*h);
+      ctx.lineTo(s.Q[s.opt.perm[i]][0]*w,s.Q[s.opt.perm[i]][1]*h); ctx.stroke();
+    }
+    ctx.strokeStyle='rgba(17,17,17,0.5)'; ctx.lineWidth=1.4;
+    for(let i=0;i<s.P.length;i++){
+      ctx.beginPath(); ctx.moveTo(s.P[i][0]*w,s.P[i][1]*h);
+      ctx.lineTo(s.Q[s.assign[i]][0]*w,s.Q[s.assign[i]][1]*h); ctx.stroke();
+    }
+    for(let i=0;i<s.P.length;i++){
+      ctx.beginPath(); ctx.arc(s.P[i][0]*w,s.P[i][1]*h,7,0,7);
+      ctx.fillStyle=BLUE; ctx.fill();
+      if(i===s.sel){ ctx.beginPath(); ctx.arc(s.P[i][0]*w,s.P[i][1]*h,11,0,7);
+        ctx.strokeStyle=BLUE; ctx.lineWidth=1.5; ctx.stroke(); }
+    }
+    for(let j=0;j<s.Q.length;j++){
+      ctx.beginPath(); ctx.arc(s.Q[j][0]*w,s.Q[j][1]*h,7,0,7);
+      ctx.fillStyle='#fff'; ctx.fill(); ctx.lineWidth=2.2; ctx.strokeStyle=GREEN; ctx.stroke();
+    }
+    const cc=s.cost(), ex=cc-s.opt.cost;
+    const ro=fig.querySelector('[data-role=cost]');
+    ro.textContent='cost '+cc.toFixed(4)+'  =  optimum '+s.opt.cost.toFixed(4)+
+      (ex<1e-9?'  (at the optimum)':'  + '+(100*ex/s.opt.cost).toFixed(1)+'% excess');
+    lab(ctx,'faint green: the optimal plan   /   dark: your current plan',12,h-10);
+  };
+  const q=r=>fig.querySelector('[data-role='+r+']');
+  q('restore').addEventListener('click',()=>{ s.assign=s.opt.perm.slice(); s.sel=-1; s.dirty=true;
+    say(fig,'Restored. From here, cyclical monotonicity is a dare: no reshuffle of any size beats this plan, and the dare is the definition.'); });
+  q('scramble').addEventListener('click',()=>{
+    for(let i=s.assign.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));
+      const t=s.assign[i]; s.assign[i]=s.assign[j]; s.assign[j]=t; }
+    s.sel=-1; s.dirty=true;
+    say(fig,'Scrambled. Walk it back down with pairwise swaps and watch whether local honesty suffices, or whether you hit a plateau only a longer cycle can drain.');
+  });
+}
+// =================== FIGURE 3: blend vs displacement ===================
+function Fig3(){
+  const s=this, fig=document.getElementById('fig3');
+  s.fig=fig; s.active=false;
+  const cs=fig.querySelectorAll('canvas'); s.cL=cs[0]; s.cR=cs[1];
+  s.m0=[0.26,0.62]; s.m1=[0.74,0.34];
+  s.S0=[0.0165,0.0075,0.0115]; s.S1=[0.013,-0.0065,0.018];
+  s.t=0; s.playing=false; s.dir=1; s.dirty=true;
+  s.A=null; s.trac=null;
+  // fixed standard-normal draws for tracer particles
+  s.Z=[[-1.2,0.4],[0.8,1.1],[0.1,-1.3],[1.5,0.2],[-0.6,-0.9],[0.5,0.6],
+       [-1.6,-0.3],[1.0,-0.8],[-0.2,1.5],[0.9,0.05]];
+  s.rebuild=function(){
+    s.A=gaussOTMatrix(s.S0,s.S1);
+    const R=sqrtm2(s.S0);
+    s.trac=s.Z.map(z=>{
+      const x=[s.m0[0]+R[0]*z[0]+R[1]*z[1], s.m0[1]+R[1]*z[0]+R[2]*z[1]];
+      const d=[x[0]-s.m0[0], x[1]-s.m0[1]];
+      const Ad=applyA(s.A,d[0],d[1]);
+      return [x, [s.m1[0]+Ad[0], s.m1[1]+Ad[1]]];  // start, Brenier image
+    });
+    s.dirty=true;
+  };
+  s.rebuild();
+  // offscreen buffers
+  const BW=128, BH=96;
+  s.bufL=document.createElement('canvas'); s.bufL.width=BW; s.bufL.height=BH;
+  s.bufR=document.createElement('canvas'); s.bufR.width=BW; s.bufR.height=BH;
+  s.imgL=s.bufL.getContext('2d').createImageData(BW,BH);
+  s.imgR=s.bufR.getContext('2d').createImageData(BW,BH);
+  function paint(buf,img,pdf){
+    const d=img.data; let mx=1e-12;
+    const vals=new Float64Array(BW*BH);
+    for(let iy=0;iy<BH;iy++) for(let ix=0;ix<BW;ix++){
+      const v=pdf((ix+0.5)/BW,(iy+0.5)/BH); vals[iy*BW+ix]=v; if(v>mx)mx=v;
+    }
+    for(let k=0;k<BW*BH;k++){
+      const c=rampRGB(Math.pow(vals[k]/mx,0.75));
+      d[4*k]=c[0]; d[4*k+1]=c[1]; d[4*k+2]=c[2]; d[4*k+3]=255;
+    }
+    buf.getContext('2d').putImageData(img,0,0);
+  }
+  s.repaint=function(){
+    const t=s.t, m0=s.m0, m1=s.m1, S0=s.S0, S1=s.S1;
+    paint(s.bufL,s.imgL,(x,y)=>(1-t)*gaussPdf(x,y,m0,S0)+t*gaussPdf(x,y,m1,S1));
+    const mt=[(1-t)*m0[0]+t*m1[0],(1-t)*m0[1]+t*m1[1]];
+    const Ct=dispCov(S0,s.A,t);
+    paint(s.bufR,s.imgR,(x,y)=>gaussPdf(x,y,mt,Ct));
+  };
+  function hookDrag(cv){
+    let drag=-1;
+    cv.addEventListener('pointerdown',ev=>{
+      const [px,py]=canvasPos(cv,ev), w=cv.clientWidth, h=cv.clientHeight;
+      const d0=Math.hypot(s.m0[0]*w-px,s.m0[1]*h-py), d1=Math.hypot(s.m1[0]*w-px,s.m1[1]*h-py);
+      drag=(Math.min(d0,d1)>34)?-1:(d0<d1?0:1);
+      if(drag>=0){ cv.setPointerCapture(ev.pointerId); ev.preventDefault(); }
+    });
+    cv.addEventListener('pointermove',ev=>{
+      if(drag<0) return;
+      const [px,py]=canvasPos(cv,ev), w=cv.clientWidth, h=cv.clientHeight;
+      const m=drag===0?s.m0:s.m1;
+      m[0]=Math.max(0.12,Math.min(0.88,px/w)); m[1]=Math.max(0.15,Math.min(0.85,py/h));
+      s.rebuild();
+    });
+    const up=()=>{drag=-1;};
+    cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up);
+  }
+  hookDrag(s.cL); hookDrag(s.cR);
+  s.step=function(){
+    if(s.playing){ s.t+=0.006*s.dir;
+      if(s.t>=1){s.t=1;s.dir=-1;} if(s.t<=0){s.t=0;s.dir=1;}
+      s.syncSlider(); s.dirty=true; }
+  };
+  s.draw=function(){
+    if(!s.dirty) return; s.dirty=false;
+    s.repaint();
+    const panels=[[s.cL,s.bufL,'blend: mass fades out here, fades in there'],
+                  [s.cR,s.bufR,'displacement: mass drives over']];
+    for(const [cv,buf,cap] of panels){
+      const ctx=fit(cv), w=cv.clientWidth, h=cv.clientHeight;
+      ctx.imageSmoothingEnabled=true;
+      ctx.drawImage(buf,0,0,w,h);
+      // endpoints
+      for(const [m,col] of [[s.m0,'rgba(17,17,17,0.55)'],[s.m1,'rgba(17,17,17,0.55)']]){
+        ctx.beginPath(); ctx.arc(m[0]*w,m[1]*h,4,0,7); ctx.fillStyle=col; ctx.fill();
+      }
+      lab(ctx,cap,10,16,'#444');
+      if(cv===s.cR){
+        ctx.strokeStyle='rgba(17,17,17,0.25)'; ctx.lineWidth=1;
+        for(const [a,b] of s.trac){
+          ctx.beginPath(); ctx.moveTo(a[0]*w,a[1]*h); ctx.lineTo(b[0]*w,b[1]*h); ctx.stroke();
+        }
+        ctx.fillStyle=GREEN;
+        for(const [a,b] of s.trac){
+          const x=(1-s.t)*a[0]+s.t*b[0], y=(1-s.t)*a[1]+s.t*b[1];
+          ctx.beginPath(); ctx.arc(x*w,y*h,3.2,0,7); ctx.fill();
+        }
+      }
+      lab(ctx,'t = '+s.t.toFixed(2),w-64,16,INK);
+    }
+  };
+  const q=r=>fig.querySelector('[data-role='+r+']');
+  const tc=q('tcur'), tl=q('tlab');
+  s.syncSlider=function(){ tc.value=String(s.t); tl.textContent=s.t.toFixed(2); };
+  tc.addEventListener('input',()=>{ s.t=parseFloat(tc.value); tl.textContent=s.t.toFixed(2);
+    s.playing=false; q('play').textContent='play'; q('play').classList.remove('toggled'); s.dirty=true; });
+  q('play').addEventListener('click',function(){
+    s.playing=!s.playing; this.textContent=s.playing?'pause':'play';
+    this.classList.toggle('toggled',s.playing);
+  });
+}
+// =================== FIGURE 4: entropic plan + Sinkhorn, live ===================
+const EPS4_LO=0.0004, EPS4_HI=0.3;
+function eps4(v){ return Math.exp(Math.log(EPS4_LO)+v*(Math.log(EPS4_HI)-Math.log(EPS4_LO))); }
+function Fig4(){
+  const s=this, fig=document.getElementById('fig4');
+  s.fig=fig; s.active=false; s.c=fig.querySelector('canvas');
+  s.presets=[
+    [ [[0.25,0.62],[0.55,0.45],[0.06,0.06]], [[0.5],[1],[0.09]] ],
+    [ [[0.3],[1],[0.10]], [[0.2,0.75],[0.5,0.5],[0.05,0.07]] ],
+    [ [[0.15,0.5,0.85],[1,1,1],[0.045,0.045,0.045]], [[0.5],[1],[0.16]] ]
+  ];
+  s.pk=0;
+  s.loadPreset=function(){
+    const p=s.presets[s.pk];
+    s.mu=gaussMix(p[0][0],p[0][1],p[0][2]);
+    s.nu=gaussMix(p[1][0],p[1][1],p[1][2]);
+    floorify(s.mu,1e-5); floorify(s.nu,1e-5);
+    s.T=quantileMap(s.mu,s.nu);
+    s.restart();
+  };
+  s.restart=function(){ s.S=makeSink(s.mu,s.nu,s.eps); s.converged=false; s.needDraw=true; };
+  s.eps=eps4(0.55);
+  s.loadPreset();
+  // draw-your-own machinery: shapes edited as raw curves, then normalized
+  s.mode=0; // 0 none, 1 mu, 2 nu
+  s.raw=null; s.drawing=false; s.last=-1; s.lastV=0;
+  // layout (recomputed each draw)
+  s.geo=function(w,h){
+    const padL=34, padR=64, padT=64, padB=26;
+    const SS=Math.min(w-padL-padR, h-padT-padB);
+    const x0=padL, y0=padT;
+    return {x0:x0, y0:y0, SS:SS, muY0:y0-56, muH:48, nuX0:x0+SS+8, nuW:48};
+  };
+  s.c.addEventListener('pointerdown',ev=>{
+    if(!s.mode) return;
+    s.drawing=true; s.last=-1; s.raw=(s.mode===1?s.mu:s.nu);
+    s.c.setPointerCapture(ev.pointerId); s.pt(ev); ev.preventDefault();
+  });
+  s.c.addEventListener('pointermove',ev=>{ if(s.drawing) s.pt(ev); });
+  s.pt=function(ev){
+    const [px,py]=canvasPos(s.c,ev), w=s.c.clientWidth, h=s.c.clientHeight, G=s.geo(w,h);
+    let cell,val;
+    if(s.mode===1){
+      cell=Math.round((px-G.x0)/G.SS*GN); val=1-(py-G.muY0)/G.muH;
+    } else {
+      cell=Math.round((py-G.y0)/G.SS*GN); val=(px-G.nuX0)/G.nuW;
+    }
+    cell=Math.max(0,Math.min(GN-1,cell)); val=Math.max(0,Math.min(1,val));
+    if(s.last>=0&&Math.abs(cell-s.last)>1){
+      const a=Math.min(cell,s.last), b=Math.max(cell,s.last);
+      for(let i=a;i<=b;i++){ const f=(i-a)/(b-a);
+        s.raw[i]=(cell>s.last)?(s.lastV*(1-f)+val*f):(val*(1-f)+s.lastV*f); }
+    } else s.raw[cell]=val;
+    s.last=cell; s.lastV=val;
+  };
+  const done=()=>{
+    if(!s.drawing) return; s.drawing=false; s.last=-1;
+    smoothArr(s.raw,2); floorify(s.raw,1e-5);
+    s.T=quantileMap(s.mu,s.nu); s.restart();
+  };
+  s.c.addEventListener('pointerup',done); s.c.addEventListener('pointercancel',done);
+  // offscreen plan buffer
+  s.buf=document.createElement('canvas'); s.buf.width=GN; s.buf.height=GN;
+  s.img=s.buf.getContext('2d').createImageData(GN,GN);
+  s.row=new Float64Array(GN);
+  s.step=function(){
+    if(!s.converged){
+      const batch=Math.max(2,Math.min(40,Math.round(0.02/s.eps)));
+      const err=sinkIter(s.S,batch);
+      if(err<1e-8||s.S.iters>8000){ s.converged=true; }
+      s.needDraw=true;
+    }
+  };
+  s.needDraw=true;
+  s.draw=function(){
+    if(!s.needDraw&&!s.drawing) return; s.needDraw=false;
+    const ctx=fit(s.c), w=s.c.clientWidth, h=s.c.clientHeight, G=s.geo(w,h);
+    ctx.clearRect(0,0,w,h);
+    // plan heatmap
+    let mx=1e-300; const P=new Float64Array(GN*GN);
+    for(let i=0;i<GN;i++){ sinkPlanRow(s.S,i,s.row);
+      for(let j=0;j<GN;j++){ const v=s.row[j]; P[j*GN+i]=v; if(v>mx)mx=v; } } // x horizontal, y vertical
+    const d=s.img.data;
+    for(let k=0;k<GN*GN;k++){ const c=rampRGB(Math.pow(P[k]/mx,0.6));
+      d[4*k]=c[0]; d[4*k+1]=c[1]; d[4*k+2]=c[2]; d[4*k+3]=255; }
+    s.buf.getContext('2d').putImageData(s.img,0,0);
+    ctx.imageSmoothingEnabled=true;
+    ctx.drawImage(s.buf,G.x0,G.y0,G.SS,G.SS);
+    ctx.strokeStyle=LINE; ctx.strokeRect(G.x0,G.y0,G.SS,G.SS);
+    // exact eps=0 curve
+    ctx.setLineDash([4,3]); ctx.strokeStyle='rgba(17,17,17,0.75)'; ctx.lineWidth=1.4;
+    ctx.beginPath();
+    for(let i=0;i<GN;i++){ const px=G.x0+GX[i]*G.SS, py=G.y0+s.T[i]*G.SS;
+      i?ctx.lineTo(px,py):ctx.moveTo(px,py); }
+    ctx.stroke(); ctx.setLineDash([]);
+    // mu on top
+    const mmax=Math.max.apply(null,Array.from(s.mu));
+    ctx.beginPath();
+    for(let i=0;i<GN;i++){ const px=G.x0+GX[i]*G.SS, py=G.muY0+G.muH*(1-s.mu[i]/mmax);
+      i?ctx.lineTo(px,py):ctx.moveTo(px,py); }
+    ctx.strokeStyle=BLUE; ctx.lineWidth=1.9; ctx.stroke();
+    // nu on right (function of y, drawn horizontally)
+    const nmax=Math.max.apply(null,Array.from(s.nu));
+    ctx.beginPath();
+    for(let j=0;j<GN;j++){ const py=G.y0+GX[j]*G.SS, px=G.nuX0+G.nuW*(s.nu[j]/nmax);
+      j?ctx.lineTo(px,py):ctx.moveTo(px,py); }
+    ctx.strokeStyle=GREEN; ctx.lineWidth=1.9; ctx.stroke();
+    lab(ctx,'\u03bc(x)',G.x0+4,G.muY0+10,BLUE);
+    lab(ctx,'\u03bd(y)',G.nuX0+4,G.y0+G.SS+14,GREEN);
+    lab(ctx,'x \u2192',G.x0+G.SS-30,G.y0+G.SS+14);
+    lab(ctx,'y \u2193',G.x0-24,G.y0+14);
+    lab(ctx,'\u03b5 = '+s.eps.toExponential(1)+'    iteration '+s.S.iters+'    marginal error '+s.S.err.toExponential(1)+(s.converged?'    (converged)':''),G.x0,h-8,INK);
+    lab(ctx,'dashed: exact \u03b5=0 plan (quantile coupling)',Math.max(G.x0+4,G.x0+G.SS-232),G.y0-6);
+  };
+  const q=r=>fig.querySelector('[data-role='+r+']');
+  const es=q('eps'), el=q('epslab');
+  el.textContent=s.eps.toExponential(1);
+  es.addEventListener('input',()=>{ s.eps=eps4(parseFloat(es.value)); el.textContent=s.eps.toExponential(1);
+    s.restart(); });
+  es.addEventListener('change',()=>{
+    say(fig, s.eps<0.004?
+      'Cold. The plan is condensing onto the quantile curve, and the iteration counter is paying for it: Sinkhorn\u2019s contraction rate degrades exponentially as \u03b5 falls, so sharpness is bought with sweeps.':
+      (s.eps>0.08? 'Hot. The cost barely matters against the entropy, and the plan relaxes toward the independent product \u03bc\u2297\u03bd: total forgetfulness about geometry, purchased instantly.':
+       'A moderate temperature: enough blur for fast, stable convergence, enough cost to keep the mass near the optimal routes. Most applications live here on purpose.'));
+  });
+  q('drawmu').addEventListener('click',function(){
+    s.mode=(s.mode===1)?0:1; this.classList.toggle('toggled',s.mode===1);
+    q('drawnu').classList.remove('toggled');
+    if(s.mode===1) say(fig,'Draw in the strip above the square; release to renormalize. Sinkhorn restarts from cold on every edit, so you can watch the row and column snaps chase your new marginal.');
+  });
+  q('drawnu').addEventListener('click',function(){
+    s.mode=(s.mode===2)?0:2; this.classList.toggle('toggled',s.mode===2);
+    q('drawmu').classList.remove('toggled');
+    if(s.mode===2) say(fig,'Draw in the strip right of the square, distance from the square edge is height; release to renormalize.');
+  });
+  q('presets').addEventListener('click',function(){
+    s.pk=(s.pk+1)%s.presets.length; s.loadPreset();
+    say(fig,'A new pair of marginals. Note how splitting mass, the thing Monge could not do, is the entropic plan\u2019s default posture: every row spreads over several destinations, and only the freezing limit sharpens rows back toward single points.');
+  });
+}
+// =================== FIGURE 5: the Schroedinger bridge ===================
+const EPS5_LO=0.0008, EPS5_HI=0.12;
+function eps5(v){ return Math.exp(Math.log(EPS5_LO)+v*(Math.log(EPS5_HI)-Math.log(EPS5_LO))); }
+function Fig5(){
+  const s=this, fig=document.getElementById('fig5');
+  s.fig=fig; s.active=false; s.c=fig.querySelector('canvas');
+  s.mu=gaussMix([0.28,0.62],[0.55,0.45],[0.055,0.05]);
+  s.nu=gaussMix([0.22,0.55,0.82],[0.35,0.30,0.35],[0.045,0.05,0.045]);
+  floorify(s.mu,1e-5); floorify(s.nu,1e-5);
+  s.T=quantileMap(s.mu,s.nu);
+  s.eps=eps5(0.5);
+  s.M=210; s.K=150;
+  s.paths=new Float32Array(s.M*(s.K+1));
+  s.cursor=0; s.playing=true; s.solving=false;
+  s.cmu=new Float64Array(GN+1);
+  for(let i=0;i<GN;i++) s.cmu[i+1]=s.cmu[i]+s.mu[i];
+  s.row=new Float64Array(GN);
+  s.build=function(){
+    // static problem: SB with diffusivity eps == entropic OT, cost (x-y)^2, reg 2*eps
+    s.S=makeSink(s.mu,s.nu,2*s.eps);
+    let err=1,k=0;
+    while(err>1e-8&&k<3000){ err=sinkIter(s.S,10); k+=10; }
+    s.resample();
+  };
+  s.resample=function(){
+    const K=s.K, dt=1/K;
+    for(let m=0;m<s.M;m++){
+      // endpoint pair from the plan
+      let u=Math.random(), i=0;
+      while(i<GN-1&&s.cmu[i+1]<u) i++;
+      const rs=sinkPlanRow(s.S,i,s.row);
+      let v=Math.random()*rs, j=0, acc=s.row[0];
+      while(j<GN-1&&acc<v){ j++; acc+=s.row[j]; }
+      const x0=GX[i]+(Math.random()-0.5)/GN, x1=GX[j]+(Math.random()-0.5)/GN;
+      // exact Brownian bridge discretization with diffusivity eps
+      let x=x0; s.paths[m*(K+1)]=x0;
+      for(let k2=0;k2<K;k2++){
+        const rem=K-k2;
+        x += (x1-x)/rem + Math.sqrt(s.eps*dt*(rem-1)/rem)*rnd();
+        s.paths[m*(K+1)+k2+1]=x;
+      }
+      s.paths[m*(K+1)+K]=x1;
+    }
+  };
+  s.build();
+  s.step=function(){
+    if(s.playing){ s.cursor+=1; if(s.cursor>s.K) s.cursor=0; }
+  };
+  s.draw=function(){
+    const ctx=fit(s.c), w=s.c.clientWidth, h=s.c.clientHeight;
+    ctx.clearRect(0,0,w,h);
+    const padL=52, padR=52, padT=16, padB=26;
+    const tx=t=>padL+t*(w-padL-padR);
+    const xy=x=>padT+(1-x)*(h-padT-padB);
+    // side densities
+    const mmax=Math.max.apply(null,Array.from(s.mu)), nmax=Math.max.apply(null,Array.from(s.nu));
+    ctx.beginPath();
+    for(let i=0;i<GN;i++){ const py=xy(GX[i]), px=padL-4-40*(s.mu[i]/mmax);
+      i?ctx.lineTo(px,py):ctx.moveTo(px,py); }
+    ctx.lineTo(padL-4,xy(GX[GN-1])); ctx.lineTo(padL-4,xy(GX[0])); ctx.closePath();
+    ctx.fillStyle='rgba(43,95,173,0.18)'; ctx.fill();
+    ctx.beginPath();
+    for(let i=0;i<GN;i++){ const py=xy(GX[i]), px=w-padR+4+40*(s.nu[i]/nmax);
+      i?ctx.lineTo(px,py):ctx.moveTo(px,py); }
+    ctx.lineTo(w-padR+4,xy(GX[GN-1])); ctx.lineTo(w-padR+4,xy(GX[0])); ctx.closePath();
+    ctx.fillStyle='rgba(31,138,99,0.18)'; ctx.fill();
+    // eps->0 geodesic ghost: straight lines of the monotone map from quantile levels
+    ctx.strokeStyle='rgba(120,120,120,0.35)'; ctx.lineWidth=1;
+    for(let q=1;q<28;q++){
+      // find x at quantile q/28
+      const lev=q/28; let i=0; while(i<GN-1&&s.cmu[i+1]<lev) i++;
+      ctx.beginPath(); ctx.moveTo(tx(0),xy(GX[i])); ctx.lineTo(tx(1),xy(s.T[i])); ctx.stroke();
+    }
+    // bridge paths
+    ctx.strokeStyle='rgba(43,95,173,0.10)'; ctx.lineWidth=1;
+    const K=s.K;
+    for(let m=0;m<s.M;m++){
+      ctx.beginPath();
+      for(let k=0;k<=K;k++){
+        const px=tx(k/K), py=xy(s.paths[m*(K+1)+k]);
+        k?ctx.lineTo(px,py):ctx.moveTo(px,py);
+      }
+      ctx.stroke();
+    }
+    // the cloud at the cursor
+    ctx.fillStyle=GREEN;
+    for(let m=0;m<s.M;m++){
+      const py=xy(s.paths[m*(K+1)+s.cursor]);
+      ctx.beginPath(); ctx.arc(tx(s.cursor/K),py,1.9,0,7); ctx.fill();
+    }
+    ctx.strokeStyle=LINE; ctx.beginPath();
+    ctx.moveTo(tx(0),h-padB); ctx.lineTo(tx(1),h-padB); ctx.stroke();
+    lab(ctx,'t = 0',padL,h-8,INK); lab(ctx,'t = 1',w-padR-26,h-8,INK);
+    lab(ctx,'\u03bc',padL-40,padT+12,BLUE); lab(ctx,'\u03bd',w-padR+30,padT+12,GREEN);
+    lab(ctx,'\u03b5 = '+s.eps.toExponential(1)+'   (Sinkhorn on the heat kernel: '+s.S.iters+' iterations)',padL+60,h-8,INK);
+  };
+  const q=r=>fig.querySelector('[data-role='+r+']');
+  const es=q('eps'), el=q('epslab');
+  el.textContent=s.eps.toExponential(1);
+  es.addEventListener('change',()=>{
+    s.eps=eps5(parseFloat(es.value)); el.textContent=s.eps.toExponential(1);
+    s.build();
+    say(fig, s.eps<0.004?
+      'Nearly frozen: the endpoint plan is close to the monotone map and the bridges have no slack to spend, so the cloud lies down on the grey geodesic. This is the \u0393-limit in person: Schr\u00f6dinger\u2019s problem settling onto Benamou\u2013Brenier.':
+      'Warm: the endpoint coupling spreads (one start, many plausible destinations) and the bridges wander on the way. The most probable history of a hot gas hedges at both levels, in where it sends mass and in how it travels.');
+  });
+  es.addEventListener('input',()=>{ el.textContent=eps5(parseFloat(es.value)).toExponential(1); });
+  q('resample').addEventListener('click',()=>{ s.resample();
+    say(fig,'Same plan, fresh bridges: the individual threads are exchangeable dreams, and only their ensemble statistics are the answer to Schr\u00f6dinger\u2019s question.'); });
+  q('play').addEventListener('click',function(){
+    s.playing=!s.playing; this.textContent=s.playing?'pause':'play';
+    this.classList.toggle('toggled',s.playing);
+  });
+  q('play').classList.add('toggled');
+}
+// ---- popups ----
+document.addEventListener('click',function(ev){
+  const btn=ev.target.closest('.pop');
+  if(!btn) return;
+  const el=document.getElementById(btn.dataset.target);
+  if(!el) return;
+  const open=el.classList.toggle('open');
+  btn.setAttribute('aria-expanded',String(open));
+  if(open && !el.dataset.typeset && window.MathJax && MathJax.typesetPromise){
+    el.dataset.typeset='1';
+    MathJax.typesetPromise([el]).catch(()=>{});
+  }
+});
+const sims=[new Fig1(), new Fig2(), new Fig3(), new Fig4(), new Fig5()];
+const io=new IntersectionObserver(es=>{
+  for(const e of es){ const s=sims.find(x=>x.fig===e.target); if(s) s.active=e.isIntersecting; }
+},{threshold:0.02});
+for(const s of sims) io.observe(s.fig);
+(function loop(){
+  if(!document.hidden) for(const s of sims) if(s.active){ s.step(); s.draw(); }
+  requestAnimationFrame(loop);
+})();
+})();}
+</script>
+</body>
+</html>
