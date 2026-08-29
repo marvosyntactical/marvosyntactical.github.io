@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulating Opals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500&family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#E7E7E3;
+  --paper-2:#DCDCD6;
+  --ink:#15171A;
+  --ink-2:#5C6165;
+  --ink-3:#8B9094;
+  --rule:#C4C5BF;
+  --well:#08090B;
+  --measure:33rem;
+  --stageH:min(70vh,660px);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:"Newsreader",Georgia,"Iowan Old Style",serif;
+  font-size:17px; line-height:1.62; font-weight:300;
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+
+header.mast{padding:34px 0 18px;border-bottom:1px solid var(--rule)}
+h1{
+  font-family:"Fraunces",Georgia,serif; font-weight:300;
+  font-size:clamp(2.2rem,6vw,3.6rem); line-height:1;
+  letter-spacing:-.02em; margin:0;
+}
+
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 274px;border-bottom:1px solid var(--rule)}
+.viewport{position:relative;border-right:1px solid var(--rule);background:var(--well)}
+#gl{display:block;width:100%;height:var(--stageH);background:var(--well);touch-action:none;cursor:grab}
+#gl.dragging{cursor:grabbing}
+#gl:focus-visible{outline:2px solid #7FD3FF;outline-offset:-2px}
+
+.viewport.expanded{
+  position:fixed;inset:0;z-index:99;border:0;
+  display:flex;flex-direction:column;
+}
+.viewport.expanded #gl{flex:1 1 auto;height:auto;min-height:0}
+.viewport.expanded .readout{border-top:1px solid #23262b;color:#7d838a;background:var(--well)}
+
+#expand{
+  position:absolute;top:10px;right:10px;z-index:3;
+  font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.08em;
+  background:rgba(10,12,15,.55);color:#c8ccd0;border:1px solid rgba(200,204,208,.28);
+  padding:4px 9px;cursor:pointer;backdrop-filter:blur(4px);
+}
+#expand:hover{color:#fff;border-color:rgba(255,255,255,.6)}
+
+.readout{
+  display:flex;flex-wrap:wrap;gap:0 26px;align-items:baseline;
+  padding:10px 14px;border-top:1px solid var(--rule);
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12px;
+  color:var(--ink-2);min-height:39px;background:var(--paper);
+}
+.readout b{color:var(--ink);font-weight:500}
+.readout .swatch{display:inline-block;width:11px;height:11px;border-radius:50%;vertical-align:-1px;margin-right:6px;border:1px solid rgba(128,128,128,.4)}
+.hintline{color:var(--ink-3)}
+
+.rail{padding:16px 0 20px;max-height:calc(var(--stageH) + 39px);overflow-y:auto;scrollbar-width:thin}
+.group{padding:0 16px 14px;border-bottom:1px solid var(--rule);margin-bottom:14px}
+.group:last-child{border-bottom:0;margin-bottom:0}
+.group h2{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:500;margin:0 0 12px;
+}
+.ctl{margin:0 0 13px}
+.ctl:last-child{margin-bottom:0}
+.ctl > label{
+  display:flex;justify-content:space-between;align-items:baseline;gap:8px;
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11.5px;
+  color:var(--ink-2);margin-bottom:5px;
+}
+.ctl > label .val{color:var(--ink);font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:16px;background:transparent;margin:0;cursor:pointer}
+input[type=range]:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+input[type=range]::-webkit-slider-runnable-track{height:1px;background:var(--ink-3)}
+input[type=range]::-moz-range-track{height:1px;background:var(--ink-3)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;background:var(--ink);margin-top:-5px;border:0}
+input[type=range]::-moz-range-thumb{width:11px;height:11px;border-radius:50%;background:var(--ink);border:0}
+
+.seg{display:flex;border:1px solid var(--ink-3)}
+.seg button{
+  flex:1;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;
+  padding:5px 2px;background:transparent;color:var(--ink-2);border:0;cursor:pointer;
+  border-right:1px solid var(--ink-3);
+}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+.seg button:focus-visible{outline:2px solid var(--ink);outline-offset:-3px}
+
+.row{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.linkbtn{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;
+  background:none;border:0;border-bottom:1px solid var(--ink-3);
+  color:var(--ink-2);padding:1px 0;cursor:pointer;
+}
+.linkbtn:hover{color:var(--ink);border-color:var(--ink)}
+.wide{
+  display:block;width:100%;font-family:"IBM Plex Mono",monospace;font-size:11px;
+  padding:6px;background:transparent;border:1px solid var(--ink-3);color:var(--ink);cursor:pointer;
+}
+.wide:hover{background:var(--ink);color:var(--paper)}
+.checkline{display:flex;align-items:center;gap:8px;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11.5px;color:var(--ink-2)}
+.checkline input{accent-color:var(--ink);width:13px;height:13px}
+#cfg{
+  width:100%;font-family:"IBM Plex Mono",monospace;font-size:10px;
+  border:1px solid var(--rule);background:var(--paper-2);color:var(--ink-2);
+  padding:5px 6px;margin-bottom:6px;
+}
+.strip{margin-top:4px}
+.strip canvas{display:block;width:100%;height:26px;border:1px solid var(--rule)}
+.striplab{display:flex;justify-content:space-between;font-family:"IBM Plex Mono",monospace;font-size:9.5px;color:var(--ink-3);margin-top:3px}
+.tiny{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--ink-3);margin:8px 0 0}
+
+article{padding:52px 0 90px}
+.sec{display:grid;grid-template-columns:118px minmax(0,var(--measure));gap:0 34px;margin-bottom:44px}
+.sec > .tag{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);padding-top:7px}
+.sec > .body > :first-child{margin-top:0}
+h3{font-family:"Fraunces",Georgia,serif;font-weight:500;font-size:1.35rem;letter-spacing:-.01em;margin:0 0 12px;line-height:1.2}
+p{margin:0 0 16px}
+.eq{
+  font-family:"IBM Plex Mono",monospace;font-size:13.5px;line-height:1.9;
+  background:var(--paper-2);border-left:2px solid var(--ink);
+  padding:13px 16px;margin:0 0 16px;overflow-x:auto;white-space:pre;
+}
+.note{font-size:.92rem;color:var(--ink-2)}
+ul{margin:0 0 16px;padding-left:1.15em}
+li{margin-bottom:7px}
+a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--ink-3)}
+a:hover{border-color:var(--ink)}
+.refs{font-size:.93rem}
+.refs li{margin-bottom:11px;color:var(--ink-2)}
+.refs b{font-weight:400;color:var(--ink)}
+footer{border-top:1px solid var(--rule);padding:20px 0 60px;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-3)}
+
+#err{position:absolute;inset:0;padding:20px;overflow:auto;background:var(--well);color:#ff9b8a;font-family:"IBM Plex Mono",monospace;font-size:11px;white-space:pre-wrap;display:none;z-index:5}
+
+@media (max-width:880px){
+  .stage{grid-template-columns:1fr}
+  .viewport{border-right:0;border-bottom:1px solid var(--rule)}
+  #gl{height:54vh}
+  .rail{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;padding:16px 0;max-height:none;overflow:visible}
+  .sec{grid-template-columns:1fr;gap:6px}
+  .sec > .tag{padding-top:0}
+}
+@media (prefers-reduced-motion:reduce){ *{animation:none !important;transition:none !important} }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="mast"><h1>Simulating Opals</h1></header>
+</div>
+
+<div class="wrap">
+  <div class="stage">
+    <div class="viewport" id="viewport">
+      <canvas id="gl" tabindex="0" aria-label="Interactive opal. Drag to rotate, scroll to zoom, shift-drag to move the light."></canvas>
+      <button id="expand" type="button">⤢ expand</button>
+      <div id="err"></div>
+      <div class="readout mono" id="readout">
+        <span class="hintline">Drag to turn · scroll to zoom · shift-drag moves the lamp · hover to probe a domain</span>
+      </div>
+    </div>
+
+    <div class="rail">
+      <div class="group">
+        <h2>Lattice</h2>
+        <div class="ctl">
+          <label for="dia">sphere Ø <span class="val" id="dia-v">243 nm</span></label>
+          <input type="range" id="dia" min="150" max="360" step="1" value="243">
+        </div>
+        <div class="ctl">
+          <label for="spread">size dispersity <span class="val" id="spread-v">28 %</span></label>
+          <input type="range" id="spread" min="0" max="40" step="1" value="28">
+        </div>
+        <div class="ctl">
+          <label for="nvoid">void index <span class="val" id="nvoid-v">1.23</span></label>
+          <input type="range" id="nvoid" min="100" max="145" step="1" value="123">
+        </div>
+        <div class="strip">
+          <canvas id="spec" width="512" height="52"></canvas>
+          <div class="striplab"><span>λ(θ=0°)</span><span id="spec-lab">554 nm</span><span>θ=60°</span></div>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>Domains</h2>
+        <div class="ctl">
+          <label for="dsize">patch size <span class="val" id="dsize-v">0.15</span></label>
+          <input type="range" id="dsize" min="3" max="60" step="1" value="15">
+        </div>
+        <div class="ctl">
+          <label for="tilt">orientation spread <span class="val" id="tilt-v">79°</span></label>
+          <input type="range" id="tilt" min="0" max="90" step="1" value="79">
+        </div>
+        <div class="ctl">
+          <label for="coh">coherence width <span class="val" id="coh-v">13.0°</span></label>
+          <input type="range" id="coh" min="5" max="200" step="1" value="130">
+        </div>
+        <div class="ctl">
+          <label for="potch">ordered fraction <span class="val" id="potch-v">100 %</span></label>
+          <input type="range" id="potch" min="10" max="100" step="1" value="100">
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>Stone</h2>
+        <div class="ctl">
+          <label for="body">body tone <span class="val" id="body-v">0.00</span></label>
+          <input type="range" id="body" min="0" max="100" step="1" value="0">
+        </div>
+        <div class="ctl">
+          <label for="dens">turbidity <span class="val" id="dens-v">6.3</span></label>
+          <input type="range" id="dens" min="20" max="900" step="5" value="630">
+        </div>
+        <div class="ctl">
+          <label for="play">diffraction gain <span class="val" id="play-v">1.22</span></label>
+          <input type="range" id="play" min="0" max="300" step="1" value="122">
+        </div>
+        <div class="ctl">
+          <label>cut</label>
+          <div class="seg" role="group" aria-label="Cut">
+            <button type="button" id="cut0" aria-pressed="true">cabochon</button>
+            <button type="button" id="cut1" aria-pressed="false">rough</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>Render</h2>
+        <div class="ctl">
+          <label>samples per ray</label>
+          <div class="seg" role="group" aria-label="Quality">
+            <button type="button" id="q0" aria-pressed="false">8</button>
+            <button type="button" id="q1" aria-pressed="true">14</button>
+            <button type="button" id="q2" aria-pressed="false">24</button>
+            <button type="button" id="q3" aria-pressed="false">32</button>
+          </div>
+        </div>
+        <div class="ctl checkline">
+          <input type="checkbox" id="o2" checked><label for="o2" style="margin:0">include {200} planes</label>
+        </div>
+        <div class="ctl checkline">
+          <input type="checkbox" id="accum" checked><label for="accum" style="margin:0">temporal accumulation</label>
+        </div>
+        <div class="ctl checkline">
+          <input type="checkbox" id="spin" checked><label for="spin" style="margin:0">idle rotation</label>
+        </div>
+        <div class="ctl row">
+          <button class="linkbtn" type="button" id="reseed">new stone</button>
+          <button class="linkbtn" type="button" id="reset">reset view</button>
+        </div>
+        <p class="tiny" id="perf">—</p>
+      </div>
+
+      <div class="group">
+        <h2>Presets</h2>
+        <div class="ctl"><button class="wide" type="button" id="rand">randomise parameters</button></div>
+        <div class="ctl">
+          <label>slot</label>
+          <div class="seg" role="group" aria-label="Preset slot">
+            <button type="button" id="s0" aria-pressed="true">1</button>
+            <button type="button" id="s1" aria-pressed="false">2</button>
+            <button type="button" id="s2" aria-pressed="false">3</button>
+            <button type="button" id="s3" aria-pressed="false">4</button>
+          </div>
+        </div>
+        <div class="ctl row">
+          <button class="linkbtn" type="button" id="save">save to slot</button>
+          <button class="linkbtn" type="button" id="load">load slot</button>
+        </div>
+        <div class="ctl">
+          <label for="cfg">config code</label>
+          <input id="cfg" spellcheck="false">
+          <div class="row">
+            <button class="linkbtn" type="button" id="copycfg">copy</button>
+            <button class="linkbtn" type="button" id="applycfg">apply</button>
+          </div>
+        </div>
+        <p class="tiny" id="prestatus">The address bar carries the current settings; copy the URL to keep a stone.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+<article>
+
+  <div class="sec">
+    <div class="tag">01 / planes</div>
+    <div class="body">
+      <h3>A crystal is a stack of mirrors that only work at one wavelength</h3>
+      <p>Take a lot of identical objects and arrange them so the pattern repeats at fixed intervals in three directions. That is a crystal. The repeating units can be atoms, and in table salt they are; they can also be plastic beads, protein molecules, or, in the case of opal, tiny balls of silica glass that settled out of groundwater over a few million years and packed together like oranges in a crate.</p>
+      <p>Once the arrangement repeats, you can slice through it with a family of parallel flat planes that all contain the same population of scatterers. There are many such families, running through the stack at different angles, and each family has its own fixed spacing between neighbouring planes. Call that spacing d.</p>
+      <p>Now shine light in. A little of it bounces off the first plane, a little off the second, a little off the third, and so on down. The wave that came back from the second plane travelled further than the wave from the first, and by simple geometry the extra distance is 2d·sinθ, where θ is measured from the plane rather than from its normal. If that extra distance happens to be a whole number of wavelengths, all the returning waves are in step and reinforce each other. If it is not, they arrive out of step and cancel. That is Bragg's law, written down in 1913 and worth a Nobel Prize the year after:</p>
+      <div class="eq">m λ = 2 d sin θ          m = 1, 2, 3, …</div>
+      <p>Note what it does. It takes something you cannot see, the internal spacing d, and converts it into something you can measure, the angle at which a particular wavelength comes back strongly. Run it backwards and a diffraction pattern becomes a map of where the atoms sit. That inversion is the whole of X-ray crystallography, and it is how we learned the structure of DNA, haemoglobin, and most of the drugs in your medicine cabinet.</p>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="tag">02 / scale</div>
+    <div class="body">
+      <h3>Why X-rays for atoms and daylight for opal</h3>
+      <p>Bragg's law contains a hard constraint. Since sinθ can never exceed 1, you need λ ≤ 2d or no order ever satisfies the equation. Atoms in a solid sit a few tenths of a nanometre apart, so seeing atomic planes requires radiation with a wavelength of that order, which means X-rays. Visible light, at four hundred to seven hundred nanometres, is thousands of times too coarse. It walks straight past the atomic lattice without noticing it is there.</p>
+      <p>Opal cheats the constraint by building a lattice out of much larger bricks. Its silica spheres run from about 150 to 400 nm across, roughly a thousand times an atomic diameter, which puts the plane spacing squarely inside the visible band. The stone is doing X-ray crystallography on itself, in your hand, with sunlight, and reporting the answer as colour. Physicists call this arrangement a photonic crystal: same mathematics, wavelengths shifted up by three orders of magnitude.</p>
+      <p>The tradeoff is that the effect is now visible to the naked eye and enormously sensitive to angle, which is the whole appeal of the stone and the reason a photograph of an opal never looks like the opal.</p>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="tag">03 / directions</div>
+    <div class="body">
+      <h3>The vector form, and why the shader uses it</h3>
+      <p>Bragg's law in the form above assumes the light comes in at θ and leaves at θ, mirror-fashion, off one chosen family of planes. That assumption is fine at a diffractometer where you control the geometry. It is useless here, because the eye and the lamp are wherever they happen to be, the stone is full of patches tilted every which way, and no single family is in the mirror position.</p>
+      <p>The general statement is due to Max von Laue and is a condition on vectors instead of angles. Write the direction light travels before scattering as ω<sub>in</sub> and after as ω<sub>out</sub>, both unit vectors. The wave gains momentum equal to the difference, scaled by 2πn/λ. Constructive interference happens when that gain lands exactly on one of a discrete set of vectors <b>G</b> determined by the lattice:</p>
+      <div class="eq">q  =  (2π n / λ) · (ω_out − ω_in)   must equal   G_hkl</div>
+      <p>The set of allowed <b>G</b> is called the reciprocal lattice. It is a second lattice, living in a space of directions rather than positions, with one point for every family of planes in the real crystal. A family with wide spacing d gives a short vector, a family with tight spacing gives a long one, because |G<sub>hkl</sub>| = 2π/d<sub>hkl</sub>. The three integers hkl are Miller indices, a label for the family, and {111} or {200} below are just names of particular sets of planes.</p>
+      <p>Split the condition into length and direction and it becomes something a shader can evaluate in a few lines. The length fixes the wavelength with no free parameter:</p>
+      <div class="eq">λ = n · d_hkl · |ω_out − ω_in|
+
+direction: q̂ must be parallel to Ĝ_hkl</div>
+      <p>The alignment test is not enforced exactly, because a real diffracting patch is finite. A stack of N planes has an angular acceptance of roughly 1/N rather than zero width, so the renderer scores alignment with a Gaussian, w = exp(−(1 − |q̂·Ĝ|)/σ²). The coherence-width slider is σ. Narrow it and the patches get smaller, harder-edged and more saturated, which is what a well-ordered stone looks like; widen it and the stone goes milky as many wavelengths fire at once. Crystallographers meet the same effect as Scherrer broadening, where a diffraction peak's width tells you how big the crystallites were.</p>
+      <p>Set the eye and the lamp back into the mirror geometry and the vector form collapses to Bragg's law, as it must. In that case |ω<sub>out</sub> − ω<sub>in</sub>| = 2cos θ<sub>i</sub>, with θ<sub>i</sub> measured from the plane normal, and λ = 2 n d cos θ<sub>i</sub> = 2 d sin θ.</p>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="tag">04 / packing</div>
+    <div class="body">
+      <h3>Which planes exist in a heap of spheres</h3>
+      <p>Silica spheres settling under gravity end up in the densest packing available, face-centred cubic, the same arrangement as stacked cannonballs. That fixes the geometry completely. For touching spheres of diameter D the cube edge is a = √2·D, and the two families that matter are:</p>
+      <div class="eq">d_111 = a/√3 = D·√(2/3) = 0.8165 D
+d_200 = a/2   = D/√2   = 0.7071 D</div>
+      <p>There are four distinct ⟨111⟩ directions in a cube, along its body diagonals, and three ⟨100⟩ directions, along its edges. The shader tests all seven per sample. The {111} family is the strong one and does nearly all the work, which is why the {200} contribution is a checkbox rather than always on.</p>
+      <p>One more correction is needed before the numbers come out right. Light inside the stone does not travel at c. It sees a mixture of glass and water-filled gaps, and moves at c divided by an effective index. Averaging the dielectric constant over the packing fraction f = 0.74 gives</p>
+      <div class="eq">n_eff² = f · n_silica² + (1 − f) · n_void²      n_silica = 1.45</div>
+      <p>and folding Snell's law at the polished surface into Bragg's law produces the form used throughout the photonic-crystal literature, in which θ is measured outside the stone where you can actually measure it:</p>
+      <div class="eq">λ = 2 d_hkl √( n_eff² − sin²θ )</div>
+      <p>Two consequences you can watch on the sliders. Turning the stone away from the lamp raises θ, shrinks the square root and shifts the colour toward blue, which is the blue-shift every opal shows as you tilt it. And filling the voids with something of higher index raises n<sub>eff</sub> and pushes the whole stone toward red, which is a real effect used in photonic vapour sensors: soak the crystal in solvent and the colour moves.</p>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="tag">05 / mosaic</div>
+    <div class="body">
+      <h3>Not one crystal, a few thousand</h3>
+      <p>A gem-quality opal is a mosaic. Ordered patches tens to hundreds of microns across, each with its own lattice orientation and its own mean sphere size, sit packed against each other and against regions where the spheres never sorted themselves at all. Gemmologists call the disordered material potch.</p>
+      <p>That mosaic structure is why play-of-colour arrives as discrete blades rather than a smooth wash. Each patch satisfies the Laue condition only for its own narrow window of geometry, so at any instant a scattered few of them are lit and the rest are dark, and rotating the stone by a degree swaps which ones. The same physics turns up in powder diffraction, where you deliberately grind a crystal into randomly oriented grains so that some fraction of them is always in the diffracting position, no matter how you point the beam.</p>
+      <p>The renderer builds the mosaic as a jittered three-dimensional Voronoi partition. Every cell draws a lattice orientation whose [111] axis is tipped off the growth direction by the orientation-spread control, a sphere diameter drawn around the global mean, and a coin flip against the ordered fraction deciding whether it diffracts or is inert. Set orientation spread to zero and you get a single crystal that sweeps cleanly from red to green as it turns. Push it to 90° and you get a powder.</p>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="tag">06 / colour</div>
+    <div class="body">
+      <h3>From a wavelength to a pixel</h3>
+      <p>Each accepted diffraction event yields one wavelength in nanometres, which then has to become a screen colour. The route runs through the CIE 1931 standard observer, three curves measured in the 1920s by asking people to match monochromatic light with a mix of three primaries. Integrating a spectrum against those curves gives the tristimulus values X, Y and Z, and a fixed 3×3 matrix takes XYZ to linear sRGB. The shader uses the piecewise-Gaussian fit of Wyman, Sloan and Shirley rather than a lookup table, because ten lines of arithmetic beats a texture fetch on a GPU.</p>
+      <p>Finite patch size broadens the spectral peak as well as the angular one, so before accumulation each tristimulus value is desaturated toward equal-energy white in proportion to σ. Beyond that the shading is ordinary computer graphics: exact unpolarised Fresnel at the surface, Beer–Lambert extinction along the internal path, single-scattering for the body, and one refraction out the back for the see-through.</p>
+      <p>Sampling is importance-weighted rather than uniform. At high turbidity almost all the returned light comes from the first fraction of a millimetre, so the sample positions are placed at equal intervals of transmittance instead of equal intervals of distance. Every sample then carries the same weight and none are wasted in the dark interior, which is most of why the patches read as shimmer rather than grain.</p>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="tag">07 / limits</div>
+    <div class="body">
+      <h3>Where the model is wrong</h3>
+      <p>The point of computing this instead of faking it is that the failures are legible, so here they are:</p>
+      <ul>
+        <li>Scattering is kinematic. Diffraction efficiency is a tunable gain rather than a structure factor computed from the sphere form factor, and there is no dynamical coupling. A real stop band has a width and a reflectance set by index contrast and layer count, and it depletes the transmitted beam. Here it does neither.</li>
+        <li>The internal illumination direction is refracted once, at the surface normal where the camera ray entered, then reused along the whole path. Exact when lamp and eye look at the same patch of dome, and it drifts at grazing lamp angles.</li>
+        <li>Single scattering only. No light diffracts in one domain and again in the next.</li>
+        <li>No dispersion in the surface refraction. n<sub>eff</sub> is fixed across the visible band, so there is no prismatic fire on the girdle. Fixing it means spectral path tracing at three or more marches per pixel.</li>
+        <li>The Voronoi mosaic is isotropic. Real domains grow columnar along the sedimentation direction, which is where directional harlequin patterning comes from.</li>
+        <li>Domains differ from their surroundings only in their diffraction, so nothing scatters at a domain wall.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="tag">08 / sources</div>
+    <div class="body">
+      <h3>References</h3>
+      <ul class="refs">
+        <li>Chris Wyman, Peter-Pike Sloan, Peter Shirley. <b>Simple Analytic Approximations to the CIE XYZ Color Matching Functions.</b> Journal of Computer Graphics Techniques 2(2), 1–11, 2013. <a href="https://jcgt.org/published/0002/02/01/">jcgt.org/published/0002/02/01</a></li>
+        <li>Jean-Michel Lourtioz et al. <b>Optics of an opal modeled with a stratified effective index and the effect of the interface.</b> arXiv:1507.08548. <a href="https://arxiv.org/abs/1507.08548">arxiv.org/abs/1507.08548</a> — derivation of λ/D = 2(2/3)<sup>1/2</sup>(n<sub>eff</sub>²−sin²θ)<sup>1/2</sup>.</li>
+        <li>Kevin Sanderson et al. <b>Asymmetrical Optical Response of Opal Photonic Crystals with Graded Thickness.</b> ECS Advances, 2023. <a href="https://iopscience.iop.org/article/10.1149/2754-2734/ad0cd4">iopscience.iop.org/article/10.1149/2754-2734/ad0cd4</a> — d<sub>111</sub> = 0.816 D, Bragg–Snell fits to angle-resolved transmission.</li>
+        <li>Nadia Yaacoub et al. <b>Structure and Optical Properties of Opal Films Made by an Out-of-Plane Electric Field-Assisted Capillary Deposition Method.</b> ACS Omega, 2022. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8908520/">pmc.ncbi.nlm.nih.gov/articles/PMC8908520</a> — volume-averaged n<sub>eff</sub>, f = 0.74.</li>
+        <li>Ciara Egan et al. <b>Dispersion and Thickness Control in Evaporation-induced Self-Assembly of Opal Photonic Crystals.</b> arXiv:2306.16749. <a href="https://arxiv.org/abs/2306.16749">arxiv.org/abs/2306.16749</a> — how far the Bragg–Snell model holds against measured sphere diameters.</li>
+        <li>John D. Joannopoulos, Steven G. Johnson, Joshua N. Winn, Robert D. Meade. <b>Photonic Crystals: Molding the Flow of Light</b>, 2nd ed. Princeton University Press, 2008. <a href="http://ab-initio.mit.edu/book/">ab-initio.mit.edu/book</a> — the dynamical treatment this renderer does not implement.</li>
+      </ul>
+    </div>
+  </div>
+
+</article>
+</div>
+
+<div class="wrap"><footer>Single file, no dependencies beyond three webfonts. The whole solver is one fragment shader.</footer></div>
+
+<script>
+"use strict";
+(function(){
+
+const cv = document.getElementById('gl');
+const errBox = document.getElementById('err');
+const gl = cv.getContext('webgl2', {antialias:false, alpha:false, powerPreference:'high-performance'});
+function fail(m){ errBox.style.display='block'; errBox.textContent=m; }
+if(!gl){ fail("WebGL2 is not available in this browser."); return; }
+
+const extF = gl.getExtension('EXT_color_buffer_float') || gl.getExtension('EXT_color_buffer_half_float');
+const HDR = extF ? 1 : 0;
+
+/* ------------------------------------------------------------- shaders */
+
+const VS = `#version 300 es
+void main(){ vec2 p = vec2((gl_VertexID<<1)&2, gl_VertexID&2); gl_Position = vec4(p*2.0-1.0,0.0,1.0); }`;
+
+const FS = `#version 300 es
+precision highp float;
+precision highp int;
+out vec4 outColor;
+
+uniform sampler2D uPrev;
+uniform vec2  uRes;
+uniform vec2  uJitter;
+uniform float uBlend;
+uniform int   uHDR;
+
+uniform mat3  uRot;
+uniform vec3  uLightW;
+uniform float uCamDist;
+uniform float uD, uSpread, uNvoid;
+uniform float uDomain, uTilt, uSigma, uOrdered;
+uniform float uBody, uDens, uPlay, uO2;
+uniform int   uCut, uSteps, uMode;
+uniform float uSeed, uFrame;
+uniform vec2  uProbePx;
+
+uniform vec3  uSR;      // rough: base radii
+uniform vec4  uSL1;     // rough: lobe 1 (xyz offset, w scale, 0 = off)
+uniform vec4  uSL2;
+uniform vec4  uSN;      // rough: amp1, freq1, amp2, freq2
+uniform vec2  uSK;      // rough: smooth-union k, lipschitz divisor
+
+const float NSIL = 1.45;
+const float FILL = 0.74;
+
+uvec3 pcg3d(uvec3 v){
+  v = v*1664525u + 1013904223u;
+  v.x += v.y*v.z; v.y += v.z*v.x; v.z += v.x*v.y;
+  v ^= v >> 16u;
+  v.x += v.y*v.z; v.y += v.z*v.x; v.z += v.x*v.y;
+  return v;
+}
+vec3 hash33(vec3 p){
+  uvec3 u = pcg3d(uvec3(ivec3(floor(p)) + ivec3(1024)) + uvec3(uint(uSeed)));
+  return vec3(u) * (1.0/4294967296.0);
+}
+// interleaved gradient noise: far better distributed than a white-noise hash
+float ign(vec2 p){ return fract(52.9829189*fract(0.06711056*p.x + 0.00583715*p.y)); }
+
+float pgauss(float x, float mu, float g1, float g2){
+  float t = (x-mu)*((x<mu)?g1:g2); return exp(-0.5*t*t);
+}
+vec3 cieXYZ(float w){
+  return vec3(
+    0.362*pgauss(w,442.0,0.0624,0.0374)+1.056*pgauss(w,599.8,0.0264,0.0323)-0.065*pgauss(w,501.1,0.0490,0.0382),
+    0.821*pgauss(w,568.8,0.0213,0.0247)+0.286*pgauss(w,530.9,0.0613,0.0322),
+    1.217*pgauss(w,437.0,0.0845,0.0278)+0.681*pgauss(w,459.0,0.0385,0.0725));
+}
+vec3 xyz2rgb(vec3 c){
+  return mat3( 3.2406,-0.9689, 0.0557,
+              -1.5372, 1.8758,-0.2040,
+              -0.4986, 0.0415, 1.0570) * c;
+}
+
+float sdEllipsoid(vec3 p, vec3 r){
+  float k0 = length(p/r), k1 = length(p/(r*r));
+  return k0*(k0-1.0)/max(k1,1e-6);
+}
+float smaxf(float a, float b, float k){
+  float h = clamp(0.5-0.5*(a-b)/k,0.0,1.0); return mix(a,b,h)+k*h*(1.0-h);
+}
+float sminf(float a, float b, float k){
+  float h = clamp(0.5+0.5*(b-a)/k,0.0,1.0); return mix(b,a,h)-k*h*(1.0-h);
+}
+float vnoise(vec3 p){
+  vec3 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
+  float n = 0.0;
+  for(int k=0;k<2;k++)for(int j=0;j<2;j++)for(int q=0;q<2;q++){
+    vec3 o = vec3(float(q),float(j),float(k));
+    vec3 w = mix(1.0-f, f, o);
+    n += hash33(i+o).x * w.x*w.y*w.z;
+  }
+  return n*2.0-1.0;
+}
+float map(vec3 p){
+  if(uCut == 0){
+    float e  = sdEllipsoid(p, vec3(1.00,0.62,0.80));
+    return smaxf(e, -(p.y+0.20), 0.11);
+  }
+  float d = sdEllipsoid(p, uSR);
+  if(uSL1.w > 0.0) d = sminf(d, sdEllipsoid(p-uSL1.xyz, uSR*uSL1.w), uSK.x);
+  if(uSL2.w > 0.0) d = sminf(d, sdEllipsoid(p-uSL2.xyz, uSR*uSL2.w), uSK.x);
+  d += uSN.x*vnoise(p*uSN.y) + uSN.z*vnoise(p*uSN.w);
+  return d*uSK.y;
+}
+vec3 calcNormal(vec3 p){
+  vec2 e = vec2(0.0018,-0.0018);
+  return normalize( e.xyy*map(p+e.xyy) + e.yyx*map(p+e.yyx)
+                  + e.yxy*map(p+e.yxy) + e.xxx*map(p+e.xxx) );
+}
+
+// continuous three-stop vertical gradient; no branch at the horizon
+vec3 envColor(vec3 d){
+  float t   = clamp(d.y*0.5+0.5, 0.0, 1.0);
+  vec3 grd  = vec3(0.050,0.044,0.038);
+  vec3 hor  = vec3(0.245,0.243,0.250);
+  vec3 zen  = vec3(0.070,0.096,0.150);
+  vec3 c = mix(grd, hor, smoothstep(0.00, 0.56, t));
+  c = mix(c, zen, smoothstep(0.44, 1.00, t));
+  vec3 L = normalize(uLightW);
+  float dl = max(dot(d,L),0.0);
+  c += vec3(1.00,0.97,0.92)*19.0*pow(dl,520.0);
+  c += vec3(1.00,0.95,0.88)*1.00*pow(dl, 20.0);
+  c += vec3(0.55,0.68,0.95)*0.70*pow(max(dot(d, normalize(vec3(-0.75,0.42,0.28))),0.0), 11.0);
+  c += vec3(1.00,0.66,0.40)*0.60*pow(max(dot(d, normalize(vec3( 0.45,-0.22,-0.86))),0.0),  9.0);
+  return c;
+}
+
+float fresnel(float cosi, float eta){
+  float s2 = (1.0-cosi*cosi)/(eta*eta);
+  if(s2 >= 1.0) return 1.0;
+  float cost = sqrt(1.0-s2);
+  float rs = (cosi-eta*cost)/(cosi+eta*cost);
+  float rp = (eta*cosi-cost)/(eta*cosi+cost);
+  return clamp(0.5*(rs*rs+rp*rp),0.0,1.0);
+}
+
+vec4 cellAt(vec3 p){
+  vec3 g = floor(p), f = p-g;
+  float b1 = 1e9, b2 = 1e9; vec3 bid = g;
+  for(int k=-1;k<=1;k++)for(int j=-1;j<=1;j++)for(int i=-1;i<=1;i++){
+    vec3 o = vec3(float(i),float(j),float(k));
+    vec3 id = g+o, r = o + hash33(id) - f;
+    float d = dot(r,r);
+    if(d < b1){ b2=b1; b1=d; bid=id; } else if(d < b2){ b2=d; }
+  }
+  return vec4(hash33(bid*1.7+31.4), sqrt(b2)-sqrt(b1));
+}
+
+void main(){
+  vec2 px = (uMode==1) ? uProbePx : (gl_FragCoord.xy + uJitter);
+  vec2 uv = (2.0*px - uRes) / uRes.y;
+  float neff = sqrt(FILL*NSIL*NSIL + (1.0-FILL)*uNvoid*uNvoid);
+
+  vec3 roW = vec3(0.0,0.30,uCamDist), ta = vec3(0.0,0.02,0.0);
+  vec3 ww = normalize(ta-roW), uu = normalize(cross(ww,vec3(0.0,1.0,0.0))), vv = cross(uu,ww);
+  vec3 rdW = normalize(uv.x*uu + uv.y*vv + 1.85*ww);
+
+  mat3 W2O = transpose(uRot);
+  vec3 ro = W2O*roW, rd = W2O*rdW;
+
+  float t = 0.0; bool hit = false;
+  {
+    float b = dot(ro,rd), c = dot(ro,ro)-3.6, disc = b*b-c;
+    if(disc > 0.0){
+      t = max(-b-sqrt(disc), 0.0);
+      for(int i=0;i<80;i++){
+        float dist = map(ro+t*rd);
+        if(dist < 0.0006){ hit = true; break; }
+        t += dist*0.85;
+        if(t > 8.0) break;
+      }
+    }
+  }
+
+  vec3 col;
+
+  if(!hit){
+    if(uMode == 1){ outColor = vec4(0.0); return; }
+    col = envColor(rdW);
+  } else {
+    vec3 P = ro+t*rd;
+    vec3 N = calcNormal(P);
+    if(dot(N,rd) > 0.0) N = -N;
+
+    float F = fresnel(clamp(dot(-rd,N),0.0,1.0), neff);
+    vec3 refl = envColor(uRot*reflect(rd,N))*F;
+
+    vec3 rd2 = refract(rd,N,1.0/neff);
+    if(dot(rd2,rd2) < 1e-8) rd2 = reflect(rd,N);
+    rd2 = normalize(rd2);
+
+    vec3 Lo  = normalize(W2O*normalize(uLightW));
+    vec3 lin = refract(-Lo,N,1.0/neff);
+    if(dot(lin,lin) < 1e-8) lin = -Lo;
+    lin = normalize(lin);
+
+    float tExit = 0.006;
+    for(int i=0;i<64;i++){
+      float dd = -map(P + tExit*rd2);
+      if(dd < 0.0015) break;
+      tExit += max(dd*0.9, 0.003);
+      if(tExit > 6.0) break;
+    }
+    tExit = max(tExit, 0.006);
+
+    vec3 wout = -rd2, dv = wout-lin;
+    float m = length(dv);
+    vec3 qh = (m > 1e-5) ? dv/m : vec3(0.0,1.0,0.0);
+
+    float sig2 = max(uSigma*uSigma, 1e-6);
+    float bw   = clamp(uSigma*3.0, 0.0, 0.55);
+
+    const float C111 = 0.33333333, S111 = 0.94280904;
+    const float C200 = 0.57735027, S200 = 0.81649658;
+
+    vec3 acc = vec3(0.0), accB = vec3(0.0);
+    float jit = fract(ign(px) + uFrame*0.61803399);
+
+    int probeFam = 0; float probeLam = 0.0, probeW = 0.0, probeTilt = 0.0;
+
+    int steps = uSteps;
+    float sig = max(uDens, 0.05);
+    float Tmax = 1.0 - exp(-sig*tExit);      // total transmittance budget
+    float wS   = Tmax / float(steps);        // equal weight per sample
+
+    for(int i=0;i<32;i++){
+      if(i >= steps) break;
+
+      // importance-sample the path in transmittance, not in distance:
+      // u uniform in [0,1) -> s with density sigma*exp(-sigma s)
+      float u = (float(i) + jit) / float(steps);
+      float s = -log(max(1.0 - u*Tmax, 1e-6)) / sig;
+      vec3  p = P + rd2*s;
+
+      float sl = 0.0;
+      for(int k=0;k<3;k++){ sl += max(-map(p - sl*lin)*0.95, 0.004); }
+      float trL = exp(-uDens*sl);
+
+      vec4 cell  = cellAt(p/uDomain);
+      float edge = smoothstep(0.0, 0.18, cell.w);
+
+      vec3 bodyAlb = mix(vec3(0.035,0.033,0.031), vec3(0.86,0.88,0.92), uBody);
+      accB += bodyAlb * wS * trL;
+
+      if(cell.z > uOrdered) continue;
+
+      float ct = cos(uTilt*cell.x), st = sqrt(max(1.0-ct*ct,0.0));
+      float az = 6.28318530*cell.y;
+      vec3  nax = normalize(vec3(st*cos(az), ct, st*sin(az)));
+      vec3  ax  = abs(nax.y) < 0.9 ? vec3(0.0,1.0,0.0) : vec3(1.0,0.0,0.0);
+      vec3  ft  = normalize(cross(ax,nax)), fb = cross(nax,ft);
+      float phi = 6.28318530*fract(cell.x*7.31 + cell.y*3.17);
+
+      float Dloc = uD*(1.0 + uSpread*(fract(cell.z*13.77)*2.0-1.0));
+      float d111 = 0.81649658*Dloc, d200 = 0.70710678*Dloc;
+
+      for(int a=0;a<7;a++){
+        vec3 G; float dh, amp;
+        if(a == 0){ G = nax; dh = d111; amp = 1.0; }
+        else if(a < 4){
+          float th = phi + 2.0943951*float(a-1);
+          G = ft*(S111*cos(th)) + fb*(S111*sin(th)) + nax*C111;
+          dh = d111; amp = 1.0;
+        } else {
+          float th = phi + 2.0943951*float(a-4);
+          G = ft*(S200*cos(th)) + fb*(S200*sin(th)) + nax*C200;
+          dh = d200; amp = uO2;
+        }
+        if(amp <= 0.0) continue;
+
+        float mis = 1.0 - abs(dot(qh,G));
+        if(mis > 4.0*sig2) continue;
+        float w = exp(-mis/sig2)*amp*edge;
+        if(w < 0.004) continue;
+
+        float lam = neff*m*dh;
+        if(lam < 380.0 || lam > 745.0) continue;
+
+        vec3 xyz = cieXYZ(lam);
+        xyz = mix(xyz, vec3(xyz.y), bw);
+        acc += max(xyz2rgb(xyz),0.0) * w * trL * wS / sig;
+
+        if(uMode == 1 && w*trL*wS > probeW){
+          probeW = w*trL*wS; probeLam = lam;
+          probeFam = (a < 4) ? 1 : 2;
+          probeTilt = acos(clamp(abs(nax.y),0.0,1.0));
+        }
+      }
+    }
+
+    if(uMode == 1){
+      outColor = vec4(clamp((probeLam-380.0)/400.0,0.0,1.0),
+                      float(probeFam)/4.0,
+                      clamp(probeTilt/1.5708,0.0,1.0), 1.0);
+      return;
+    }
+
+    vec3 pExit = P + rd2*tExit;
+    vec3 Nx = calcNormal(pExit);
+    if(dot(Nx,rd2) < 0.0) Nx = -Nx;
+    vec3 outDir = refract(rd2,-Nx,neff);
+    if(dot(outDir,outDir) < 1e-8) outDir = reflect(rd2,Nx);
+    float Fx = fresnel(clamp(dot(rd2,Nx),0.0,1.0), 1.0/neff);
+    vec3 through = envColor(uRot*normalize(outDir))*(1.0-Fx)*exp(-uDens*tExit);
+
+    vec3 lit = acc*uPlay*20.0;
+    lit += accB*(0.55 + 1.35*max(dot(N,Lo),0.0));
+    lit += through*0.34;
+    lit *= (1.0-F);
+    lit += refl;
+    lit += mix(vec3(0.006), vec3(0.05), uBody)*(1.0-F);
+    col = lit*1.05;
+  }
+
+  if(uHDR == 0){
+    col = (col*(2.51*col+0.03))/(col*(2.43*col+0.59)+0.14);
+    col = pow(clamp(col,0.0,1.0), vec3(1.0/2.2));
+  }
+  vec3 prev = texture(uPrev, gl_FragCoord.xy/uRes).rgb;
+  outColor = vec4(mix(prev, col, uBlend), 1.0);
+}`;
+
+const PS = `#version 300 es
+precision highp float;
+uniform sampler2D uTex; uniform vec2 uRes; uniform int uHDR;
+out vec4 o;
+void main(){
+  vec3 c = texture(uTex, gl_FragCoord.xy/uRes).rgb;
+  if(uHDR == 1){
+    c = (c*(2.51*c+0.03))/(c*(2.43*c+0.59)+0.14);
+    c = pow(clamp(c,0.0,1.0), vec3(1.0/2.2));
+  }
+  o = vec4(c,1.0);
+}`;
+
+function compile(type,src){
+  const s = gl.createShader(type);
+  gl.shaderSource(s,src); gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+  return s;
+}
+function link(vs,fs){
+  const p = gl.createProgram();
+  gl.attachShader(p,compile(gl.VERTEX_SHADER,vs));
+  gl.attachShader(p,compile(gl.FRAGMENT_SHADER,fs));
+  gl.linkProgram(p);
+  if(!gl.getProgramParameter(p,gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  return p;
+}
+
+let prog, pres;
+try{ prog = link(VS,FS); pres = link(VS,PS); }
+catch(e){ fail("Shader build failed:\n\n"+e.message); return; }
+
+gl.bindVertexArray(gl.createVertexArray());
+
+const U = {};
+for(const n of ["uPrev","uRes","uJitter","uBlend","uHDR","uRot","uLightW","uCamDist","uD","uSpread",
+  "uNvoid","uDomain","uTilt","uSigma","uOrdered","uBody","uDens","uPlay","uO2","uCut","uSteps",
+  "uMode","uSeed","uFrame","uProbePx","uSR","uSL1","uSL2","uSN","uSK"]) U[n] = gl.getUniformLocation(prog,n);
+const PU = { uTex:gl.getUniformLocation(pres,"uTex"), uRes:gl.getUniformLocation(pres,"uRes"), uHDR:gl.getUniformLocation(pres,"uHDR") };
+
+/* ---------------------------------------------------- render targets */
+
+function makeTex(w,h){
+  const tx = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D,tx);
+  if(HDR) gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA16F,w,h,0,gl.RGBA,gl.HALF_FLOAT,null);
+  else    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,w,h,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  return tx;
+}
+let texA,texB,fbA,fbB;
+function makeTargets(w,h){
+  for(const x of [texA,texB]) if(x) gl.deleteTexture(x);
+  for(const x of [fbA,fbB])   if(x) gl.deleteFramebuffer(x);
+  texA = makeTex(w,h); texB = makeTex(w,h);
+  fbA = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER,fbA);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,texA,0);
+  fbB = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER,fbB);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,texB,0);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+}
+const probeTex = makeTex(1,1);
+const probeFB = gl.createFramebuffer();
+gl.bindFramebuffer(gl.FRAMEBUFFER,probeFB);
+gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,probeTex,0);
+gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+
+/* ---------------------------------------------------------------- state */
+
+const DEFAULTS = {
+  D:243, spread:0.28, nvoid:1.23,
+  domain:0.15, tilt:79, sigma:13.0, ordered:1.00,
+  body:0.00, dens:6.3, play:1.22,
+  o2:1, cut:0, steps:14, seed:137, shapeSeed:1
+};
+const S = Object.assign({
+  rot:[1,0,0,0,1,0,0,0,1], camDist:2.75, lightAz:0.55, lightEl:0.95,
+  accum:true, spin:true, frame:0, scale:0.9, acc:0, slot:0
+}, DEFAULTS);
+
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0;
+  let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t;
+  return ((t^t>>>14)>>>0)/4294967296; }; }
+
+let shape = null;
+function genShape(seed){
+  const r = mulberry32(seed>>>0), rr=(a,b)=>a+(b-a)*r();
+  const R = [rr(0.58,0.95), rr(0.42,0.88), rr(0.52,0.92)];
+  const nl = r();
+  const lobe = () => [rr(-0.38,0.38), rr(-0.30,0.30), rr(-0.38,0.38), rr(0.42,0.85)];
+  const L1 = nl > 0.28 ? lobe() : [0,0,0,0];
+  const L2 = nl > 0.68 ? lobe() : [0,0,0,0];
+  const a1 = rr(0.03,0.15), f1 = rr(1.5,3.6);
+  const a2 = rr(0.008,0.055), f2 = rr(4.0,9.5);
+  const k  = rr(0.10,0.30);
+  const lip = Math.min(0.92, 1/(1 + 3.0*(a1*f1 + a2*f2)));
+  return { R, L1, L2, N:[a1,f1,a2,f2], K:[k,lip] };
+}
+shape = genShape(DEFAULTS.shapeSeed);
+
+function mul3(a,b){ const o=new Array(9);
+  for(let r=0;r<3;r++) for(let c=0;c<3;c++) o[r*3+c]=a[r*3]*b[c]+a[r*3+1]*b[3+c]+a[r*3+2]*b[6+c];
+  return o; }
+function axisRot(ax,ang){ const [x,y,z]=ax,c=Math.cos(ang),s=Math.sin(ang),k=1-c;
+  return [c+x*x*k,x*y*k-z*s,x*z*k+y*s, y*x*k+z*s,c+y*y*k,y*z*k-x*s, z*x*k-y*s,z*y*k+x*s,c+z*z*k]; }
+function ortho(m){
+  let x=[m[0],m[3],m[6]], y=[m[1],m[4],m[7]];
+  const nx=Math.hypot(x[0],x[1],x[2]); x=x.map(v=>v/nx);
+  const d=x[0]*y[0]+x[1]*y[1]+x[2]*y[2];
+  y=[y[0]-d*x[0],y[1]-d*x[1],y[2]-d*x[2]];
+  const ny=Math.hypot(y[0],y[1],y[2]); y=y.map(v=>v/ny);
+  const z=[x[1]*y[2]-x[2]*y[1], x[2]*y[0]-x[0]*y[2], x[0]*y[1]-x[1]*y[0]];
+  return [x[0],y[0],z[0], x[1],y[1],z[1], x[2],y[2],z[2]];
+}
+
+let W=1,H=1,needsResize=true;
+function resize(){
+  const r = cv.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio||1, 2);
+  const w = Math.max(1, Math.round(r.width*dpr*S.scale));
+  const h = Math.max(1, Math.round(r.height*dpr*S.scale));
+  if(w!==W || h!==H){ W=w; H=h; cv.width=w; cv.height=h; makeTargets(w,h); reset(); }
+  needsResize=false;
+}
+new ResizeObserver(()=>{needsResize=true;}).observe(cv);
+function reset(){ S.acc = 0; }
+
+function lightVec(){ const ce=Math.cos(S.lightEl);
+  return [ce*Math.sin(S.lightAz), Math.sin(S.lightEl), ce*Math.cos(S.lightAz)]; }
+
+function halton(i,b){ let f=1,r=0; while(i>0){ f/=b; r+=f*(i%b); i=Math.floor(i/b);} return r; }
+
+function setUniforms(){
+  gl.uniform2f(U.uRes,W,H);
+  gl.uniformMatrix3fv(U.uRot,false,new Float32Array(
+    [S.rot[0],S.rot[3],S.rot[6],S.rot[1],S.rot[4],S.rot[7],S.rot[2],S.rot[5],S.rot[8]]));
+  const L=lightVec(); gl.uniform3f(U.uLightW,L[0],L[1],L[2]);
+  gl.uniform1f(U.uCamDist,S.camDist);
+  gl.uniform1f(U.uD,S.D); gl.uniform1f(U.uSpread,S.spread); gl.uniform1f(U.uNvoid,S.nvoid);
+  gl.uniform1f(U.uDomain,S.domain);
+  gl.uniform1f(U.uTilt,S.tilt*Math.PI/180);
+  gl.uniform1f(U.uSigma,S.sigma*Math.PI/180);
+  gl.uniform1f(U.uOrdered,S.ordered);
+  gl.uniform1f(U.uBody,S.body); gl.uniform1f(U.uDens,S.dens); gl.uniform1f(U.uPlay,S.play);
+  gl.uniform1f(U.uO2,S.o2?0.35:0.0);
+  gl.uniform1i(U.uCut,S.cut); gl.uniform1i(U.uSteps,S.steps);
+  gl.uniform1f(U.uSeed,S.seed); gl.uniform1f(U.uFrame,S.frame%1024);
+  gl.uniform1i(U.uHDR,HDR);
+  gl.uniform3f(U.uSR,shape.R[0],shape.R[1],shape.R[2]);
+  gl.uniform4f(U.uSL1,shape.L1[0],shape.L1[1],shape.L1[2],shape.L1[3]);
+  gl.uniform4f(U.uSL2,shape.L2[0],shape.L2[1],shape.L2[2],shape.L2[3]);
+  gl.uniform4f(U.uSN,shape.N[0],shape.N[1],shape.N[2],shape.N[3]);
+  gl.uniform2f(U.uSK,shape.K[0],shape.K[1]);
+}
+
+let lastT=performance.now(), emaMs=16, perfAcc=0;
+const perfEl=document.getElementById('perf');
+let dragging=false, lastX=0, lastY=0, velX=0, velY=0, shiftDrag=false;
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function frame(now){
+  if(needsResize) resize();
+  const dt = Math.min((now-lastT)/1000, 0.1); lastT = now;
+
+  let moved = false;
+  if(S.spin && !dragging && !reduceMotion){
+    S.rot = ortho(mul3(axisRot([0.18,0.97,0.15], dt*0.16), S.rot)); moved = true;
+  }
+  if(!dragging && (Math.abs(velX)>1e-5 || Math.abs(velY)>1e-5)){
+    S.rot = ortho(mul3(mul3(axisRot([0,1,0],velX), axisRot([1,0,0],velY)), S.rot));
+    velX*=0.90; velY*=0.90; moved = true;
+  }
+  if(moved || dragging) S.acc = Math.min(S.acc, 3);
+
+  S.frame++;
+  S.acc++;
+
+  // blend weight: progressive average while still, exponential while moving
+  let blend;
+  if(!S.accum) blend = 1.0;
+  else if(dragging) blend = 0.55;
+  else blend = Math.max(1/Math.min(S.acc,28), moved ? 0.30 : 0.0);
+
+  const readTex = (S.frame & 1) ? texB : texA;
+  const writeFB = (S.frame & 1) ? fbA  : fbB;
+  const writeTex= (S.frame & 1) ? texA : texB;
+
+  gl.useProgram(prog);
+  setUniforms();
+  gl.uniform1f(U.uBlend, blend);
+  gl.uniform1i(U.uMode, 0);
+  gl.uniform2f(U.uProbePx, 0, 0);
+  const j = (S.accum && !reduceMotion) ? [halton(S.frame%64+1,2)-0.5, halton(S.frame%64+1,3)-0.5] : [0,0];
+  gl.uniform2f(U.uJitter, j[0], j[1]);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, readTex);
+  gl.uniform1i(U.uPrev, 0);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, writeFB);
+  gl.viewport(0,0,W,H);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+  gl.viewport(0,0,W,H);
+  gl.useProgram(pres);
+  gl.uniform2f(PU.uRes,W,H); gl.uniform1i(PU.uHDR,HDR);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, writeTex);
+  gl.uniform1i(PU.uTex,0);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+
+  const ms = performance.now()-now;
+  emaMs = emaMs*0.92 + ms*0.08;
+  if(++perfAcc % 30 === 0){
+    perfEl.textContent = `${W}×${H} · ${emaMs.toFixed(1)} ms/frame${HDR?'':' · 8-bit'}`;
+    if(emaMs > 33 && S.scale > 0.45){ S.scale = Math.max(0.45,S.scale-0.08); needsResize=true; }
+    else if(emaMs < 12 && S.scale < 1.0){ S.scale = Math.min(1.0,S.scale+0.05); needsResize=true; }
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ---------------------------------------------------------------- probe */
+
+const probeBuf = new Uint8Array(4);
+const readoutEl = document.getElementById('readout');
+const HINT = '<span class="hintline">Drag to turn · scroll to zoom · shift-drag moves the lamp · hover to probe a domain</span>';
+let probeQueued = null;
+
+function runProbe(px,py){
+  gl.useProgram(prog); setUniforms();
+  gl.uniform1f(U.uBlend,1.0); gl.uniform2f(U.uJitter,0,0);
+  gl.uniform1i(U.uMode,1); gl.uniform2f(U.uProbePx,px,py);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,texA); gl.uniform1i(U.uPrev,0);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,probeFB); gl.viewport(0,0,1,1);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+  gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,probeBuf);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+
+  if(probeBuf[3] === 0){ readoutEl.innerHTML='<span class="hintline">off the stone</span>'; return; }
+  const lam = 380 + (probeBuf[0]/255)*400;
+  const fam = Math.round((probeBuf[1]/255)*4);
+  const tilt= (probeBuf[2]/255)*90;
+  if(fam === 0){
+    readoutEl.innerHTML='<span class="hintline">potch — no lattice satisfies the condition along this ray</span>'; return;
+  }
+  readoutEl.innerHTML =
+    `<span><span class="swatch" style="background:${wavelengthToCss(lam)}"></span>λ <b>${lam.toFixed(0)} nm</b></span>`+
+    `<span>plane <b>{${fam===1?'111':'200'}}</b></span>`+
+    `<span>[111] tilt <b>${tilt.toFixed(0)}°</b></span>`+
+    `<span>d<sub>hkl</sub> <b>${((fam===1?0.8165:0.7071)*S.D).toFixed(0)} nm</b></span>`;
+}
+setInterval(()=>{ if(probeQueued){ runProbe(probeQueued[0],probeQueued[1]); probeQueued=null; } }, 110);
+
+function pg(x,mu,g1,g2){ const t=(x-mu)*(x<mu?g1:g2); return Math.exp(-0.5*t*t); }
+function cie(w){ return [
+  0.362*pg(w,442,.0624,.0374)+1.056*pg(w,599.8,.0264,.0323)-0.065*pg(w,501.1,.0490,.0382),
+  0.821*pg(w,568.8,.0213,.0247)+0.286*pg(w,530.9,.0613,.0322),
+  1.217*pg(w,437,.0845,.0278)+0.681*pg(w,459,.0385,.0725)]; }
+function wavelengthToCss(w,gain){
+  const [X,Y,Z]=cie(w);
+  const r=3.2406*X-1.5372*Y-0.4986*Z, g=-0.9689*X+1.8758*Y+0.0415*Z, b=0.0557*X-0.2040*Y+1.0570*Z;
+  const k = gain===undefined?1.25:gain;
+  const f = v => { v=Math.max(0,v*k); v = v<=0.0031308?12.92*v:1.055*Math.pow(v,1/2.4)-0.055;
+                   return Math.round(Math.min(1,v)*255); };
+  return `rgb(${f(r)},${f(g)},${f(b)})`;
+}
+
+/* ---------------------------------------------------------------- input */
+
+cv.addEventListener('pointerdown', e=>{
+  dragging=true; shiftDrag = e.shiftKey || e.button===2;
+  lastX=e.clientX; lastY=e.clientY; velX=velY=0; reset();
+  cv.setPointerCapture(e.pointerId); cv.classList.add('dragging');
+});
+cv.addEventListener('pointerup', e=>{
+  dragging=false; cv.classList.remove('dragging'); reset();
+  try{ cv.releasePointerCapture(e.pointerId); }catch(_){}
+});
+cv.addEventListener('pointercancel', ()=>{ dragging=false; cv.classList.remove('dragging'); });
+cv.addEventListener('contextmenu', e=>e.preventDefault());
+cv.addEventListener('pointermove', e=>{
+  if(dragging){
+    const dx=e.clientX-lastX, dy=e.clientY-lastY;
+    lastX=e.clientX; lastY=e.clientY;
+    if(shiftDrag){
+      S.lightAz += dx*0.006;
+      S.lightEl = Math.max(-1.35, Math.min(1.45, S.lightEl+dy*0.005));
+    } else {
+      velX=dx*0.0060; velY=dy*0.0060;
+      S.rot = ortho(mul3(mul3(axisRot([0,1,0],velX),axisRot([1,0,0],velY)),S.rot));
+    }
+    reset(); return;
+  }
+  const r = cv.getBoundingClientRect();
+  probeQueued = [ (e.clientX-r.left)/r.width*W, (1-(e.clientY-r.top)/r.height)*H ];
+});
+cv.addEventListener('pointerleave', ()=>{ readoutEl.innerHTML = HINT; });
+cv.addEventListener('wheel', e=>{
+  e.preventDefault();
+  S.camDist = Math.max(1.7, Math.min(7.0, S.camDist*Math.exp(e.deltaY*0.0012))); reset();
+},{passive:false});
+cv.addEventListener('keydown', e=>{
+  const k=0.06; const ax = {ArrowLeft:[[0,1,0],-k],ArrowRight:[[0,1,0],k],ArrowUp:[[1,0,0],-k],ArrowDown:[[1,0,0],k]}[e.key];
+  if(ax){ S.rot = ortho(mul3(axisRot(ax[0],ax[1]),S.rot)); reset(); e.preventDefault(); }
+});
+
+/* ------------------------------------------------------------- expand */
+
+const viewport = document.getElementById('viewport');
+const expandBtn = document.getElementById('expand');
+function setExpanded(on){
+  viewport.classList.toggle('expanded', on);
+  document.body.style.overflow = on ? 'hidden' : '';
+  expandBtn.textContent = on ? '⤡ close' : '⤢ expand';
+  needsResize = true;
+  if(on && viewport.requestFullscreen) viewport.requestFullscreen().catch(()=>{});
+  else if(!on && document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+}
+expandBtn.addEventListener('click', ()=> setExpanded(!viewport.classList.contains('expanded')));
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && viewport.classList.contains('expanded')) setExpanded(false); });
+document.addEventListener('fullscreenchange', ()=>{ needsResize = true; });
+
+/* ------------------------------------------------------------- controls */
+
+const specCv = document.getElementById('spec'), sctx = specCv.getContext('2d');
+const specLab = document.getElementById('spec-lab');
+
+const SLIDERS = {
+  dia:   {get:()=>S.D,          set:v=>S.D=v,        toUI:v=>v,      fmt:v=>v+' nm'},
+  spread:{get:()=>S.spread*100, set:v=>S.spread=v/100,toUI:v=>v*100, fmt:v=>v+' %'},
+  nvoid: {get:()=>S.nvoid*100,  set:v=>S.nvoid=v/100, toUI:v=>v*100, fmt:v=>(v/100).toFixed(2)},
+  dsize: {get:()=>S.domain*100, set:v=>S.domain=v/100,toUI:v=>v*100, fmt:v=>(v/100).toFixed(2)},
+  tilt:  {get:()=>S.tilt,       set:v=>S.tilt=v,      toUI:v=>v,     fmt:v=>v+'°'},
+  coh:   {get:()=>S.sigma*10,   set:v=>S.sigma=v/10,  toUI:v=>v*10,  fmt:v=>(v/10).toFixed(1)+'°'},
+  potch: {get:()=>S.ordered*100,set:v=>S.ordered=v/100,toUI:v=>v*100,fmt:v=>v+' %'},
+  body:  {get:()=>S.body*100,   set:v=>S.body=v/100,  toUI:v=>v*100, fmt:v=>(v/100).toFixed(2)},
+  dens:  {get:()=>S.dens*100,   set:v=>S.dens=v/100,  toUI:v=>v*100, fmt:v=>(v/100).toFixed(1)},
+  play:  {get:()=>S.play*100,   set:v=>S.play=v/100,  toUI:v=>v*100, fmt:v=>(v/100).toFixed(2)}
+};
+for(const id in SLIDERS){
+  const el = document.getElementById(id), out = document.getElementById(id+'-v'), spec = SLIDERS[id];
+  el.addEventListener('input', ()=>{
+    spec.set(parseFloat(el.value));
+    out.textContent = spec.fmt(parseFloat(el.value));
+    reset(); drawStrip(); pushURL();
+  });
+}
+function syncUI(){
+  for(const id in SLIDERS){
+    const el = document.getElementById(id), out = document.getElementById(id+'-v'), spec = SLIDERS[id];
+    el.value = String(Math.round(spec.get()));
+    out.textContent = spec.fmt(parseFloat(el.value));
+  }
+  segSet(['cut0','cut1'], S.cut);
+  segSet(['q0','q1','q2','q3'], [8,14,24,32].indexOf(S.steps));
+  segSet(['s0','s1','s2','s3'], S.slot);
+  document.getElementById('o2').checked = !!S.o2;
+  document.getElementById('accum').checked = S.accum;
+  document.getElementById('spin').checked = S.spin;
+  drawStrip();
+}
+function segSet(ids,i){ ids.forEach((id,k)=>document.getElementById(id).setAttribute('aria-pressed',String(k===i))); }
+function segment(ids,apply){
+  ids.forEach((id,i)=>document.getElementById(id).addEventListener('click',()=>{
+    segSet(ids,i); apply(i); reset(); pushURL();
+  }));
+}
+segment(['cut0','cut1'], i=>{ S.cut=i; });
+segment(['q0','q1','q2','q3'], i=>{ S.steps=[8,14,24,32][i]; });
+segment(['s0','s1','s2','s3'], i=>{ S.slot=i; });
+
+document.getElementById('o2').addEventListener('change', e=>{ S.o2 = e.target.checked?1:0; reset(); pushURL(); });
+document.getElementById('accum').addEventListener('change', e=>{ S.accum = e.target.checked; reset(); });
+document.getElementById('spin').addEventListener('change', e=>{ S.spin = e.target.checked; });
+document.getElementById('reseed').addEventListener('click', ()=>{
+  S.seed = Math.floor(Math.random()*100000);
+  S.shapeSeed = Math.floor(Math.random()*100000);
+  shape = genShape(S.shapeSeed); reset(); pushURL();
+});
+document.getElementById('reset').addEventListener('click', ()=>{
+  S.rot=[1,0,0,0,1,0,0,0,1]; S.camDist=2.75; S.lightAz=0.55; S.lightEl=0.95; velX=velY=0; reset();
+});
+document.getElementById('rand').addEventListener('click', ()=>{
+  const R=(a,b)=>a+(b-a)*Math.random();
+  S.D=Math.round(R(165,335)); S.spread=R(0,0.35); S.nvoid=R(1.00,1.45);
+  S.domain=R(0.03,0.30); S.tilt=Math.round(R(0,90)); S.sigma=R(0.8,10);
+  S.ordered=R(0.4,1.0); S.body=R(0,0.55); S.dens=R(1.5,9.0); S.play=R(0.8,3.0);
+  S.o2 = Math.random()<0.4 ? 1 : 0;
+  S.cut = Math.random()<0.4 ? 1 : 0;
+  S.seed = Math.floor(Math.random()*100000);
+  S.shapeSeed = Math.floor(Math.random()*100000);
+  shape = genShape(S.shapeSeed);
+  syncUI(); reset(); pushURL();
+});
+
+/* --------------------------------------------------------- save / load */
+
+const KEYS = ['D','spread','nvoid','domain','tilt','sigma','ordered','body','dens','play','o2','cut','steps','seed','shapeSeed'];
+function grab(){ const o={}; for(const k of KEYS) o[k]=S[k]; return o; }
+function apply(o){
+  if(!o) return false;
+  for(const k of KEYS) if(typeof o[k] === 'number') S[k]=o[k];
+  shape = genShape(S.shapeSeed); syncUI(); reset(); return true;
+}
+function encode(o){ return btoa(JSON.stringify(o)).replace(/=+$/,'').replace(/\+/g,'-').replace(/\//g,'_'); }
+function decode(s){
+  try{ return JSON.parse(atob(s.trim().replace(/-/g,'+').replace(/_/g,'/'))); }catch(_){ return null; }
+}
+
+const cfgEl = document.getElementById('cfg');
+const statusEl = document.getElementById('prestatus');
+let urlTimer = 0;
+function pushURL(){
+  const code = encode(grab());
+  cfgEl.value = code;
+  clearTimeout(urlTimer);
+  urlTimer = setTimeout(()=>{ try{ history.replaceState(null,'','#'+code); }catch(_){} }, 400);
+}
+function say(m){ statusEl.textContent = m; }
+
+const store = {
+  mem:{},
+  get(k){ try{ const v = window.localStorage.getItem(k); if(v!==null) return v; }catch(_){} return this.mem[k]??null; },
+  set(k,v){ this.mem[k]=v; try{ window.localStorage.setItem(k,v); return true; }catch(_){ return false; } }
+};
+document.getElementById('save').addEventListener('click', ()=>{
+  const persisted = store.set('opal.slot'+S.slot, encode(grab()));
+  say(persisted ? `Saved to slot ${S.slot+1}.` : `Saved to slot ${S.slot+1} for this session only; storage is blocked here, so copy the config code to keep it.`);
+});
+document.getElementById('load').addEventListener('click', ()=>{
+  const v = store.get('opal.slot'+S.slot);
+  say(v && apply(decode(v)) ? `Loaded slot ${S.slot+1}.` : `Slot ${S.slot+1} is empty.`);
+  pushURL();
+});
+document.getElementById('copycfg').addEventListener('click', ()=>{
+  cfgEl.select();
+  const done = () => say('Config code copied.');
+  if(navigator.clipboard) navigator.clipboard.writeText(cfgEl.value).then(done, ()=>say('Select the field and copy manually.'));
+  else { try{ document.execCommand('copy'); done(); }catch(_){ say('Select the field and copy manually.'); } }
+});
+document.getElementById('applycfg').addEventListener('click', ()=>{
+  say(apply(decode(cfgEl.value)) ? 'Config applied.' : 'That code did not parse.');
+  pushURL();
+});
+
+if(location.hash.length > 3){ apply(decode(location.hash.slice(1))); }
+
+/* --------------------------------------------------- Bragg-Snell strip */
+
+function drawStrip(){
+  const w=specCv.width, h=specCv.height;
+  const neff = Math.sqrt(0.74*1.45*1.45 + 0.26*S.nvoid*S.nvoid);
+  const d111 = 0.8164966*S.D;
+  const img = sctx.createImageData(w,h);
+  for(let x=0;x<w;x++){
+    const th = (x/(w-1))*(60*Math.PI/180);
+    const lam = 2*d111*Math.sqrt(Math.max(neff*neff - Math.sin(th)**2, 0));
+    let col;
+    if(lam<380 || lam>745) col=[26,26,24];
+    else { const m = wavelengthToCss(lam,1.4).match(/\d+/g); col=[+m[0],+m[1],+m[2]]; }
+    for(let y=0;y<h;y++){ const i=(y*w+x)*4; img.data[i]=col[0]; img.data[i+1]=col[1]; img.data[i+2]=col[2]; img.data[i+3]=255; }
+  }
+  sctx.putImageData(img,0,0);
+  const l0 = 2*d111*neff;
+  specLab.textContent = (l0>=380 && l0<=745) ? l0.toFixed(0)+' nm' : (l0<380?'UV':'IR');
+}
+
+syncUI();
+pushURL();
+resize();
+requestAnimationFrame(frame);
+
+})();
+</script>
+</body>
+</html>
