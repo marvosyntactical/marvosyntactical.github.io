@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cut Gems</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500&family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#E7E7E3; --paper-2:#DCDCD6; --ink:#15171A; --ink-2:#5C6165;
+  --ink-3:#8B9094; --rule:#C4C5BF; --well:#050506; --measure:33rem;
+  --stageH:min(70vh,660px);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:"Newsreader",Georgia,serif;
+  font-size:17px;line-height:1.62;font-weight:300;-webkit-font-smoothing:antialiased}
+.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+header.mast{padding:34px 0 18px;border-bottom:1px solid var(--rule)}
+h1{font-family:"Fraunces",Georgia,serif;font-weight:300;font-size:clamp(2.2rem,6vw,3.6rem);
+  line-height:1;letter-spacing:-.02em;margin:0}
+
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 274px;border-bottom:1px solid var(--rule)}
+.viewport{position:relative;border-right:1px solid var(--rule);background:var(--well)}
+#gl{display:block;width:100%;height:var(--stageH);background:var(--well);touch-action:none;cursor:grab}
+#gl.dragging{cursor:grabbing}
+#gl:focus-visible{outline:2px solid #7FD3FF;outline-offset:-2px}
+.viewport.expanded{position:fixed;inset:0;z-index:99;border:0;display:flex;flex-direction:column}
+.viewport.expanded #gl{flex:1 1 auto;height:auto;min-height:0}
+.viewport.expanded .readout{border-top:1px solid #23262b;color:#7d838a;background:var(--well)}
+#expand{position:absolute;top:10px;right:10px;z-index:3;font-family:"IBM Plex Mono",monospace;
+  font-size:10.5px;letter-spacing:.08em;background:rgba(10,12,15,.55);color:#c8ccd0;
+  border:1px solid rgba(200,204,208,.28);padding:4px 9px;cursor:pointer;backdrop-filter:blur(4px)}
+#expand:hover{color:#fff;border-color:rgba(255,255,255,.6)}
+.readout{display:flex;flex-wrap:wrap;gap:0 24px;align-items:baseline;padding:10px 14px;
+  border-top:1px solid var(--rule);font-family:"IBM Plex Mono",monospace;font-size:12px;
+  color:var(--ink-2);min-height:39px;background:var(--paper)}
+.readout b{color:var(--ink);font-weight:500}
+.hintline{color:var(--ink-3)}
+
+.rail{padding:16px 0 20px;max-height:calc(var(--stageH) + 39px);overflow-y:auto;scrollbar-width:thin}
+.group{padding:0 16px 14px;border-bottom:1px solid var(--rule);margin-bottom:14px}
+.group:last-child{border-bottom:0;margin-bottom:0}
+.group h2{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:500;margin:0 0 12px}
+.ctl{margin:0 0 13px}
+.ctl:last-child{margin-bottom:0}
+.ctl > label{display:flex;justify-content:space-between;align-items:baseline;gap:8px;
+  font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--ink-2);margin-bottom:5px}
+.ctl > label .val{color:var(--ink);font-variant-numeric:tabular-nums}
+select{width:100%;font-family:"IBM Plex Mono",monospace;font-size:11.5px;padding:5px 6px;
+  background:var(--paper);border:1px solid var(--ink-3);color:var(--ink);border-radius:0}
+select:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:16px;background:transparent;margin:0;cursor:pointer}
+input[type=range]:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+input[type=range]::-webkit-slider-runnable-track{height:1px;background:var(--ink-3)}
+input[type=range]::-moz-range-track{height:1px;background:var(--ink-3)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;background:var(--ink);margin-top:-5px;border:0}
+input[type=range]::-moz-range-thumb{width:11px;height:11px;border-radius:50%;background:var(--ink);border:0}
+.seg{display:flex;border:1px solid var(--ink-3)}
+.seg button{flex:1;font-family:"IBM Plex Mono",monospace;font-size:11px;padding:5px 2px;
+  background:transparent;color:var(--ink-2);border:0;cursor:pointer;border-right:1px solid var(--ink-3)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+.row{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.linkbtn{font-family:"IBM Plex Mono",monospace;font-size:11px;background:none;border:0;
+  border-bottom:1px solid var(--ink-3);color:var(--ink-2);padding:1px 0;cursor:pointer}
+.linkbtn:hover{color:var(--ink);border-color:var(--ink)}
+.wide{display:block;width:100%;font-family:"IBM Plex Mono",monospace;font-size:11px;padding:6px;
+  background:transparent;border:1px solid var(--ink-3);color:var(--ink);cursor:pointer}
+.wide:hover{background:var(--ink);color:var(--paper)}
+.checkline{display:flex;align-items:center;gap:8px;font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--ink-2)}
+.checkline input{accent-color:var(--ink);width:13px;height:13px}
+#cfg{width:100%;font-family:"IBM Plex Mono",monospace;font-size:10px;border:1px solid var(--rule);
+  background:var(--paper-2);color:var(--ink-2);padding:5px 6px;margin-bottom:6px}
+.strip{margin-top:4px}
+.strip canvas{display:block;width:100%;height:30px;border:1px solid var(--rule)}
+.striplab{display:flex;justify-content:space-between;font-family:"IBM Plex Mono",monospace;font-size:9.5px;color:var(--ink-3);margin-top:3px}
+.tiny{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--ink-3);margin:8px 0 0}
+.facts{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--ink-2);
+  border-left:2px solid var(--ink-3);padding-left:8px;margin:10px 0 0;line-height:1.75}
+.facts b{color:var(--ink);font-weight:500}
+
+article{padding:52px 0 90px}
+.sec{display:grid;grid-template-columns:118px minmax(0,var(--measure));gap:0 34px;margin-bottom:44px}
+.sec > .tag{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-3);padding-top:7px}
+.sec > .body > :first-child{margin-top:0}
+h3{font-family:"Fraunces",Georgia,serif;font-weight:500;font-size:1.35rem;letter-spacing:-.01em;margin:0 0 12px;line-height:1.2}
+p{margin:0 0 16px}
+.eq{font-family:"IBM Plex Mono",monospace;font-size:13.5px;line-height:1.9;background:var(--paper-2);
+  border-left:2px solid var(--ink);padding:13px 16px;margin:0 0 16px;overflow-x:auto;white-space:pre}
+.note{font-size:.92rem;color:var(--ink-2)}
+ul{margin:0 0 16px;padding-left:1.15em}
+li{margin-bottom:7px}
+a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--ink-3)}
+a:hover{border-color:var(--ink)}
+.refs{font-size:.93rem}
+.refs li{margin-bottom:11px;color:var(--ink-2)}
+.refs b{font-weight:400;color:var(--ink)}
+table.tbl{width:100%;border-collapse:collapse;font-family:"IBM Plex Mono",monospace;font-size:11.5px;margin:0 0 16px}
+table.tbl th{text-align:left;font-weight:500;color:var(--ink-3);text-transform:uppercase;letter-spacing:.1em;font-size:9.5px;padding:0 10px 6px 0;border-bottom:1px solid var(--rule)}
+table.tbl td{padding:5px 10px 5px 0;border-bottom:1px solid var(--rule);color:var(--ink-2)}
+table.tbl td:first-child{color:var(--ink)}
+footer{border-top:1px solid var(--rule);padding:20px 0 60px;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-3)}
+#err{position:absolute;inset:0;padding:20px;overflow:auto;background:var(--well);color:#ff9b8a;
+  font-family:"IBM Plex Mono",monospace;font-size:11px;white-space:pre-wrap;display:none;z-index:5}
+@media (max-width:880px){
+  .stage{grid-template-columns:1fr}
+  .viewport{border-right:0;border-bottom:1px solid var(--rule)}
+  #gl{height:54vh}
+  .rail{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;padding:16px 0;max-height:none;overflow:visible}
+  .sec{grid-template-columns:1fr;gap:6px}
+  .sec > .tag{padding-top:0}
+}
+@media (prefers-reduced-motion:reduce){ *{animation:none !important;transition:none !important} }
+</style>
+</head>
+<body>
+
+<div class="wrap"><header class="mast"><h1>Cut Gems</h1></header></div>
+
+<div class="wrap">
+  <div class="stage">
+    <div class="viewport" id="viewport">
+      <canvas id="gl" tabindex="0" aria-label="Interactive faceted gemstone. Drag to rotate, scroll to zoom, shift-drag to move the light."></canvas>
+      <button id="expand" type="button">⤢ expand</button>
+      <div id="err"></div>
+      <div class="readout mono" id="readout">
+        <span class="hintline">Drag to turn · scroll to zoom · shift-drag moves the lamp · hover to trace a ray</span>
+      </div>
+    </div>
+
+    <div class="rail">
+      <div class="group">
+        <h2>Stone</h2>
+        <div class="ctl">
+          <label for="cut">cut</label>
+          <select id="cut"></select>
+        </div>
+        <div class="ctl">
+          <label for="mat">material</label>
+          <select id="mat"></select>
+        </div>
+        <div class="ctl">
+          <label>facet style</label>
+          <div class="seg" role="group" aria-label="Facet style">
+            <button type="button" id="fs0" aria-pressed="true">brilliant</button>
+            <button type="button" id="fs1" aria-pressed="false">step</button>
+          </div>
+        </div>
+        <div class="strip">
+          <canvas id="spec" width="512" height="60"></canvas>
+          <div class="striplab"><span>380</span><span>transmission through 2 mm</span><span>780 nm</span></div>
+        </div>
+        <p class="facts" id="facts">—</p>
+      </div>
+
+      <div class="group">
+        <h2>Proportions</h2>
+        <div class="ctl">
+          <label for="table">table <span class="val" id="table-v">53 %</span></label>
+          <input type="range" id="table" min="30" max="80" step="1" value="53">
+        </div>
+        <div class="ctl">
+          <label for="crown">crown angle <span class="val" id="crown-v">34.5°</span></label>
+          <input type="range" id="crown" min="180" max="450" step="1" value="345">
+        </div>
+        <div class="ctl">
+          <label for="pav">pavilion angle <span class="val" id="pav-v">40.8°</span></label>
+          <input type="range" id="pav" min="330" max="500" step="1" value="408">
+        </div>
+        <div class="ctl">
+          <label for="girdle">girdle <span class="val" id="girdle-v">3.0 %</span></label>
+          <input type="range" id="girdle" min="0" max="100" step="1" value="30">
+        </div>
+        <div class="ctl">
+          <label for="star">star length <span class="val" id="star-v">55 %</span></label>
+          <input type="range" id="star" min="30" max="80" step="1" value="55">
+        </div>
+        <div class="ctl">
+          <label for="lower">lower halves <span class="val" id="lower-v">77 %</span></label>
+          <input type="range" id="lower" min="50" max="95" step="1" value="77">
+        </div>
+        <div class="ctl">
+          <label for="culet">culet <span class="val" id="culet-v">1.0 %</span></label>
+          <input type="range" id="culet" min="0" max="120" step="1" value="10">
+        </div>
+        <div class="ctl">
+          <label for="aspect">length / width <span class="val" id="aspect-v">1.00</span></label>
+          <input type="range" id="aspect" min="100" max="280" step="1" value="100">
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>Optics</h2>
+        <div class="ctl">
+          <label for="sat">colour depth <span class="val" id="sat-v">1.00</span></label>
+          <input type="range" id="sat" min="0" max="400" step="1" value="100">
+        </div>
+        <div class="ctl">
+          <label for="disp">dispersion × <span class="val" id="disp-v">1.00</span></label>
+          <input type="range" id="disp" min="0" max="400" step="1" value="100">
+        </div>
+        <div class="ctl">
+          <label for="fluo">fluorescence <span class="val" id="fluo-v">0.60</span></label>
+          <input type="range" id="fluo" min="0" max="200" step="1" value="60">
+        </div>
+        <div class="ctl">
+          <label for="expo">exposure <span class="val" id="expo-v">1.00</span></label>
+          <input type="range" id="expo" min="20" max="400" step="1" value="100">
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>Render</h2>
+        <div class="ctl">
+          <label>wavelengths per pixel</label>
+          <div class="seg" role="group" aria-label="Spectral samples">
+            <button type="button" id="k0" aria-pressed="false">1</button>
+            <button type="button" id="k1" aria-pressed="true">3</button>
+            <button type="button" id="k2" aria-pressed="false">6</button>
+          </div>
+        </div>
+        <div class="ctl">
+          <label>internal bounces</label>
+          <div class="seg" role="group" aria-label="Bounces">
+            <button type="button" id="b0" aria-pressed="false">6</button>
+            <button type="button" id="b1" aria-pressed="true">10</button>
+            <button type="button" id="b2" aria-pressed="false">16</button>
+          </div>
+        </div>
+        <div class="ctl checkline">
+          <input type="checkbox" id="accum" checked><label for="accum" style="margin:0">temporal accumulation</label>
+        </div>
+        <div class="ctl checkline">
+          <input type="checkbox" id="spin" checked><label for="spin" style="margin:0">idle rotation</label>
+        </div>
+        <div class="ctl checkline">
+          <input type="checkbox" id="paths"><label for="paths" style="margin:0">light path map</label>
+        </div>
+        <div class="ctl row">
+          <button class="linkbtn" type="button" id="ideal">Tolkowsky</button>
+          <button class="linkbtn" type="button" id="reset">reset view</button>
+        </div>
+        <p class="tiny" id="perf">—</p>
+      </div>
+
+      <div class="group">
+        <h2>Presets</h2>
+        <div class="ctl"><button class="wide" type="button" id="rand">randomise</button></div>
+        <div class="ctl">
+          <label>slot</label>
+          <div class="seg" role="group" aria-label="Preset slot">
+            <button type="button" id="s0" aria-pressed="true">1</button>
+            <button type="button" id="s1" aria-pressed="false">2</button>
+            <button type="button" id="s2" aria-pressed="false">3</button>
+            <button type="button" id="s3" aria-pressed="false">4</button>
+          </div>
+        </div>
+        <div class="ctl row">
+          <button class="linkbtn" type="button" id="save">save to slot</button>
+          <button class="linkbtn" type="button" id="load">load slot</button>
+        </div>
+        <div class="ctl">
+          <label for="cfg">config code</label>
+          <input id="cfg" spellcheck="false">
+          <div class="row">
+            <button class="linkbtn" type="button" id="copycfg">copy</button>
+            <button class="linkbtn" type="button" id="applycfg">apply</button>
+          </div>
+        </div>
+        <p class="tiny" id="prestatus">The address bar carries the current settings.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+<article>
+
+  <div class="sec">
+    <div class="tag">01 / trapping</div>
+    <div class="body">
+      <h3>A cut gem is a light trap with a deliberate leak</h3>
+      <p>Light slows down inside transparent matter, and the ratio of its speed in vacuum to its speed in the material is the refractive index n. At a boundary between two media the direction changes by an amount Snell fixed in 1621:</p>
+      <div class="eq">n₁ sin θ₁ = n₂ sin θ₂</div>
+      <p>Run that backwards, from dense to thin, and something abrupt happens. Solving for the outgoing angle requires sin θ₂ = (n₁/n₂) sin θ₁, and once that exceeds 1 there is no solution. No refracted ray exists. Every photon is reflected back inside, perfectly, with no loss at all. The threshold is the critical angle:</p>
+      <div class="eq">θ_c = arcsin(n₂ / n₁)      diamond in air: arcsin(1/2.4175) = 24.4°</div>
+      <p>This is the entire trick of a faceted gem. Diamond's critical angle is unusually small, so light entering through the top strikes the sloping pavilion facets well past 24.4° and cannot escape downward. It bounces, hits a second pavilion facet, and is aimed back up through the crown toward the observer. Glass, with n = 1.52, has a critical angle of 41.1° and a much narrower window in which this works, which is why paste never quite convinces.</p>
+      <p>Drag the pavilion angle slider below about 39° and watch the stone die. Too shallow and the internal ray meets the pavilion inside the critical angle, refracts straight out of the bottom, and is lost to the setting. The gem goes glassy and you can see through it. Cutters call the result a fish-eye, and avoiding it is what Marcel Tolkowsky was computing by hand in 1919 when he arrived at a pavilion angle of 40.75°, a crown angle of 34.5° and a table 53% of the diameter. The Tolkowsky button restores exactly those numbers.</p>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="tag">02 / splitting</div>
+    <div class="body">
+      <h3>Fire is the index disagreeing with itself</h3>
+      <p>Refractive index is not one number. It depends on wavelength, because the electrons in the material respond differently to different driving frequencies, and blue light always bends more than red in a normal transparent solid. Gemmology quantifies this as the difference in index between two Fraunhofer reference lines, B in the red at 686.7 nm and G in the violet at 430.8 nm. <a href="https://geo.libretexts.org/Bookshelves/Geology/Gemology/07:_Optical_Properties_of_Gemstones/7.16:_Dispersion">For diamond those indices are 2.407 and 2.451, and the difference, 0.044, is its dispersion.</a></p>
+      <p>The renderer needs the index at every wavelength, not just two, so it fits a two-term Cauchy formula through the pair:</p>
+      <div class="eq">n(λ) = A + B / λ²
+
+B = dispersion / (1/430.8² − 1/686.7²)
+A = n_D − B / 589.3²          n_D measured at the sodium D line</div>
+      <p>For diamond that gives A = 2.3787 and B = 13464 nm², which reproduces the measured index at 486.1 nm to within 0.0003. A wide facet angle turns that tiny spread into a visible fan, because a ray that bounces several times inside accumulates the angular difference at every boundary. Fire is dispersion multiplied by path complexity, which is why the same material shows more of it in a brilliant cut than in a slab.</p>
+      <p>More dispersion is not simply better. Moissanite has 0.104, well over twice diamond's, and cubic zirconia around 0.060. Gemmologists describe the result as excessive and slightly artificial, and it is easy to see why on the dispersion slider: past about 2× the spectral flashes get so wide that they stop reading as sparkle and start reading as a smear of colour. The dispersion multiplier here is not physical, it is a knob for seeing what the parameter does.</p>
+      <table class="tbl">
+        <tr><th>material</th><th>n<sub>D</sub></th><th>dispersion</th><th>θ<sub>c</sub></th></tr>
+        <tr><td>Diamond</td><td>2.4175</td><td>0.044</td><td>24.4°</td></tr>
+        <tr><td>Moissanite</td><td>2.65</td><td>0.104</td><td>22.2°</td></tr>
+        <tr><td>Cubic zirconia</td><td>2.16</td><td>0.060</td><td>27.6°</td></tr>
+        <tr><td>Corundum</td><td>1.766</td><td>0.018</td><td>34.5°</td></tr>
+        <tr><td>Beryl</td><td>1.577</td><td>0.014</td><td>39.4°</td></tr>
+        <tr><td>Quartz</td><td>1.544</td><td>0.013</td><td>40.4°</td></tr>
+        <tr><td>Lead glass</td><td>1.62</td><td>0.031</td><td>38.1°</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="tag">03 / reflecting</div>
+    <div class="body">
+      <h3>How much bounces at each facet</h3>
+      <p>Snell gives the direction of the refracted ray. Fresnel's equations give the fraction of energy that takes it. The reflected fraction depends on the angle and on the polarisation, and since ordinary light is unpolarised the renderer averages the two:</p>
+      <div class="eq">r_s = (n₁cos θ₁ − n₂cos θ₂) / (n₁cos θ₁ + n₂cos θ₂)
+r_p = (n₂cos θ₁ − n₁cos θ₂) / (n₂cos θ₁ + n₁cos θ₂)
+
+R = ½ (r_s² + r_p²)</div>
+      <p>At normal incidence this collapses to ((n−1)/(n+1))², which for diamond is 17% and for quartz 4.7%. That difference is why a diamond looks wet and hard-edged where quartz looks like a window, and it is a separate effect from the internal trapping. Past the critical angle both r_s and r_p reach magnitude 1 and R becomes exactly 1, so total internal reflection falls out of the same equations rather than being bolted on.</p>
+      <p>Because the stone is convex, any ray that does escape a facet goes straight to the environment and never returns. That lets the renderer split deterministically at every boundary rather than gambling: at each internal hit it adds the escaping fraction (1 − R) times the environment in the refracted direction, then continues along the reflected path carrying R. No random choices, so no noise from the light transport at all.</p>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="tag">04 / colour</div>
+    <div class="body">
+      <h3>Ruby and emerald are the same impurity in different company</h3>
+      <p>Diamond and corundum and beryl are all colourless when pure. Colour comes from trace ions that absorb specific wavelengths, and the surviving light is what you see. The bookkeeping is Beer-Lambert: intensity falls exponentially with the distance travelled, so a long path through the stone is a deeper colour, which is why the same rough cut small looks paler than cut large.</p>
+      <div class="eq">I(λ) = I₀(λ) · exp( −μ(λ) · ℓ )</div>
+      <p>Ruby is corundum with about one aluminium atom in a thousand replaced by chromium. <a href="https://www.gia.edu/gems-gemology/winter-2019-analytical-methods-geographic-origin-determination-gemstones">Cr³⁺ in that site absorbs in two broad bands, near 405–410 nm in the violet and near 560 nm in the green and yellow</a>, leaving red to pass and a narrow secondary window in the blue. That blue leak is why fine ruby has a slight purple cast rather than reading as pure red.</p>
+      <p>Now put the same Cr³⁺ ion into beryl instead and you get emerald. The chromium is identical; the six oxygens around it sit at a slightly different distance, which shifts the crystal-field splitting, which moves both absorption bands, and the stone comes out green. Two of the most valuable gems on earth are separated by the size of a coordination octahedron.</p>
+      <p>Sapphire works by a different mechanism entirely. There is no single colouring ion: blue requires an Fe²⁺ and a Ti⁴⁺ sitting on neighbouring aluminium sites, and light drives an electron from one to the other. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9330567/">This intervalence charge transfer produces a broad band centred near 570–580 nm</a>, with further iron bands near 390, 450 and 706 nm, so yellow through red is removed and blue survives. Take away the titanium and leave the iron and the same crystal comes out yellow.</p>
+      <p>Each material here is modelled as a sum of Gaussian absorption bands at the published band centres, scaled by the colour-depth slider. The transmission curve in the panel is the resulting spectrum through two millimetres.</p>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="tag">05 / geometry</div>
+    <div class="body">
+      <h3>A cut is an intersection of half-spaces</h3>
+      <p>Every facet is a flat plane, and the stone is the set of points on the inner side of all of them at once. That is a convex polyhedron in half-space form, and it means the renderer never needs a vertex, an edge, or a triangle. Each facet is one equation:</p>
+      <div class="eq">n̂ · x ≤ d          for all facets
+
+entry t = max over facets with n̂·d̂ < 0
+exit  t = min over facets with n̂·d̂ > 0</div>
+      <p>Intersecting a ray with the whole stone is one pass over the facet list keeping a running maximum and minimum, the same slab test used for bounding boxes, generalised to arbitrary orientations. It is exact, the normals are exact, the edges are perfectly sharp at any zoom, and a facet whose plane never touches the body simply drops out of the hull with no special case.</p>
+      <p>The facet families are generated from the girdle outline. Each outline is a convex point set, and its support function h(û) = max over boundary points of û·x gives the distance from the axis to the girdle in any horizontal direction. A crown main at azimuth φ and angle α is then the plane with normal (sinα·û, cosα) at offset sinα·h(û) + cosα·(girdle/2), which by construction meets the girdle exactly. Swap the outline for an ellipse and the round brilliant becomes an oval; swap in a lens and it becomes a marquise; the facet code does not change. Step cuts use the same support function with rows of decreasing angle instead of a bezel and halves.</p>
+      <p class="note">The convexity requirement is real and rules some cuts out. A heart shape has a concave cleft at the top, so its girdle outline is not convex and the slab test would give the wrong answer. Every cut offered here is convex.</p>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="tag">06 / rendering</div>
+    <div class="body">
+      <h3>One wavelength at a time</h3>
+      <p>Dispersion cannot be rendered in red, green and blue, because the whole point is that different wavelengths follow different paths. So the renderer is spectral. Each pixel picks a small number of wavelengths per frame, stratified across 380 to 780 nm and jittered, traces each one through its own geometry with its own index, and converts the result to tristimulus values through the CIE 1931 colour matching functions using the analytic fit of Wyman, Sloan and Shirley.</p>
+      <div class="eq">XYZ = (Δλ / K) · Σ L(λᵢ) · [x̄(λᵢ), ȳ(λᵢ), z̄(λᵢ)] / ∫ȳ dλ</div>
+      <p>The environment is spectral too. Each light is given a colour temperature and evaluated through the Planck radiation law rather than stored as a triple, so the fire has something physically shaped to disperse.</p>
+      <p>Wavelength sampling is the only stochastic part, and temporal accumulation cleans it up over a few frames. Turn on the light path map to colour each pixel by how many internal bounces the ray survived before leaving: dark blue is one or two, warm colours are five or more. It shows immediately where a badly proportioned stone is leaking.</p>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="tag">07 / limits</div>
+    <div class="body">
+      <h3>Where the model is wrong</h3>
+      <ul>
+        <li>No birefringence. Corundum, beryl, quartz and moissanite are all optically anisotropic, so each ray should split into two with different indices and different polarisations. Everything here is treated as isotropic, using the ordinary ray index. That also removes pleochroism, so a sapphire will not shift between blue and violet-blue as you turn it, which real ones do.</li>
+        <li>Polarisation is averaged, not tracked. Fresnel is evaluated for unpolarised light at every boundary, but after one reflection light is partly polarised and the next boundary should see that. Tracking it would need a Stokes vector per ray.</li>
+        <li>Fluorescence is a hack. Ruby genuinely re-emits absorbed blue and green light as a sharp doublet near 693 nm, which is why fine ruby glows in sunlight. Here it is added as a red term proportional to internal path length rather than computed from the absorbed pump energy, and the emission is not tied to any real quantum yield.</li>
+        <li>No inclusions, no colour zoning, no fluorescence variation. Real stones are inhomogeneous and that inhomogeneity is most of what a gemmologist looks at.</li>
+        <li>The girdle is polished flat rather than bruted. Real girdles are frosted or faceted with many more facets, and the scattering there softens the outline.</li>
+        <li>Only the environment lights the stone. There is no setting, no metal, no finger behind it, and those change a real gem's appearance considerably.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="tag">08 / sources</div>
+    <div class="body">
+      <h3>References</h3>
+      <ul class="refs">
+        <li>Marcel Tolkowsky. <b>Diamond Design: A Study of the Reflection and Refraction of Light in a Diamond.</b> E. &amp; F.N. Spon, London, 1919. <a href="https://www.folds.net/diamond/index.html">folds.net/diamond</a> — the original ray-tracing derivation of the 40.75° pavilion and 34.5° crown.</li>
+        <li>Aurélien Sikora et al. <b>A Review of Analytical Methods Used in Geographic Origin Determination of Gemstones.</b> Gems &amp; Gemology 55(4), 2019. <a href="https://www.gia.edu/gems-gemology/winter-2019-analytical-methods-geographic-origin-determination-gemstones">gia.edu</a> — Cr³⁺ bands at 405–410 and 560 nm, the 694 nm doublet, and the Fe²⁺–Ti⁴⁺ band near 580 nm.</li>
+        <li>Maurizio Aceto et al. <b>The Use of UV-Visible Diffuse Reflectance Spectrophotometry for a Fast, Preliminary Authentication of Gemstones.</b> Molecules 27(14), 2022. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9330567/">PMC9330567</a> — measured band positions for sapphire, garnet and others.</li>
+        <li>Chris Wyman, Peter-Pike Sloan, Peter Shirley. <b>Simple Analytic Approximations to the CIE XYZ Color Matching Functions.</b> Journal of Computer Graphics Techniques 2(2), 1–11, 2013. <a href="https://jcgt.org/published/0002/02/01/">jcgt.org/published/0002/02/01</a></li>
+        <li>The Gemology Project. <b>Dispersion.</b> <a href="https://geo.libretexts.org/Bookshelves/Geology/Gemology/07:_Optical_Properties_of_Gemstones/7.16:_Dispersion">Geosciences LibreTexts 7.16</a> — the B and G Fraunhofer line convention and the diamond values 2.407 and 2.451.</li>
+        <li>Max Born and Emil Wolf. <b>Principles of Optics</b>, 7th ed. Cambridge University Press, 1999. Chapter 1 for the Fresnel coefficients in the form used here.</li>
+      </ul>
+    </div>
+  </div>
+
+</article>
+</div>
+
+<div class="wrap"><footer>Single file, no dependencies beyond three webfonts. Spectral path tracer in one fragment shader.</footer></div>
+
+<script>
+"use strict";
+(function(){
+
+const cv = document.getElementById('gl');
+const errBox = document.getElementById('err');
+const gl = cv.getContext('webgl2',{antialias:false,alpha:false,powerPreference:'high-performance'});
+function fail(m){ errBox.style.display='block'; errBox.textContent=m; }
+if(!gl){ fail("WebGL2 is not available in this browser."); return; }
+const extF = gl.getExtension('EXT_color_buffer_float') || gl.getExtension('EXT_color_buffer_half_float');
+const HDR = extF ? 1 : 0;
+const MAXP = 120;
+
+/* =============================================================== cut geometry
+   Every facet is a half-space  n.x <= d.  The stone is the intersection.
+   Outlines are convex point sets; h(u) = max over points of dot(u,p) is the
+   support function, which places each facet plane exactly on the girdle.     */
+
+function circlePts(n, a, b){
+  const p = [];
+  for(let i=0;i<n;i++){ const t = 2*Math.PI*i/n; p.push([a*Math.cos(t), b*Math.sin(t)]); }
+  return p;
+}
+function polyPts(verts){ return verts; }
+
+// Andrew monotone chain. Guarantees the outline is convex, which the slab
+// test requires, and turns "circle plus a point" into a proper teardrop.
+function hull2(pts){
+  const P = pts.slice().sort((a,b)=> a[0]-b[0] || a[1]-b[1]);
+  const cr=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]);
+  const lo=[], up=[];
+  for(const q of P){ while(lo.length>=2 && cr(lo[lo.length-2],lo[lo.length-1],q)<=0) lo.pop(); lo.push(q); }
+  for(let i=P.length-1;i>=0;i--){ const q=P[i];
+    while(up.length>=2 && cr(up[up.length-2],up[up.length-1],q)<=0) up.pop(); up.push(q); }
+  lo.pop(); up.pop();
+  return lo.concat(up);
+}
+
+function outlineFor(cut, aspect){
+  const a = aspect;                       // half-length along z, half-width 1 along x
+  switch(cut){
+    case 'round':    return circlePts(32, 1, 1);
+    case 'oval':     return circlePts(32, 1, a);
+    case 'cushion': {                      // superellipse
+      const p=[], n=3.0;
+      for(let i=0;i<32;i++){
+        const t=2*Math.PI*(i+0.5)/32, c=Math.cos(t), s=Math.sin(t);
+        const r=Math.pow(Math.pow(Math.abs(c),n)+Math.pow(Math.abs(s),n), -1/n);
+        p.push([r*c, a*r*s]);
+      }
+      return p;
+    }
+    case 'pear': {                         // teardrop: hull of a circle and a point
+      const p = circlePts(26,1,1);
+      p.push([0, -(1.15 + 0.95*(a-1))]);
+      return hull2(p);
+    }
+    case 'marquise': {                     // navette: two circular arcs meeting at points
+      const L = 1.30*a, Wd = 0.72;
+      const R = (L*L + Wd*Wd)/(2*Wd), cx = R - Wd, p = [];
+      const th = Math.asin(Math.min(L/R,1));
+      for(let i=0;i<=14;i++){ const t=-th+2*th*i/14; p.push([ cx - R*Math.cos(t), R*Math.sin(t) ]); }
+      for(let i=0;i<=14;i++){ const t=-th+2*th*i/14; p.push([ -cx + R*Math.cos(t), R*Math.sin(t) ]); }
+      return hull2(p);
+    }
+    case 'princess': return polyPts([[1,a],[1,-a],[-1,-a],[-1,a]]);
+    case 'trilliant': {                    // triangle with softened corners
+      const p=[];
+      for(let k=0;k<3;k++){
+        const c = 2*Math.PI*k/3 + Math.PI/2;
+        for(let i=0;i<=7;i++){
+          const t = c - 0.80 + 1.60*i/7;
+          p.push([ 0.80*Math.cos(c)+0.26*Math.cos(t), a*(0.80*Math.sin(c)+0.26*Math.sin(t)) ]);
+        }
+      }
+      return hull2(p);
+    }
+    case 'emerald': case 'radiant': {
+      const c = 0.30;
+      return polyPts([[1,a-c],[1-c,a],[-(1-c),a],[-1,a-c],[-1,-(a-c)],[-(1-c),-a],[1-c,-a],[1,-(a-c)]]);
+    }
+    case 'asscher': {
+      const c = 0.42;
+      return polyPts([[1,a-c],[1-c,a],[-(1-c),a],[-1,a-c],[-1,-(a-c)],[-(1-c),-a],[1-c,-a],[1,-(a-c)]]);
+    }
+    case 'baguette': return polyPts([[1,a],[1,-a],[-1,-a],[-1,a]]);
+  }
+  return circlePts(96,1,1);
+}
+
+function support(pts, ux, uz){
+  let m = -1e9;
+  for(let i=0;i<pts.length;i++){ const v = ux*pts[i][0] + uz*pts[i][1]; if(v>m) m=v; }
+  return m;
+}
+
+// girdle facet directions: for polygonal outlines use the edge normals so the
+// flats are exact; for curved outlines use an even fan.
+// The girdle facets are the outline polygon's own edges, so a marquise keeps
+// its two points instead of being rounded off by an evenly spaced fan.
+function girdleDirs(cut, pts){
+  const dirs = [];
+  for(let i=0;i<pts.length;i++){
+    const p0 = pts[i], p1 = pts[(i+1)%pts.length];
+    const ex = p1[0]-p0[0], ez = p1[1]-p0[1];
+    const L = Math.hypot(ex,ez); if(L < 1e-6) continue;
+    let nx = ez/L, nz = -ex/L;
+    if(nx*p0[0] + nz*p0[1] < 0){ nx=-nx; nz=-nz; }
+    dirs.push([nx,nz]);
+  }
+  return dirs;
+}
+
+function buildCut(o){
+  const pts0  = outlineFor(o.cut, o.aspect);
+  const cz    = 0.5*(Math.max(...pts0.map(p=>p[1])) + Math.min(...pts0.map(p=>p[1])));
+  const pts   = pts0.map(p=>[p[0], p[1]-cz]);          // centre it (pear is offset)
+  const mx    = Math.max(...pts.map(p=>Math.abs(p[0])));
+  const mz    = Math.max(...pts.map(p=>Math.abs(p[1])));
+  const scale = 1 / Math.sqrt(mx*mz);
+  const P     = pts.map(p=>[p[0]*scale, p[1]*scale]);
+
+  const planes = [];
+  const push = (nx,ny,nz,d)=>{ const L=Math.hypot(nx,ny,nz); planes.push([nx/L,ny/L,nz/L,d]); };
+
+  const g   = o.girdle * 0.5;                       // half girdle thickness
+  const al  = o.crown * Math.PI/180;
+  const be  = o.pav   * Math.PI/180;
+  const sa = Math.sin(al), ca = Math.cos(al), sb = Math.sin(be), cb = Math.cos(be);
+
+  // girdle
+  const gd = girdleDirs(o.cut, P);
+  for(const [ux,uz] of gd) push(ux, 0, uz, support(P,ux,uz));
+
+  // reference support: mean over the main-facet azimuths
+  const NM = (o.style===1) ? gd.length : 8;
+  const mainDirs = [];
+  if(o.style === 1){ for(const d of gd) mainDirs.push(d); }
+  else { for(let k=0;k<NM;k++){ const t=2*Math.PI*k/NM; mainDirs.push([Math.cos(t),Math.sin(t)]); } }
+  let pref = 0; for(const [ux,uz] of mainDirs) pref += support(P,ux,uz);
+  pref /= mainDirs.length;
+
+  const hC = pref*(1-o.table)*Math.tan(al);          // crown height above girdle
+  const hP = pref*Math.tan(be);                      // pavilion depth below girdle
+
+  push(0, 1, 0, g + hC);                             // table
+  push(0,-1, 0, g + hP*(1 - o.culet));               // culet / keel guard
+
+  if(o.style === 1){
+    // ---- step cut: rows of decreasing angle toward the table
+    const u = [0, 0.42, 0.74, 1.0], v = [0, 0.58, 0.85, 1.0];
+    for(const [ux,uz] of mainDirs){
+      const p = support(P,ux,uz);
+      for(let k=1;k<4;k++){
+        const r0 = p*(1-(1-o.table)*u[k-1]), r1 = p*(1-(1-o.table)*u[k]);
+        const y0 = hC*v[k-1],                y1 = hC*v[k];
+        const ang = Math.atan2(y1-y0, Math.max(r0-r1,1e-4));
+        const s = Math.sin(ang), c = Math.cos(ang);
+        push(s*ux, c, s*uz, s*r0 + c*(y0+g));
+      }
+      for(let k=1;k<4;k++){
+        const r0 = p*(1-(1-0.10)*u[k-1]), r1 = p*(1-(1-0.10)*u[k]);
+        const y0 = hP*v[k-1],              y1 = hP*v[k];
+        const ang = Math.atan2(y1-y0, Math.max(r0-r1,1e-4));
+        const s = Math.sin(ang), c = Math.cos(ang);
+        push(s*ux, -c, s*uz, s*r0 + c*(y0+g));
+      }
+    }
+  } else {
+    // ---- brilliant cut
+    for(const [ux,uz] of mainDirs) push(sa*ux, ca, sa*uz, sa*support(P,ux,uz) + ca*g);   // bezels
+
+    const rt = o.table * pref / Math.cos(Math.PI/NM);   // table polygon vertex radius
+    const as = al * (1.30 - 0.95*o.star);               // star angle: shallower = longer star
+    const ss = Math.sin(as), cs = Math.cos(as);
+    for(let k=0;k<NM;k++){
+      const t = 2*Math.PI*(k+0.5)/NM, ux = Math.cos(t), uz = Math.sin(t);
+      push(ss*ux, cs, ss*uz, ss*rt + cs*(g + hC));
+    }
+    const au = al * 1.16, su = Math.sin(au), cu = Math.cos(au);       // upper girdle halves
+    for(let k=0;k<2*NM;k++){
+      const t = 2*Math.PI*(k+0.5)/(2*NM), ux = Math.cos(t), uz = Math.sin(t);
+      push(su*ux, cu, su*uz, su*support(P,ux,uz) + cu*g);
+    }
+    for(let k=0;k<NM;k++){                                            // pavilion mains
+      const t = 2*Math.PI*(k+0.5)/NM, ux = Math.cos(t), uz = Math.sin(t);
+      push(sb*ux, -cb, sb*uz, sb*support(P,ux,uz) + cb*g);
+    }
+    const bl = be + (0.5 + 5.0*(o.lower-0.5))*Math.PI/180;            // lower girdle halves
+    const sl = Math.sin(bl), cl = Math.cos(bl);
+    for(let k=0;k<2*NM;k++){
+      const t = 2*Math.PI*k/(2*NM), ux = Math.cos(t), uz = Math.sin(t);
+      push(sl*ux, -cl, sl*uz, sl*support(P,ux,uz) + cl*g);
+    }
+  }
+
+  return planes.slice(0, MAXP);
+}
+
+/* ================================================================= materials */
+
+const MATS = [
+  // name, n_D, dispersion, [ [centre,width,amp], ... ], baseline, fluorescence
+  ['Diamond, colourless', 2.4175, 0.044, [], 0.0,  0.05],
+  ['Diamond, cape yellow',2.4175, 0.044, [[415,48,1.15]], 0.02, 0.15],
+  ['Ruby',                1.766,  0.018, [[408,38,3.4],[556,58,3.8],[694,12,0.6]], 0.10, 1.00],
+  ['Sapphire, blue',      1.766,  0.018, [[578,92,3.0],[706,110,2.4],[450,28,0.35],[390,38,3.2]], 0.06, 0.02],
+  ['Sapphire, yellow',    1.766,  0.018, [[388,22,2.8],[420,38,1.7],[450,30,1.3]], 0.04, 0.05],
+  ['Sapphire, padparadscha',1.766,0.018, [[410,40,2.3],[450,30,1.1],[556,50,0.8]], 0.05, 0.45],
+  ['Emerald',             1.577,  0.014, [[430,46,2.7],[605,62,3.0],[683,10,0.5]], 0.10, 0.35],
+  ['Aquamarine',          1.577,  0.014, [[660,145,0.95]], 0.03, 0.0],
+  ['Amethyst',            1.544,  0.013, [[545,105,1.55]], 0.05, 0.0],
+  ['Citrine',             1.544,  0.013, [[422,62,1.5]], 0.03, 0.0],
+  ['Peridot',             1.654,  0.020, [[455,44,1.35],[635,72,1.7]], 0.05, 0.0],
+  ['Garnet, almandine',   1.79,   0.027, [[505,26,2.3],[527,20,2.0],[576,26,2.5],[430,55,2.1]], 0.14, 0.0],
+  ['Tanzanite',           1.69,   0.019, [[530,62,1.7],[600,66,1.0],[455,40,0.7]], 0.06, 0.0],
+  ['Moissanite',          2.65,   0.104, [[425,55,0.35]], 0.01, 0.0],
+  ['Cubic zirconia',      2.16,   0.060, [], 0.0,  0.0],
+  ['Lead glass',          1.62,   0.031, [], 0.0,  0.0]
+];
+const LB = 686.7, LG = 430.8, LD = 589.3;
+function cauchy(nD, disp){
+  const B = disp / (1/(LG*LG) - 1/(LB*LB));
+  return [ nD - B/(LD*LD), B ];
+}
+
+const CUTS = [                      // slug, label, facet style (0 brilliant, 1 step)
+  ['round','Round brilliant',0],  ['oval','Oval',0],        ['cushion','Cushion',0],
+  ['pear','Pear',0],              ['marquise','Marquise',0],['princess','Princess',0],
+  ['radiant','Radiant',0],        ['trilliant','Trilliant',0],
+  ['emerald','Emerald',1],        ['asscher','Asscher',1],  ['baguette','Baguette',1]
+];
+
+/* =================================================================== shaders */
+
+const VS = `#version 300 es
+void main(){ vec2 p = vec2((gl_VertexID<<1)&2, gl_VertexID&2); gl_Position = vec4(p*2.0-1.0,0.0,1.0); }`;
+
+const FS = `#version 300 es
+precision highp float;
+precision highp int;
+out vec4 outColor;
+
+uniform sampler2D uPrev;
+uniform vec2  uRes, uJitter, uProbePx;
+uniform float uBlend, uFrame;
+uniform int   uHDR, uMode, uPathMap;
+
+uniform vec4  uPlanes[120];
+uniform int   uNP;
+
+uniform mat3  uRot;
+uniform vec3  uLightW;
+uniform float uCamDist, uScale;
+
+uniform vec2  uCauchy;        // A, B  (n = A + B/lam^2)
+uniform float uDisp;          // dispersion multiplier
+uniform vec3  uBand[4];       // centre, width, amplitude
+uniform int   uNB;
+uniform float uAbsBase, uAbsScale, uFluo, uExpo;
+
+uniform int   uK, uBounces;
+
+const float PI = 3.14159265359;
+
+float ign(vec2 p){ return fract(52.9829189*fract(0.06711056*p.x + 0.00583715*p.y)); }
+
+float pgauss(float x, float mu, float g1, float g2){
+  float t = (x-mu)*((x<mu)?g1:g2); return exp(-0.5*t*t);
+}
+vec3 cieXYZ(float w){
+  return vec3(
+    0.362*pgauss(w,442.0,0.0624,0.0374)+1.056*pgauss(w,599.8,0.0264,0.0323)-0.065*pgauss(w,501.1,0.0490,0.0382),
+    0.821*pgauss(w,568.8,0.0213,0.0247)+0.286*pgauss(w,530.9,0.0613,0.0322),
+    1.217*pgauss(w,437.0,0.0845,0.0278)+0.681*pgauss(w,459.0,0.0385,0.0725));
+}
+vec3 xyz2rgb(vec3 c){
+  return mat3( 3.2406,-0.9689, 0.0557,
+              -1.5372, 1.8758,-0.2040,
+              -0.4986, 0.0415, 1.0570) * c;
+}
+
+// Planck spectral radiance, normalised to 1 at 560 nm
+float planck(float lamNm, float T){
+  float l = lamNm*1e-9;
+  return 1.0/(pow(l,5.0)*(exp(1.438777e-2/(l*T)) - 1.0));
+}
+float spd(float lam, float T){ return planck(lam,T)/planck(560.0,T); }
+
+float disc(vec3 d, vec3 c, float cr, float soft){
+  return smoothstep(cr-soft, cr+soft, dot(d,c));
+}
+// lit = 0 for the ray that misses the stone, so the lamps light the gem without
+// appearing in the backdrop as discs. The gradient is a single smooth sweep
+// from light grey below to a blue anthracite above.
+float envSpec(vec3 d, float lam, float lit){
+  // remapped onto the band the camera actually sees, d.y in [-0.49, 0.40]
+  float t = clamp((d.y*0.5 + 0.5 - 0.235)/0.48, 0.0, 1.0);
+  vec3  lo  = vec3(0.360, 0.366, 0.378);          // light grey
+  vec3  mid = vec3(0.132, 0.143, 0.170);
+  vec3  hi  = vec3(0.0250,0.0300,0.0470);         // blueish anthracite
+  vec3  g = mix(lo, mid, smoothstep(0.00, 0.58, t));
+  g = mix(g, hi, smoothstep(0.46, 1.00, t));
+  // grey and anthracite differ slightly in colour temperature, so carry the
+  // gradient spectrally rather than tinting a scalar
+  float L = g.g * spd(lam, mix(6200.0, 12500.0, t));
+  L *= 1.0 - 0.20*smoothstep(0.35, 1.30, length(d.xz - vec2(0.55,-0.35)));
+  if(lit <= 0.0) return L;
+
+  vec3 K = normalize(uLightW);
+  L += 96.0 * disc(d, K, 0.9975, 0.0016) * spd(lam, 5300.0);
+  L +=  3.4 * disc(d, K, 0.955,  0.030)  * spd(lam, 5300.0);
+  L += 11.0 * disc(d, normalize(vec3(-0.72,0.50,0.22)), 0.976, 0.010) * spd(lam, 8200.0);
+  L +=  6.5 * disc(d, normalize(vec3( 0.30,-0.30,-0.90)), 0.968, 0.014) * spd(lam, 3400.0);
+  L +=  4.5 * disc(d, normalize(vec3( 0.85, 0.16, 0.40)), 0.986, 0.008) * spd(lam, 6400.0);
+  L +=  1.6 * smoothstep(0.80, 0.99, d.y) * spd(lam, 6500.0);
+  return L;
+}
+
+float indexAt(float lam){
+  float B = uCauchy.y * uDisp;
+  float A = uCauchy.x + uCauchy.y*(1.0-uDisp)/(589.3*589.3);
+  return A + B/(lam*lam);
+}
+float muAt(float lam){
+  float m = uAbsBase;
+  for(int i=0;i<4;i++){
+    if(i >= uNB) break;
+    float t = (lam - uBand[i].x)/uBand[i].y;
+    m += uBand[i].z*exp(-t*t);
+  }
+  return m*uAbsScale;
+}
+float fresnelR(float cosi, float eta){       // eta = n_transmitted / n_incident
+  float s2 = (1.0-cosi*cosi)/(eta*eta);
+  if(s2 >= 1.0) return 1.0;
+  float cost = sqrt(1.0-s2);
+  float rs = (cosi - eta*cost)/(cosi + eta*cost);
+  float rp = (eta*cosi - cost)/(eta*cosi + cost);
+  return clamp(0.5*(rs*rs + rp*rp), 0.0, 1.0);
+}
+
+// slab test against the intersection of half-spaces
+bool hitHull(vec3 ro, vec3 rd, out float t0, out float t1, out int f0, out int f1){
+  t0 = -1e20; t1 = 1e20; f0 = -1; f1 = -1;
+  for(int i=0;i<120;i++){
+    if(i >= uNP) break;
+    vec4 P = uPlanes[i];
+    float dn = dot(rd, P.xyz);
+    float dd = P.w - dot(ro, P.xyz);
+    if(abs(dn) < 1e-8){ if(dd < 0.0) return false; }
+    else {
+      float t = dd/dn;
+      if(dn > 0.0){ if(t < t1){ t1 = t; f1 = i; } }
+      else        { if(t > t0){ t0 = t; f0 = i; } }
+    }
+  }
+  return t1 > max(t0, 0.0) + 1e-6;
+}
+
+void main(){
+  vec2 px = (uMode==1) ? uProbePx : (gl_FragCoord.xy + uJitter);
+  vec2 uv = (2.0*px - uRes)/uRes.y;
+
+  vec3 roW = vec3(0.0, 0.16, uCamDist), ta = vec3(0.0,0.0,0.0);
+  vec3 ww = normalize(ta-roW), uu = normalize(cross(ww,vec3(0.0,1.0,0.0))), vv = cross(uu,ww);
+  vec3 rdW = normalize(uv.x*uu + uv.y*vv + 2.0*ww);
+  mat3 W2O = transpose(uRot);
+  vec3 ro = (W2O*roW)/uScale, rd = normalize(W2O*rdW);
+
+  float seed = ign(px) + uFrame*0.61803399;
+  vec3 XYZ = vec3(0.0);
+  float pathLen = 0.0, pumpAbs = 0.0;
+  int   bounceRec = 0;
+
+  float t0,t1; int f0,f1;
+  bool  outside = hitHull(ro, rd, t0, t1, f0, f1);
+
+  for(int k=0;k<6;k++){
+    if(k >= uK) break;
+    float u   = fract(seed + float(k)/float(uK));
+    float lam = 380.0 + 400.0*u;
+    float n   = indexAt(lam);
+    float mu  = muAt(lam);
+
+    float L = 0.0;
+
+    if(!outside){
+      L = envSpec(rdW, lam, 0.0);
+    } else {
+      vec3 P  = ro + t0*rd;
+      vec3 N  = uPlanes[f0].xyz;
+      float ci = clamp(dot(-rd,N), 0.0, 1.0);
+      float F  = fresnelR(ci, n);
+      L += F * envSpec(uRot*reflect(rd,N), lam, 1.0);
+
+      vec3 dir = refract(rd, N, 1.0/n);
+      float T  = 1.0 - F;
+      vec3 pos = P;
+
+      for(int b=0;b<16;b++){
+        if(b >= uBounces) break;
+        float e0,e1; int g0,g1;
+        if(!hitHull(pos + dir*1e-4, dir, e0, e1, g0, g1)) break;
+        float seg = e1 + 1e-4;
+        pos = pos + dir*seg;
+        T  *= exp(-mu*seg*uScale);
+        if(k == 0){ pathLen += seg; pumpAbs += seg; bounceRec = b+1; }
+
+        vec3 N2 = uPlanes[g1].xyz;
+        float co = clamp(dot(dir,N2), 0.0, 1.0);
+        float F2 = fresnelR(co, 1.0/n);
+        if(F2 < 0.9999){
+          vec3 od = refract(dir, -N2, n);
+          L += T*(1.0-F2)*envSpec(uRot*normalize(od), lam, 1.0);
+        }
+        T *= F2;
+        dir = reflect(dir, N2);
+        if(T < 0.0015) break;
+      }
+    }
+    XYZ += L * cieXYZ(lam);
+  }
+  XYZ *= 400.0/(float(uK)*106.857);
+
+  vec3 col = max(xyz2rgb(XYZ), 0.0);
+
+  // fluorescence: red re-emission proportional to internal path length
+  if(outside && uFluo > 0.0){
+    float f = uFluo*(1.0 - exp(-0.55*uAbsScale*pathLen*uScale));
+    col += max(xyz2rgb(cieXYZ(693.0)),0.0)*f*0.55;
+  }
+
+  if(uPathMap == 1){
+    if(!outside) col = vec3(0.02);
+    else {
+      float b = float(bounceRec)/8.0;
+      col = 0.5 + 0.5*cos(6.2831*(vec3(0.0,0.33,0.67) + b*0.9 + 0.15));
+      col *= 0.15 + 0.85*smoothstep(0.0,0.15,b);
+    }
+  } else if(outside){
+    col *= uExpo;
+  }
+
+  if(uMode == 1){
+    outColor = vec4(float(bounceRec)/16.0, clamp(pathLen*uScale/6.0,0.0,1.0),
+                    outside ? 1.0 : 0.0, 1.0);
+    return;
+  }
+
+  if(uHDR == 0){
+    col = (col*(2.51*col+0.03))/(col*(2.43*col+0.59)+0.14);
+    col = pow(clamp(col,0.0,1.0), vec3(1.0/2.2));
+  }
+  vec3 prev = texture(uPrev, gl_FragCoord.xy/uRes).rgb;
+  outColor = vec4(mix(prev, col, uBlend), 1.0);
+}`;
+
+const PS = `#version 300 es
+precision highp float;
+uniform sampler2D uTex; uniform vec2 uRes; uniform int uHDR;
+out vec4 o;
+void main(){
+  vec3 c = texture(uTex, gl_FragCoord.xy/uRes).rgb;
+  if(uHDR == 1){
+    c = (c*(2.51*c+0.03))/(c*(2.43*c+0.59)+0.14);
+    c = pow(clamp(c,0.0,1.0), vec3(1.0/2.2));
+  }
+  o = vec4(c,1.0);
+}`;
+
+function compile(type,src){
+  const s = gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+  return s;
+}
+function link(vs,fs){
+  const p = gl.createProgram();
+  gl.attachShader(p,compile(gl.VERTEX_SHADER,vs));
+  gl.attachShader(p,compile(gl.FRAGMENT_SHADER,fs));
+  gl.linkProgram(p);
+  if(!gl.getProgramParameter(p,gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  return p;
+}
+let prog, pres;
+try{ prog = link(VS,FS); pres = link(VS,PS); }
+catch(e){ fail("Shader build failed:\n\n"+e.message); return; }
+gl.bindVertexArray(gl.createVertexArray());
+
+const U = {};
+for(const n of ["uPrev","uRes","uJitter","uProbePx","uBlend","uFrame","uHDR","uMode","uPathMap",
+  "uPlanes","uNP","uRot","uLightW","uCamDist","uScale","uCauchy","uDisp","uBand","uNB",
+  "uAbsBase","uAbsScale","uFluo","uExpo","uK","uBounces"]) U[n] = gl.getUniformLocation(prog,n);
+const PU = { uTex:gl.getUniformLocation(pres,"uTex"), uRes:gl.getUniformLocation(pres,"uRes"),
+             uHDR:gl.getUniformLocation(pres,"uHDR") };
+
+function makeTex(w,h){
+  const tx = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,tx);
+  if(HDR) gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA16F,w,h,0,gl.RGBA,gl.HALF_FLOAT,null);
+  else    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,w,h,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  return tx;
+}
+let texA,texB,fbA,fbB;
+function makeTargets(w,h){
+  for(const x of [texA,texB]) if(x) gl.deleteTexture(x);
+  for(const x of [fbA,fbB])   if(x) gl.deleteFramebuffer(x);
+  texA = makeTex(w,h); texB = makeTex(w,h);
+  fbA = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER,fbA);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,texA,0);
+  fbB = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER,fbB);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,texB,0);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+}
+const probeTex = makeTex(1,1);
+const probeFB  = gl.createFramebuffer();
+gl.bindFramebuffer(gl.FRAMEBUFFER,probeFB);
+gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,probeTex,0);
+gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+
+/* ===================================================================== state */
+
+const DEFAULTS = {
+  cut:0, mat:0, style:0,
+  table:0.53, crown:34.5, pav:40.8, girdle:0.030,
+  star:0.55, lower:0.77, culet:0.010, aspect:1.00,
+  sat:1.00, disp:1.00, fluo:0.60, expo:1.00,
+  K:3, bounces:10
+};
+const S = Object.assign({
+  rot:[1,0,0,0,1,0,0,0,1], camDist:3.1, lightAz:0.42, lightEl:1.02,
+  accum:true, spin:true, pathmap:false, frame:0, scale:0.9, acc:0, slot:0
+}, DEFAULTS);
+
+let planes = [];
+function rebuild(){
+  const c = CUTS[S.cut];
+  planes = buildCut({
+    cut:c[0], style:S.style, table:S.table, crown:S.crown, pav:S.pav,
+    girdle:S.girdle, star:S.star, lower:S.lower, culet:S.culet, aspect:S.aspect
+  });
+  reset();
+}
+
+function mul3(a,b){ const o=new Array(9);
+  for(let r=0;r<3;r++) for(let c=0;c<3;c++) o[r*3+c]=a[r*3]*b[c]+a[r*3+1]*b[3+c]+a[r*3+2]*b[6+c];
+  return o; }
+function axisRot(ax,ang){ const [x,y,z]=ax,c=Math.cos(ang),s=Math.sin(ang),k=1-c;
+  return [c+x*x*k,x*y*k-z*s,x*z*k+y*s, y*x*k+z*s,c+y*y*k,y*z*k-x*s, z*x*k-y*s,z*y*k+x*s,c+z*z*k]; }
+function ortho(m){
+  let x=[m[0],m[3],m[6]], y=[m[1],m[4],m[7]];
+  const nx=Math.hypot(x[0],x[1],x[2]); x=x.map(v=>v/nx);
+  const d=x[0]*y[0]+x[1]*y[1]+x[2]*y[2];
+  y=[y[0]-d*x[0],y[1]-d*x[1],y[2]-d*x[2]];
+  const ny=Math.hypot(y[0],y[1],y[2]); y=y.map(v=>v/ny);
+  const z=[x[1]*y[2]-x[2]*y[1], x[2]*y[0]-x[0]*y[2], x[0]*y[1]-x[1]*y[0]];
+  return [x[0],y[0],z[0], x[1],y[1],z[1], x[2],y[2],z[2]];
+}
+
+let W=1,H=1,needsResize=true;
+function resize(){
+  const r = cv.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio||1, 2);
+  const w = Math.max(1,Math.round(r.width*dpr*S.scale));
+  const h = Math.max(1,Math.round(r.height*dpr*S.scale));
+  if(w!==W||h!==H){ W=w;H=h;cv.width=w;cv.height=h; makeTargets(w,h); reset(); }
+  needsResize=false;
+}
+new ResizeObserver(()=>{needsResize=true;}).observe(cv);
+function reset(){ S.acc = 0; }
+function lightVec(){ const ce=Math.cos(S.lightEl);
+  return [ce*Math.sin(S.lightAz), Math.sin(S.lightEl), ce*Math.cos(S.lightAz)]; }
+function halton(i,b){ let f=1,r=0; while(i>0){ f/=b; r+=f*(i%b); i=Math.floor(i/b);} return r; }
+
+const planeBuf = new Float32Array(MAXP*4);
+const bandBuf  = new Float32Array(12);
+
+function setUniforms(){
+  gl.uniform2f(U.uRes,W,H);
+  gl.uniformMatrix3fv(U.uRot,false,new Float32Array(
+    [S.rot[0],S.rot[3],S.rot[6],S.rot[1],S.rot[4],S.rot[7],S.rot[2],S.rot[5],S.rot[8]]));
+  const L = lightVec(); gl.uniform3f(U.uLightW,L[0],L[1],L[2]);
+  gl.uniform1f(U.uCamDist,S.camDist);
+
+  planeBuf.fill(0);
+  for(let i=0;i<planes.length;i++){
+    planeBuf[i*4]=planes[i][0]; planeBuf[i*4+1]=planes[i][1];
+    planeBuf[i*4+2]=planes[i][2]; planeBuf[i*4+3]=planes[i][3];
+  }
+  gl.uniform4fv(U.uPlanes, planeBuf);
+  gl.uniform1i(U.uNP, planes.length);
+  gl.uniform1f(U.uScale, 1.0);
+
+  const M = MATS[S.mat];
+  const [A,B] = cauchy(M[1], M[2]);
+  gl.uniform2f(U.uCauchy, A, B);
+  gl.uniform1f(U.uDisp, S.disp);
+  bandBuf.fill(0);
+  const nb = Math.min(M[3].length,4);
+  for(let i=0;i<nb;i++){ bandBuf[i*3]=M[3][i][0]; bandBuf[i*3+1]=M[3][i][1]; bandBuf[i*3+2]=M[3][i][2]; }
+  gl.uniform3fv(U.uBand, bandBuf);
+  gl.uniform1i(U.uNB, nb);
+  gl.uniform1f(U.uAbsBase, M[4]);
+  gl.uniform1f(U.uAbsScale, S.sat);
+  gl.uniform1f(U.uFluo, S.fluo*M[5]);
+  gl.uniform1f(U.uExpo, S.expo);
+  gl.uniform1i(U.uK, S.K);
+  gl.uniform1i(U.uBounces, S.bounces);
+  gl.uniform1i(U.uHDR, HDR);
+  gl.uniform1i(U.uPathMap, S.pathmap?1:0);
+  gl.uniform1f(U.uFrame, S.frame%1024);
+}
+
+let lastT=performance.now(), emaMs=16, perfAcc=0;
+const perfEl=document.getElementById('perf');
+let dragging=false,lastX=0,lastY=0,velX=0,velY=0,shiftDrag=false;
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function frame(now){
+  if(needsResize) resize();
+  const dt = Math.min((now-lastT)/1000,0.1); lastT = now;
+  let moved=false;
+  if(S.spin && !dragging && !reduceMotion){
+    S.rot = ortho(mul3(axisRot([0.10,0.98,0.14], dt*0.18), S.rot)); moved=true;
+  }
+  if(!dragging && (Math.abs(velX)>1e-5||Math.abs(velY)>1e-5)){
+    S.rot = ortho(mul3(mul3(axisRot([0,1,0],velX),axisRot([1,0,0],velY)),S.rot));
+    velX*=0.90; velY*=0.90; moved=true;
+  }
+  if(moved||dragging) S.acc = Math.min(S.acc,3);
+  S.frame++; S.acc++;
+
+  let blend;
+  if(!S.accum) blend = 1.0;
+  else if(dragging) blend = 0.55;
+  else blend = Math.max(1/Math.min(S.acc,32), moved ? 0.28 : 0.0);
+
+  const readTex  = (S.frame&1)?texB:texA;
+  const writeFB  = (S.frame&1)?fbA :fbB;
+  const writeTex = (S.frame&1)?texA:texB;
+
+  gl.useProgram(prog); setUniforms();
+  gl.uniform1f(U.uBlend, blend);
+  gl.uniform1i(U.uMode, 0);
+  gl.uniform2f(U.uProbePx,0,0);
+  const j = (S.accum&&!reduceMotion) ? [halton(S.frame%64+1,2)-0.5, halton(S.frame%64+1,3)-0.5] : [0,0];
+  gl.uniform2f(U.uJitter, j[0], j[1]);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, readTex);
+  gl.uniform1i(U.uPrev,0);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, writeFB); gl.viewport(0,0,W,H);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null); gl.viewport(0,0,W,H);
+  gl.useProgram(pres);
+  gl.uniform2f(PU.uRes,W,H); gl.uniform1i(PU.uHDR,HDR);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, writeTex);
+  gl.uniform1i(PU.uTex,0);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+
+  const ms = performance.now()-now;
+  emaMs = emaMs*0.92 + ms*0.08;
+  if(++perfAcc % 30 === 0){
+    perfEl.textContent = `${W}×${H} · ${emaMs.toFixed(1)} ms/frame · ${planes.length} facet planes`;
+    if(emaMs>33 && S.scale>0.45){ S.scale=Math.max(0.45,S.scale-0.08); needsResize=true; }
+    else if(emaMs<12 && S.scale<1.0){ S.scale=Math.min(1.0,S.scale+0.05); needsResize=true; }
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ===================================================================== probe */
+
+const probeBuf = new Uint8Array(4);
+const readoutEl = document.getElementById('readout');
+const HINT = '<span class="hintline">Drag to turn · scroll to zoom · shift-drag moves the lamp · hover to trace a ray</span>';
+let probeQueued = null;
+function runProbe(px,py){
+  gl.useProgram(prog); setUniforms();
+  gl.uniform1f(U.uBlend,1.0); gl.uniform2f(U.uJitter,0,0);
+  gl.uniform1i(U.uMode,1); gl.uniform2f(U.uProbePx,px,py);
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,texA); gl.uniform1i(U.uPrev,0);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,probeFB); gl.viewport(0,0,1,1);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+  gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,probeBuf);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+  if(probeBuf[2] < 128){ readoutEl.innerHTML='<span class="hintline">off the stone</span>'; return; }
+  const b = Math.round((probeBuf[0]/255)*16);
+  const p = (probeBuf[1]/255)*6;
+  const M = MATS[S.mat];
+  const tc = Math.asin(Math.min(1/M[1],1))*180/Math.PI;
+  readoutEl.innerHTML =
+    `<span>internal bounces <b>${b}</b></span>`+
+    `<span>path <b>${p.toFixed(2)}</b> girdle radii</span>`+
+    `<span>θ<sub>c</sub> <b>${tc.toFixed(1)}°</b></span>`+
+    `<span>n<sub>D</sub> <b>${M[1].toFixed(3)}</b></span>`;
+}
+setInterval(()=>{ if(probeQueued){ runProbe(probeQueued[0],probeQueued[1]); probeQueued=null; } }, 110);
+
+/* ===================================================================== input */
+
+cv.addEventListener('pointerdown', e=>{
+  dragging=true; shiftDrag = e.shiftKey||e.button===2;
+  lastX=e.clientX; lastY=e.clientY; velX=velY=0; reset();
+  cv.setPointerCapture(e.pointerId); cv.classList.add('dragging');
+});
+cv.addEventListener('pointerup', e=>{
+  dragging=false; cv.classList.remove('dragging'); reset();
+  try{ cv.releasePointerCapture(e.pointerId); }catch(_){}
+});
+cv.addEventListener('pointercancel',()=>{ dragging=false; cv.classList.remove('dragging'); });
+cv.addEventListener('contextmenu', e=>e.preventDefault());
+cv.addEventListener('pointermove', e=>{
+  if(dragging){
+    const dx=e.clientX-lastX, dy=e.clientY-lastY;
+    lastX=e.clientX; lastY=e.clientY;
+    if(shiftDrag){
+      S.lightAz += dx*0.006;
+      S.lightEl = Math.max(-1.35, Math.min(1.45, S.lightEl+dy*0.005));
+    } else {
+      velX=dx*0.0060; velY=dy*0.0060;
+      S.rot = ortho(mul3(mul3(axisRot([0,1,0],velX),axisRot([1,0,0],velY)),S.rot));
+    }
+    reset(); return;
+  }
+  const r = cv.getBoundingClientRect();
+  probeQueued = [ (e.clientX-r.left)/r.width*W, (1-(e.clientY-r.top)/r.height)*H ];
+});
+cv.addEventListener('pointerleave', ()=>{ readoutEl.innerHTML = HINT; });
+cv.addEventListener('wheel', e=>{
+  e.preventDefault();
+  S.camDist = Math.max(1.6, Math.min(8.0, S.camDist*Math.exp(e.deltaY*0.0012))); reset();
+},{passive:false});
+cv.addEventListener('keydown', e=>{
+  const k=0.06;
+  const ax={ArrowLeft:[[0,1,0],-k],ArrowRight:[[0,1,0],k],ArrowUp:[[1,0,0],-k],ArrowDown:[[1,0,0],k]}[e.key];
+  if(ax){ S.rot = ortho(mul3(axisRot(ax[0],ax[1]),S.rot)); reset(); e.preventDefault(); }
+});
+
+const viewport = document.getElementById('viewport');
+const expandBtn = document.getElementById('expand');
+function setExpanded(on){
+  viewport.classList.toggle('expanded', on);
+  document.body.style.overflow = on ? 'hidden' : '';
+  expandBtn.textContent = on ? '⤡ close' : '⤢ expand';
+  needsResize = true;
+  if(on && viewport.requestFullscreen) viewport.requestFullscreen().catch(()=>{});
+  else if(!on && document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+}
+expandBtn.addEventListener('click', ()=> setExpanded(!viewport.classList.contains('expanded')));
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'&&viewport.classList.contains('expanded')) setExpanded(false); });
+document.addEventListener('fullscreenchange', ()=>{ needsResize=true; });
+
+/* =================================================================== controls */
+
+const cutSel = document.getElementById('cut');
+CUTS.forEach((c,i)=>{ const o=document.createElement('option'); o.value=String(i); o.textContent=c[1]; cutSel.appendChild(o); });
+const matSel = document.getElementById('mat');
+MATS.forEach((m,i)=>{ const o=document.createElement('option'); o.value=String(i); o.textContent=m[0]; matSel.appendChild(o); });
+
+const SL = {
+  table: {get:()=>S.table*100, set:v=>S.table=v/100,   fmt:v=>v+' %',              geo:1},
+  crown: {get:()=>S.crown*10,  set:v=>S.crown=v/10,    fmt:v=>(v/10).toFixed(1)+'°',geo:1},
+  pav:   {get:()=>S.pav*10,    set:v=>S.pav=v/10,      fmt:v=>(v/10).toFixed(1)+'°',geo:1},
+  girdle:{get:()=>S.girdle*1000,set:v=>S.girdle=v/1000,fmt:v=>(v/10).toFixed(1)+' %',geo:1},
+  star:  {get:()=>S.star*100,  set:v=>S.star=v/100,    fmt:v=>v+' %',              geo:1},
+  lower: {get:()=>S.lower*100, set:v=>S.lower=v/100,   fmt:v=>v+' %',              geo:1},
+  culet: {get:()=>S.culet*1000,set:v=>S.culet=v/1000,  fmt:v=>(v/10).toFixed(1)+' %',geo:1},
+  aspect:{get:()=>S.aspect*100,set:v=>S.aspect=v/100,  fmt:v=>(v/100).toFixed(2),  geo:1},
+  sat:   {get:()=>S.sat*100,   set:v=>S.sat=v/100,     fmt:v=>(v/100).toFixed(2),  geo:0},
+  disp:  {get:()=>S.disp*100,  set:v=>S.disp=v/100,    fmt:v=>(v/100).toFixed(2),  geo:0},
+  fluo:  {get:()=>S.fluo*100,  set:v=>S.fluo=v/100,    fmt:v=>(v/100).toFixed(2),  geo:0},
+  expo:  {get:()=>S.expo*100,  set:v=>S.expo=v/100,    fmt:v=>(v/100).toFixed(2),  geo:0}
+};
+for(const id in SL){
+  const el=document.getElementById(id), out=document.getElementById(id+'-v'), sp=SL[id];
+  el.addEventListener('input', ()=>{
+    sp.set(parseFloat(el.value));
+    out.textContent = sp.fmt(parseFloat(el.value));
+    if(sp.geo) rebuild(); else reset();
+    if(id==='sat') drawSpectrum();
+    pushURL();
+  });
+}
+function segSet(ids,i){ ids.forEach((id,k)=>document.getElementById(id).setAttribute('aria-pressed',String(k===i))); }
+function segment(ids,apply){
+  ids.forEach((id,i)=>document.getElementById(id).addEventListener('click',()=>{ segSet(ids,i); apply(i); pushURL(); }));
+}
+segment(['fs0','fs1'], i=>{ S.style=i; rebuild(); });
+segment(['k0','k1','k2'], i=>{ S.K=[1,3,6][i]; reset(); });
+segment(['b0','b1','b2'], i=>{ S.bounces=[6,10,16][i]; reset(); });
+segment(['s0','s1','s2','s3'], i=>{ S.slot=i; });
+
+cutSel.addEventListener('change', ()=>{ S.cut=+cutSel.value; S.style=CUTS[S.cut][2]; syncUI(); rebuild(); pushURL(); });
+matSel.addEventListener('change', ()=>{ S.mat=+matSel.value; reset(); drawSpectrum(); showFacts(); pushURL(); });
+document.getElementById('accum').addEventListener('change', e=>{ S.accum=e.target.checked; reset(); });
+document.getElementById('spin').addEventListener('change',  e=>{ S.spin=e.target.checked; });
+document.getElementById('paths').addEventListener('change', e=>{ S.pathmap=e.target.checked; reset(); });
+document.getElementById('reset').addEventListener('click', ()=>{
+  S.rot=[1,0,0,0,1,0,0,0,1]; S.camDist=3.1; S.lightAz=0.42; S.lightEl=1.02; velX=velY=0; reset();
+});
+document.getElementById('ideal').addEventListener('click', ()=>{
+  S.table=0.53; S.crown=34.5; S.pav=40.75; S.culet=0.015; S.girdle=0.030;
+  S.star=0.55; S.lower=0.77; S.aspect=1.0; S.cut=0; S.style=0;
+  syncUI(); rebuild(); pushURL();
+  say('Tolkowsky 1919: 53% table, 34.5° crown, 40.75° pavilion.');
+});
+document.getElementById('rand').addEventListener('click', ()=>{
+  const R=(a,b)=>a+(b-a)*Math.random();
+  S.cut = Math.floor(Math.random()*CUTS.length);
+  S.mat = Math.floor(Math.random()*MATS.length);
+  S.style = CUTS[S.cut][2];
+  S.table=R(0.42,0.68); S.crown=R(28,40); S.pav=R(38.5,43.5);
+  S.girdle=R(0.012,0.055); S.star=R(0.42,0.68); S.lower=R(0.6,0.9); S.culet=R(0,0.03);
+  S.aspect = (S.cut===0)?1.0:R(1.0,1.9);
+  S.sat=R(0.5,2.0); S.disp=R(0.7,1.6); S.fluo=R(0,1.2);
+  syncUI(); rebuild(); drawSpectrum(); showFacts(); pushURL();
+});
+
+function syncUI(){
+  for(const id in SL){
+    const el=document.getElementById(id), out=document.getElementById(id+'-v'), sp=SL[id];
+    el.value = String(Math.round(sp.get()));
+    out.textContent = sp.fmt(parseFloat(el.value));
+  }
+  cutSel.value = String(S.cut);
+  matSel.value = String(S.mat);
+  segSet(['fs0','fs1'], S.style);
+  segSet(['k0','k1','k2'], [1,3,6].indexOf(S.K));
+  segSet(['b0','b1','b2'], [6,10,16].indexOf(S.bounces));
+  segSet(['s0','s1','s2','s3'], S.slot);
+  document.getElementById('accum').checked = S.accum;
+  document.getElementById('spin').checked  = S.spin;
+  document.getElementById('paths').checked = S.pathmap;
+  drawSpectrum(); showFacts();
+}
+
+/* ============================================================ spectrum panel */
+
+const specCv = document.getElementById('spec'), sctx = specCv.getContext('2d');
+function pg(x,mu,g1,g2){ const t=(x-mu)*(x<mu?g1:g2); return Math.exp(-0.5*t*t); }
+function cie(w){ return [
+  0.362*pg(w,442,.0624,.0374)+1.056*pg(w,599.8,.0264,.0323)-0.065*pg(w,501.1,.0490,.0382),
+  0.821*pg(w,568.8,.0213,.0247)+0.286*pg(w,530.9,.0613,.0322),
+  1.217*pg(w,437,.0845,.0278)+0.681*pg(w,459,.0385,.0725)]; }
+function rgbOf(w,gain){
+  const [X,Y,Z]=cie(w);
+  const r=3.2406*X-1.5372*Y-0.4986*Z, g=-0.9689*X+1.8758*Y+0.0415*Z, b=0.0557*X-0.2040*Y+1.0570*Z;
+  const k=gain===undefined?1.3:gain;
+  const f=v=>{ v=Math.max(0,v*k); v=v<=0.0031308?12.92*v:1.055*Math.pow(v,1/2.4)-0.055;
+               return Math.round(Math.min(1,v)*255); };
+  return [f(r),f(g),f(b)];
+}
+function muOf(w){
+  const M=MATS[S.mat]; let m=M[4];
+  for(const [c,wd,a] of M[3]){ const t=(w-c)/wd; m += a*Math.exp(-t*t); }
+  return m*S.sat;
+}
+function drawSpectrum(){
+  const w=specCv.width, h=specCv.height;
+  const img=sctx.createImageData(w,h);
+  for(let x=0;x<w;x++){
+    const lam = 380 + 400*x/(w-1);
+    const T = Math.exp(-muOf(lam)*2.0);
+    const c = rgbOf(lam, 1.35);
+    const cut = Math.round((1-T)*h);
+    for(let y=0;y<h;y++){
+      const i=(y*w+x)*4;
+      const on = y >= cut;
+      img.data[i]  = on?c[0]:22; img.data[i+1]=on?c[1]:22;
+      img.data[i+2]= on?c[2]:22; img.data[i+3]=255;
+    }
+  }
+  sctx.putImageData(img,0,0);
+}
+function showFacts(){
+  const M = MATS[S.mat];
+  const [A,B] = cauchy(M[1],M[2]);
+  const tc = Math.asin(Math.min(1/M[1],1))*180/Math.PI;
+  const R0 = Math.pow((M[1]-1)/(M[1]+1),2)*100;
+  document.getElementById('facts').innerHTML =
+    `n<sub>D</sub> <b>${M[1].toFixed(4)}</b> · dispersion <b>${M[2].toFixed(3)}</b><br>`+
+    `θ<sub>c</sub> <b>${tc.toFixed(1)}°</b> · surface R <b>${R0.toFixed(1)}%</b><br>`+
+    `Cauchy A <b>${A.toFixed(4)}</b>, B <b>${Math.round(B)}</b> nm²`;
+}
+
+/* =================================================================== presets */
+
+const KEYS = ['cut','mat','style','table','crown','pav','girdle','star','lower','culet','aspect','sat','disp','fluo','expo','K','bounces'];
+function grab(){ const o={}; for(const k of KEYS) o[k]=S[k]; return o; }
+function applyCfg(o){
+  if(!o) return false;
+  for(const k of KEYS) if(typeof o[k]==='number') S[k]=o[k];
+  S.cut = Math.max(0, Math.min(CUTS.length-1, S.cut|0));
+  S.mat = Math.max(0, Math.min(MATS.length-1, S.mat|0));
+  syncUI(); rebuild(); return true;
+}
+function encode(o){ return btoa(JSON.stringify(o)).replace(/=+$/,'').replace(/\+/g,'-').replace(/\//g,'_'); }
+function decode(s){ try{ return JSON.parse(atob(s.trim().replace(/-/g,'+').replace(/_/g,'/'))); }catch(_){ return null; } }
+const cfgEl = document.getElementById('cfg'), statusEl = document.getElementById('prestatus');
+let urlTimer=0;
+function pushURL(){
+  const code = encode(grab()); cfgEl.value = code;
+  clearTimeout(urlTimer);
+  urlTimer = setTimeout(()=>{ try{ history.replaceState(null,'','#'+code); }catch(_){} }, 400);
+}
+function say(m){ statusEl.textContent = m; }
+const store = {
+  mem:{},
+  get(k){ try{ const v=window.localStorage.getItem(k); if(v!==null) return v; }catch(_){} return this.mem[k]??null; },
+  set(k,v){ this.mem[k]=v; try{ window.localStorage.setItem(k,v); return true; }catch(_){ return false; } }
+};
+document.getElementById('save').addEventListener('click', ()=>{
+  const ok = store.set('gem.slot'+S.slot, encode(grab()));
+  say(ok ? `Saved to slot ${S.slot+1}.` : `Slot ${S.slot+1} saved for this session only; copy the config code to keep it.`);
+});
+document.getElementById('load').addEventListener('click', ()=>{
+  const v = store.get('gem.slot'+S.slot);
+  say(v && applyCfg(decode(v)) ? `Loaded slot ${S.slot+1}.` : `Slot ${S.slot+1} is empty.`);
+  pushURL();
+});
+document.getElementById('copycfg').addEventListener('click', ()=>{
+  cfgEl.select();
+  const done=()=>say('Config code copied.');
+  if(navigator.clipboard) navigator.clipboard.writeText(cfgEl.value).then(done,()=>say('Select the field and copy manually.'));
+  else { try{ document.execCommand('copy'); done(); }catch(_){ say('Select the field and copy manually.'); } }
+});
+document.getElementById('applycfg').addEventListener('click', ()=>{
+  say(applyCfg(decode(cfgEl.value)) ? 'Config applied.' : 'That code did not parse.'); pushURL();
+});
+if(location.hash.length > 3) applyCfg(decode(location.hash.slice(1)));
+
+syncUI();
+rebuild();
+pushURL();
+resize();
+requestAnimationFrame(frame);
+
+})();
+</script>
+</body>
+</html>
