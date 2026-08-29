@@ -180,20 +180,20 @@ footer{border-top:1px solid var(--rule);padding:20px 0 60px;font-family:"IBM Ple
       <div class="group">
         <h2>Lattice</h2>
         <div class="ctl">
-          <label for="dia">sphere Ø <span class="val" id="dia-v">261 nm</span></label>
-          <input type="range" id="dia" min="150" max="360" step="1" value="261">
+          <label for="dia">sphere Ø <span class="val" id="dia-v">299 nm</span></label>
+          <input type="range" id="dia" min="150" max="360" step="1" value="299">
         </div>
         <div class="ctl">
-          <label for="spread">size dispersity <span class="val" id="spread-v">17 %</span></label>
-          <input type="range" id="spread" min="0" max="40" step="1" value="17">
+          <label for="spread">size dispersity <span class="val" id="spread-v">15 %</span></label>
+          <input type="range" id="spread" min="0" max="40" step="1" value="15">
         </div>
         <div class="ctl">
-          <label for="nvoid">void index <span class="val" id="nvoid-v">1.17</span></label>
-          <input type="range" id="nvoid" min="100" max="145" step="1" value="117">
+          <label for="nvoid">void index <span class="val" id="nvoid-v">1.00</span></label>
+          <input type="range" id="nvoid" min="100" max="145" step="1" value="100">
         </div>
         <div class="strip">
           <canvas id="spec" width="512" height="52"></canvas>
-          <div class="striplab"><span>λ(θ=0°)</span><span id="spec-lab">589 nm</span><span>θ=60°</span></div>
+          <div class="striplab"><span>λ(θ=0°)</span><span id="spec-lab">658 nm</span><span>θ=60°</span></div>
         </div>
       </div>
 
@@ -208,8 +208,8 @@ footer{border-top:1px solid var(--rule);padding:20px 0 60px;font-family:"IBM Ple
           <input type="range" id="tilt" min="0" max="90" step="1" value="31">
         </div>
         <div class="ctl">
-          <label for="coh">coherence width <span class="val" id="coh-v">2.7°</span></label>
-          <input type="range" id="coh" min="5" max="200" step="1" value="27">
+          <label for="coh">coherence width <span class="val" id="coh-v">6.7°</span></label>
+          <input type="range" id="coh" min="5" max="200" step="1" value="67">
         </div>
         <div class="ctl">
           <label for="potch">ordered fraction <span class="val" id="potch-v">40 %</span></label>
@@ -220,12 +220,12 @@ footer{border-top:1px solid var(--rule);padding:20px 0 60px;font-family:"IBM Ple
       <div class="group">
         <h2>Stone</h2>
         <div class="ctl">
-          <label for="body">body tone <span class="val" id="body-v">0.02</span></label>
-          <input type="range" id="body" min="0" max="100" step="1" value="2">
+          <label for="body">body tone <span class="val" id="body-v">0.00</span></label>
+          <input type="range" id="body" min="0" max="100" step="1" value="0">
         </div>
         <div class="ctl">
-          <label for="dens">turbidity <span class="val" id="dens-v">1.8</span></label>
-          <input type="range" id="dens" min="20" max="900" step="5" value="180">
+          <label for="dens">turbidity <span class="val" id="dens-v">9.0</span></label>
+          <input type="range" id="dens" min="20" max="900" step="5" value="900">
         </div>
         <div class="ctl">
           <label for="play">diffraction gain <span class="val" id="play-v">2.28</span></label>
@@ -810,9 +810,9 @@ gl.bindFramebuffer(gl.FRAMEBUFFER,null);
 /* ---------------------------------------------------------------- state */
 
 const DEFAULTS = {
-  D:261, spread:0.17, nvoid:1.17,
-  domain:0.03, tilt:31, sigma:2.7, ordered:0.40,
-  body:0.02, dens:1.8, play:2.28,
+  D:299, spread:0.15, nvoid:1.00,
+  domain:0.03, tilt:31, sigma:6.7, ordered:0.40,
+  body:0.00, dens:9.0, play:2.28,
   o2:0, cut:0, steps:14, seed:137, shapeSeed:1
 };
 const S = Object.assign({
