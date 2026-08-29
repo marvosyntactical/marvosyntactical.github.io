@@ -180,12 +180,12 @@ footer{border-top:1px solid var(--rule);padding:20px 0 60px;font-family:"IBM Ple
       <div class="group">
         <h2>Lattice</h2>
         <div class="ctl">
-          <label for="dia">sphere Ø <span class="val" id="dia-v">243 nm</span></label>
-          <input type="range" id="dia" min="150" max="360" step="1" value="243">
+          <label for="dia">sphere Ø <span class="val" id="dia-v">209 nm</span></label>
+          <input type="range" id="dia" min="150" max="360" step="1" value="209">
         </div>
         <div class="ctl">
-          <label for="spread">size dispersity <span class="val" id="spread-v">28 %</span></label>
-          <input type="range" id="spread" min="0" max="40" step="1" value="28">
+          <label for="spread">size dispersity <span class="val" id="spread-v">36 %</span></label>
+          <input type="range" id="spread" min="0" max="40" step="1" value="36">
         </div>
         <div class="ctl">
           <label for="nvoid">void index <span class="val" id="nvoid-v">1.23</span></label>
@@ -193,15 +193,15 @@ footer{border-top:1px solid var(--rule);padding:20px 0 60px;font-family:"IBM Ple
         </div>
         <div class="strip">
           <canvas id="spec" width="512" height="52"></canvas>
-          <div class="striplab"><span>λ(θ=0°)</span><span id="spec-lab">554 nm</span><span>θ=60°</span></div>
+          <div class="striplab"><span>λ(θ=0°)</span><span id="spec-lab">476 nm</span><span>θ=60°</span></div>
         </div>
       </div>
 
       <div class="group">
         <h2>Domains</h2>
         <div class="ctl">
-          <label for="dsize">patch size <span class="val" id="dsize-v">0.15</span></label>
-          <input type="range" id="dsize" min="3" max="60" step="1" value="15">
+          <label for="dsize">patch size <span class="val" id="dsize-v">0.04</span></label>
+          <input type="range" id="dsize" min="3" max="60" step="1" value="4">
         </div>
         <div class="ctl">
           <label for="tilt">orientation spread <span class="val" id="tilt-v">79°</span></label>
@@ -810,8 +810,8 @@ gl.bindFramebuffer(gl.FRAMEBUFFER,null);
 /* ---------------------------------------------------------------- state */
 
 const DEFAULTS = {
-  D:243, spread:0.28, nvoid:1.23,
-  domain:0.15, tilt:79, sigma:13.0, ordered:1.00,
+  D:209, spread:0.36, nvoid:1.23,
+  domain:0.04, tilt:79, sigma:13.0, ordered:1.00,
   body:0.00, dens:6.3, play:1.22,
   o2:1, cut:0, steps:14, seed:137, shapeSeed:1
 };
