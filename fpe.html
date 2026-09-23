@@ -561,14 +561,24 @@ footer{height:4rem}
   <figure class="sim" id="fig4">
     <div class="sim-frame"><canvas height="340"></canvas></div>
     <div class="controls">
-      <button class="ui" data-role="gather">re-seed both crowds</button>
+      <button class="ui" data-role="draw" aria-pressed="true">draw the landscape</button>
+      <span><label>or pick one</label>
+        <select data-role="preset">
+          <option value="user">(drawn)</option>
+          <option value="double" selected>double well</option>
+          <option value="skew">uneven wells</option>
+          <option value="harmonic">bowl</option>
+          <option value="washboard">tilted washboard</option>
+          <option value="flat">flat</option>
+        </select></span>
       <span><label>temperature T</label><input type="range" data-role="temp" min="0.05" max="1.6" step="0.01" value="0.35"><span class="readout" data-role="tval">0.35</span></span>
+      <button class="ui" data-role="gather">re-seed both crowds</button>
       <span class="legend">
         <span><i class="sw" style="border-color:#1f8a63"></i>Langevin (random)</span>
         <span><i class="sw" style="border-color:#2b5fad;border-top-style:dashed"></i>score flow (deterministic)</span>
       </span>
     </div>
-    <p class="fig-note" data-role="note">Green particles roll dice at every instant. Blue particles never do: they follow \(v=-\nabla(V+T\log\rho)\), drawn as arrows. Their histograms trace the same curve, because both are portraits of the same descent. Individual paths are unrelated; the density is identical.</p>
+    <p class="fig-note" data-role="note">Green particles roll dice at every instant. Blue particles never do: they follow \(v=-\nabla(V+T\log\rho)\), drawn as arrows. Their histograms trace the same curve, because both are portraits of the same descent. Individual paths are unrelated; the density is identical. Drawing is on: sketch a landscape across the upper panel and both crowds adapt to it.</p>
     <figcaption><span class="figno">Figure 8.</span> Two microscopic stories, one gradient flow. The deterministic crowd is the probability flow ODE.</figcaption>
   </figure>
 
@@ -806,7 +816,8 @@ function Sim(figId,cfg){
   const M=cfg.n;
   s.M=M; s.P=new Float64Array(M); s.DP=new Float64Array(M); s.JIT=new Float32Array(M);
   if(cfg.flow){ s.Q=new Float64Array(cfg.nFlow); s.DQ=new Float64Array(cfg.nFlow);
-    s.QJ=new Float32Array(cfg.nFlow); s.vGrid=new Float64Array(N); s.histF=new Float64Array(cfg.bins).fill(-1); }
+    s.QJ=new Float32Array(cfg.nFlow); s.vGrid=new Float64Array(N); s.histF=new Float64Array(cfg.bins).fill(-1);
+    s.rhoOld=new Float64Array(N); s.flux=new Float64Array(N+1); }
   if(cfg.hist) s.histE=new Float64Array(cfg.bins).fill(-1);
   if(cfg.ledger){
     s.TSs={t:[],E:[],mTS:[],F:[],KL:[]}; s.sampleDt=0.03; s.lastSample=-1e9;
@@ -832,26 +843,43 @@ Sim.prototype.gradAt=function(x){
   if(i<0) return this.dV[0]; if(i>=N-1) return this.dV[N-1];
   const f=u-i; return this.dV[i]*(1-f)+this.dV[i+1]*f;
 };
-Sim.prototype.vAt=function(x){
-  let u=(x-X0)/DX-0.5, i=Math.floor(u);
-  if(i<0)i=0; if(i>N-2)i=N-2;
+// Velocity of the deterministic crowd. In the continuum v = -(V' + T (log rho)') = J/rho.
+// We evaluate J/rho with the flux the Scharfetter-Gummel step actually produced, so the
+// particles are transported consistently with the PDE even on steep hand-drawn cliffs,
+// where a centered difference of log rho is badly wrong. th in [0,1] is the fraction of
+// the current step; rho is interpolated linearly in time, flux is constant over the step.
+Sim.prototype.vAt=function(x,th){
+  const s=this; let u=(x-X0)/DX, i=Math.floor(u);
+  if(i<0)i=0; if(i>N-1)i=N-1;
   const f=Math.min(1,Math.max(0,u-i));
-  return this.vGrid[i]*(1-f)+this.vGrid[i+1]*f;
+  let r=(1-th)*s.rhoOld[i]+th*s.rho[i]; if(r<1e-12) r=1e-12;
+  const v=((1-f)*s.flux[i]+f*s.flux[i+1])/r;
+  return v>1e3?1e3:(v<-1e3?-1e3:v);
 };
 Sim.prototype.step=function(){
   const s=this, cfg=s.cfg, tau=0.02;
+  if(cfg.flow) s.rhoOld.set(s.rho);
   if(cfg.pde){ stepPDE(s.rho,s.V,s.T,tau*0.5,s.W); stepPDE(s.rho,s.V,s.T,tau*0.5,s.W); }
+  if(cfg.flow){
+    // face flux over this step from the change in the cumulative distribution
+    const F=s.flux; let cO=0,cN=0; F[0]=0;
+    for(let i=0;i<N-1;i++){ cO+=s.rhoOld[i]*DX; cN+=s.rho[i]*DX; F[i+1]=(cO-cN)/tau; }
+    F[N]=0;
+    for(let i=0;i<N;i++) s.vGrid[i]=0.5*(F[i]+F[i+1])/Math.max(s.rho[i],1e-12);
+    for(let k=0;k<cfg.nFlow;k++){
+      let x=s.Q[k], rem=tau, it=0;
+      while(rem>1e-12 && it<400){
+        const th=1-rem/tau, v=s.vAt(x,th);
+        const h=Math.min(rem,0.2*DX/Math.max(Math.abs(v),1e-9));
+        x=reflect(x+h*s.vAt(reflect(x+0.5*h*v),th+0.5*h/tau));
+        rem-=h; it++;
+      }
+      s.Q[k]=x;
+    }
+  }
   const nsub=5, dt=tau/nsub, sg=Math.sqrt(2*s.T*dt);
   for(let sub=0;sub<nsub;sub++){
     for(let k=0;k<s.M;k++) s.P[k]=reflect(s.P[k]-s.gradAt(s.P[k])*dt+sg*gauss());
-    if(cfg.flow){
-      for(let i=0;i<N;i++){
-        const im=Math.max(0,i-1), ip=Math.min(N-1,i+1);
-        const lr=(Math.log(Math.max(s.rho[ip],1e-12))-Math.log(Math.max(s.rho[im],1e-12)))/((ip-im)*DX);
-        s.vGrid[i]=Math.max(-8,Math.min(8,-(s.dV[i]+s.T*lr)));
-      }
-      for(let k=0;k<cfg.nFlow;k++) s.Q[k]=reflect(s.Q[k]+s.vAt(s.Q[k])*dt);
-    }
   }
   for(let k=0;k<s.M;k++) s.DP[k]+=(s.P[k]-s.DP[k])*0.22;
   if(cfg.flow) for(let k=0;k<cfg.nFlow;k++) s.DQ[k]+=(s.Q[k]-s.DQ[k])*0.22;
@@ -1134,7 +1162,7 @@ const sims=[
   new Sim('fig1',{kind:'beads',preset:'double',T:0.45,n:1200,x0:2.6,sig:0.4,trail:true,drawFrac:0.85}),
   new Sim('fig2',{kind:'duo',preset:'double',T:0.30,n:1800,x0:2.4,sig:0.34,pde:true,hist:true,bins:90,drawFrac:0.55}),
   new Sim('fig3',{kind:'ledger',preset:'double',T:0.30,n:0,x0:2.3,sig:0.32,pde:true,ledger:true}),
-  new Sim('fig4',{kind:'flow',preset:'double',T:0.35,n:900,x0:2.4,sig:0.34,pde:true,hist:true,flow:true,nFlow:900,bins:90})
+  new Sim('fig4',{kind:'flow',preset:'double',T:0.35,n:900,x0:2.4,sig:0.34,pde:true,hist:true,flow:true,nFlow:900,bins:90,drawFrac:0.50})
 ];
 const io=new IntersectionObserver(es=>{
   for(const e of es){ const s=sims.find(x=>x.fig===e.target); if(s) s.active=e.isIntersecting; }
