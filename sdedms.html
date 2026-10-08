@@ -120,6 +120,23 @@ mjx-container[display="true"]{overflow-x:auto;overflow-y:hidden;max-width:100%;p
 .formulas .row>div:first-child{color:var(--muted);font-size:.92rem}
 .formulas .row>div:last-child{min-width:0;overflow-x:auto}
 
+.exintro{color:var(--muted)}
+.ex{border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:.85rem 1.05rem;margin:1rem 0}
+.exhead{display:flex;flex-wrap:wrap;gap:.55rem;align-items:baseline;margin-bottom:.25rem}
+.exhead b{font-weight:700}
+.exnum{font-family:var(--f-display);font-weight:700;font-size:1.1rem;color:var(--accent);font-variant-numeric:tabular-nums}
+.kind{font-family:var(--f-mono);font-size:.66rem;letter-spacing:.05em;text-transform:uppercase;padding:.05rem .4rem;border-radius:3px;color:var(--c);background:var(--cb)}
+.ex .kind{--c:var(--sum);--cb:var(--sum-bg)}
+.ex .kind.pf{--c:var(--thm);--cb:var(--thm-bg)}
+.ex p{margin:.35rem 0}
+details.sol{margin-top:.6rem;border-top:1px dashed var(--line);padding-top:.5rem}
+details.sol summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:.95rem;list-style:none}
+details.sol summary::-webkit-details-marker{display:none}
+details.sol summary::before{content:"▸ ";font-family:var(--f-mono)}
+details.sol[open] summary::before{content:"▾ "}
+details.sol>div{padding:.3rem 0 .1rem}
+details.sol>div p:last-child{margin-bottom:0}
+
 @media (max-width: 860px){
   .shell{grid-template-columns:minmax(0,1fr);gap:1rem;padding-block:0 3rem}
   nav.rail{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;flex-direction:row;overflow-x:auto;gap:.2rem;background:var(--bg);padding:.6rem 0;margin-inline:-1.25rem;padding-inline:1.25rem;border-bottom:1px solid var(--line)}
@@ -141,8 +158,7 @@ window.MathJax = {
       M:'\\mathcal{M}', Lop:'\\mathcal{L}'
     }
   },
-  svg: { fontCache: 'global' },
-  startup: { typeset: true, ready: function(){ MathJax.startup.defaultReady(); } }
+  svg: { fontCache: 'global' }
 };
 </script>
 <script>
@@ -403,6 +419,66 @@ window.MathJax = {
 <details class="qa"><summary>State Donsker's theorem. Which two ingredients prove weak convergence in \(C[0,T]\)?</summary><div class="a">Interpolated, rescaled random walk converges in law to BM in \(C[0,T]\). Fidi convergence (multivariate CLT) and tightness (Kolmogorov-type moment criterion).</div></details>
 <details class="qa"><summary>Markov vs strong Markov. Why the filtration \(\cF_{t+}\)?</summary><div class="a">Markov: restart at deterministic times. Strong Markov: restart at stopping times, independent of \(\cF^+_\tau\). \(\cF_{t+}\) admits times like first entrance into open sets as stopping times.</div></details>
 <details class="qa"><summary>Derive the law of the running maximum.</summary><div class="a">Split \(\{M_t\ge x\}\) by the sign of \(W_t-x\), reflect at \(\tau_x\): \(\P(M_t\ge x)=2\P(W_t\ge x)=\P(|W_t|\ge x)\).</div></details>
+<h2 class="qhead" id="ex-ch0">Exercises <button class="reveal" type="button" data-sel="details.sol">Show all solutions</button></h2>
+<p class="exintro">Short proofs of the kind you can be asked to do on the board. Try each before opening the solution.</p>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">0.1</span><span class="kind pf">proof</span><b>Covariance from the axioms</b></div>
+  <p>Let \(W\) satisfy (W1)–(W3). Show that \(\operatorname{Cov}(W_s,W_t)=s\wedge t\).</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>Take \(s\le t\). Write \(W_t=W_s+(W_t-W_s)\). By (W1) and (W2), \(W_s=W_s-W_0\) is independent of \(W_t-W_s\). Both are centred by (W3). So</p>
+    \[ \operatorname{Cov}(W_s,W_t)=\operatorname{Var}(W_s)+\operatorname{Cov}(W_s,W_t-W_s)=s+0=s=s\wedge t. \]
+    <p>The idea to remember: split the later value into the earlier value plus an independent increment. The same step proves the Markov property.</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">0.2</span><span class="kind pf">proof</span><b>Brownian scaling</b></div>
+  <p>For \(c\gt0\) let \(X_t=c^{-1/2}W_{ct}\). Show that \(X\) is a standard BM.</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>Use the Gaussian characterisation (Prop 0.5); there are three things to check.</p>
+    <ul>
+      <li>Gaussian and centred: \((X_{t_1},\dots,X_{t_n})\) is a linear image of \((W_{ct_1},\dots,W_{ct_n})\), which is centred Gaussian.</li>
+      <li>Covariance: \(\operatorname{Cov}(X_s,X_t)=c^{-1}(cs\wedge ct)=s\wedge t\).</li>
+      <li>Continuity: \(t\mapsto W_{ct}\) is continuous, and so is a constant multiple of it.</li>
+    </ul>
+    <p>Consequence: on a time scale \(c\), BM moves a distance of order \(\sqrt c\). This scaling explains Hölder exponent \(\tfrac12\) and the \(\sqrt{\Delta t}\) in Euler–Maruyama.</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">0.3</span><span class="kind pf">proof</span><b>Quadratic variation and infinite variation</b></div>
+  <p>Let \(t_i=it/n\) and \(Q_n=\sum_{i=0}^{n-1}(W_{t_{i+1}}-W_{t_i})^2\). (a) Show \(\E[(Q_n-t)^2]=2t^2/n\). (b) Conclude that BM paths have infinite total variation on \([0,t]\) almost surely.</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>(a) The increments \(\Delta_i\) are independent \(\N(0,t/n)\). Write \(\Delta_i=\sqrt{t/n}\,Z_i\) with \(Z_i\sim\N(0,1)\), so \(\Delta_i^2=\tfrac tn Z_i^2\), with \(\E Z^2=1\) and \(\operatorname{Var}(Z^2)=\E Z^4-1=2\). Hence \(\E Q_n=t\) and</p>
+    \[ \E[(Q_n-t)^2]=\operatorname{Var}(Q_n)=\sum_i\tfrac{t^2}{n^2}\cdot2=\tfrac{2t^2}{n}\to0. \]
+    <p>(b) \(L^2\)-convergence gives a subsequence with \(Q_{n_k}\to t\) a.s. Suppose a path had finite variation \(V\). Then</p>
+    \[ Q_n\le\max_i|\Delta_i|\cdot\sum_i|\Delta_i|\le\max_i|\Delta_i|\cdot V\to0, \]
+    <p>because a continuous path is uniformly continuous on \([0,t]\). That contradicts \(Q_{n_k}\to t\gt0\). So \(V=\infty\) a.s.</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">0.4</span><span class="kind">calculation</span><b>Hölder exponents from Kolmogorov</b></div>
+  <p>Using \(\E|W_t-W_s|^{2p}=(2p-1)!!\,|t-s|^p\), find the Hölder exponents that Kolmogorov's theorem gives for each \(p\ge2\). Why does \(p=1\) give nothing?</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>Here \(\alpha=2p\) and \(\beta=p\), so the theorem gives every \(\gamma\lt\frac{\beta-1}{\alpha}=\frac{p-1}{2p}=\frac12-\frac1{2p}\). For \(p=2\) this is \(\gamma\lt\frac14\), for \(p=3\) it is \(\gamma\lt\frac13\), and as \(p\to\infty\) it approaches \(\frac12\). Taking the union over \(p\) gives every \(\gamma\lt\frac12\).</p>
+    <p>For \(p=1\), \(\beta=1\), and the theorem needs \(\beta\gt1\). The second moment alone cannot rule out jumps: the Poisson process also has \(\E|N_t-N_s|^2\sim\lambda|t-s|\) for small \(|t-s|\).</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">0.5</span><span class="kind">calculation</span><b>Hitting time density</b></div>
+  <p>For \(x\gt0\), compute the density of \(\tau_x=\inf\{t:W_t=x\}\) and show that \(\tau_x\lt\infty\) a.s. but \(\E\tau_x=\infty\).</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>By Cor 0.20, \(\P(\tau_x\le t)=2\P(W_t\ge x)=2\big(1-\Phi(x/\sqrt t)\big)\). Differentiate in \(t\):</p>
+    \[ f_{\tau_x}(t)=-2\varphi\big(x/\sqrt t\big)\cdot\big(-\tfrac x2t^{-3/2}\big)=\frac{x}{\sqrt{2\pi}\,t^{3/2}}\,e^{-x^2/2t}. \]
+    <p>As \(t\to\infty\), \(\P(\tau_x\le t)\to2(1-\Phi(0))=1\), so \(\tau_x\lt\infty\) a.s. For large \(t\), \(f_{\tau_x}(t)\sim\frac{x}{\sqrt{2\pi}}t^{-3/2}\), so \(t\,f_{\tau_x}(t)\sim t^{-1/2}\) is not integrable at infinity, and \(\E\tau_x=\infty\).</p>
+    <p>Numerical check: \(\P(M_1\ge1)=2(1-\Phi(1))\approx0.317\).</p>
+  </div></details>
+</div>
+
+
 <div class="pager"></div>
 </section>
 
@@ -500,6 +576,52 @@ window.MathJax = {
 <details class="qa"><summary>Write the reverse SDE for \(\sigma=g(t)I\). What is unknown?</summary><div class="a">Drift \(-\mu+g^2\nabla\log p_{T-t}\) in reversed time. Only the score \(\nabla\log p_t\) is unknown; \(\mu,g\) are chosen by us.</div></details>
 <details class="qa"><summary>Why does DSM have the same minimiser as explicit score matching?</summary><div class="a">Cross terms coincide by the integration-by-parts identity; equivalently the marginal score is the conditional expectation of the conditional score given \(X_t\).</div></details>
 <details class="qa"><summary>Why use an affine forward SDE?</summary><div class="a">The transition kernel is Gaussian with explicit mean and variance, so the conditional score in DSM is explicit, and \(p_T\) is close to a known Gaussian.</div></details>
+<h2 class="qhead" id="ex-ch1">Exercises <button class="reveal" type="button" data-sel="details.sol">Show all solutions</button></h2>
+<p class="exintro">Calculations that use the Chapter 1 tools on concrete cases. Chapters 3 to 5 come back to each of them.</p>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">1.1</span><span class="kind">calculation</span><b>Moments via Itô</b></div>
+  <p>Let \(\d X=\mu\,\d t+\sigma\,\d W\) with constants \(\mu,\sigma\) and \(X_0=x\). Use Itô's formula on \(f(x)=x^2\) to compute \(\E X_t^2\) and \(\operatorname{Var}X_t\).</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>\(f'=2x,\ f''=2\), so \(\d(X^2)=2X\,\d X+\sigma^2\d t=(2\mu X+\sigma^2)\d t+2\sigma X\,\d W\). The \(\d W\) term has expectation zero. With \(\E X_s=x+\mu s\):</p>
+    \[ \E X_t^2=x^2+\int_0^t\big(2\mu(x+\mu s)+\sigma^2\big)\d s=x^2+2\mu xt+\mu^2t^2+\sigma^2t. \]
+    <p>So \(\operatorname{Var}X_t=\E X_t^2-(x+\mu t)^2=\sigma^2t\). As a check, \(X_t=x+\mu t+\sigma W_t\) directly. The \(\d t\) part of \(\d(X^2)\) equals \(Lf\) with \(L=\mu\partial_x+\frac{\sigma^2}2\partial_x^2\).</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">1.2</span><span class="kind">calculation</span><b>Fokker–Planck for BM with drift</b></div>
+  <p>Verify that \(p(t,y)=\N(y;\mu t,\sigma^2t)\) solves \(\partial_tp=-\mu\,\partial_yp+\frac{\sigma^2}{2}\partial_y^2p\).</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>Work with \(\log p=-\frac12\log(2\pi\sigma^2t)-\frac{z^2}{2\sigma^2t}\), where \(z=y-\mu t\). Use \(\partial p/p=\partial\log p\) and \(\partial_y^2p/p=(\partial_y\log p)^2+\partial_y^2\log p\).</p>
+    \[ \frac{\partial_tp}{p}=-\frac1{2t}+\frac{\mu z}{\sigma^2t}+\frac{z^2}{2\sigma^2t^2},\qquad \frac{\partial_yp}{p}=-\frac{z}{\sigma^2t},\qquad \frac{\partial^2_yp}{p}=\frac{z^2}{\sigma^4t^2}-\frac1{\sigma^2t}. \]
+    <p>Right-hand side divided by \(p\): \(\frac{\mu z}{\sigma^2t}+\frac{z^2}{2\sigma^2t^2}-\frac1{2t}\), which matches the left-hand side. The log trick is the fastest way to check any Gaussian against a Fokker–Planck equation.</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">1.3</span><span class="kind">calculation</span><b>Mean and variance of the VP SDE</b></div>
+  <p>For \(\d X=-\frac12\beta(t)X\,\d t+\sqrt{\beta(t)}\,\d W\) (1D, \(X_0=x_0\)), derive \(m(t)\) and \(v(t)\) in \(X_t\sim\N(m(t)x_0,v(t))\). Explain the name "variance preserving".</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>Mean: taking expectations kills \(\d W\), so \(\frac{\d}{\d t}\E X=-\frac12\beta\,\E X\), which gives \(\E X_t=x_0\,e^{-\frac12\int_0^t\beta}\). Hence \(m(t)=e^{-\frac12B(t)}\) with \(B(t)=\int_0^t\beta\).</p>
+    <p>Second moment: by Itô, \(\d(X^2)=(-\beta X^2+\beta)\d t+(\ldots)\d W\), so \(e(t)=\E X_t^2\) solves \(e'=-\beta e+\beta\). The variance \(v=e-m^2x_0^2\) then satisfies</p>
+    \[ v'=-\beta e+\beta+\beta m^2x_0^2=-\beta v+\beta,\quad v(0)=0\ \Rightarrow\ (v-1)'=-\beta(v-1)\ \Rightarrow\ v(t)=1-e^{-B(t)}. \]
+    <p>Then \(m^2+v=1\). If \(\operatorname{Var}X_0=1\), then \(\operatorname{Var}X_t=m^2\cdot1+v=1\) for all \(t\). That is the meaning of "variance preserving".</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">1.4</span><span class="kind">calculation</span><b>DSM recovers the true score (Gaussian data)</b></div>
+  <p>Let \(X_0\sim\N(0,s^2)\) and \(X_t=mX_0+\sqrt v\,\varepsilon\) with \(\varepsilon\sim\N(0,1)\) independent. Compute the true score \(\nabla\log p_t\) and verify that \(\E\big[-\varepsilon/\sqrt v\ \big|\ X_t=x\big]\) equals it.</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>\(X_t\sim\N(0,m^2s^2+v)\), so \(\nabla\log p_t(x)=-\dfrac{x}{m^2s^2+v}\).</p>
+    <p>\((\varepsilon,X_t)\) is jointly Gaussian and centred with \(\operatorname{Cov}(\varepsilon,X_t)=\sqrt v\). Gaussian conditioning gives</p>
+    \[ \E[\varepsilon\mid X_t=x]=\frac{\sqrt v}{m^2s^2+v}\,x\ \Rightarrow\ \E\Big[-\frac{\varepsilon}{\sqrt v}\ \Big|\ X_t=x\Big]=-\frac{x}{m^2s^2+v}. \]
+    <p>This is the identity behind Thm 1.2: the DSM regression target is noisy, but its conditional mean given \(X_t\) is the marginal score, and \(L^2\)-regression finds that conditional mean.</p>
+  </div></details>
+</div>
+
+
 <div class="pager"></div>
 </section>
 
@@ -641,6 +763,69 @@ window.MathJax = {
 <details class="qa"><summary>Compute the generator of BM.</summary><div class="a">Taylor to second order, mean zero kills first order, covariance \(tI\) gives \(\tfrac t2\Delta u\), remainder vanishes by uniform continuity and fourth moments. \(A=\tfrac12\Delta\) on \(C^2_\infty\).</div></details>
 <details class="qa"><summary>Derive the backward equation from the semigroup.</summary><div class="a">\(\frac1\varepsilon(P_{t+\varepsilon}u-P_tu)=P_t\frac{P_\varepsilon u-u}{\varepsilon}\to P_tAu\) by contraction; also equals \(\frac{P_\varepsilon-\mathrm{id}}{\varepsilon}P_tu\to AP_tu\).</div></details>
 <details class="qa"><summary>Why does the generator determine the semigroup?</summary><div class="a">Derivative of \(s\mapsto P_{t-s}T_su\) vanishes, so \(P_t=T_t\) on the dense domain and by continuity everywhere.</div></details>
+<h2 class="qhead" id="ex-ch2">Exercises <button class="reveal" type="button" data-sel="details.sol">Show all solutions</button></h2>
+<p class="exintro">Short proofs about semigroups and generators. Each takes a few lines.</p>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">2.1</span><span class="kind pf">proof</span><b>Chapman–Kolmogorov via Fourier</b></div>
+  <p>Show \(\int p_s(x,z)\,p_t(z,y)\,\d z=p_{s+t}(x,y)\) for the heat kernel.</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>\(p_t(x,y)=\varphi_t(y-x)\), where \(\varphi_t\) is the \(\N(0,tI)\) density, so the left-hand side is \((\varphi_s*\varphi_t)(y-x)\). The characteristic function of \(\varphi_t\) is \(e^{-t|\xi|^2/2}\), and convolution becomes a product:</p>
+    \[ e^{-s|\xi|^2/2}\,e^{-t|\xi|^2/2}=e^{-(s+t)|\xi|^2/2}. \]
+    <p>So \(\varphi_s*\varphi_t=\varphi_{s+t}\). In probabilistic terms, the sum of independent \(\N(0,s)\) and \(\N(0,t)\) is \(\N(0,s+t)\).</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">2.2</span><span class="kind pf">proof</span><b>No strong continuity on \(\mathcal B_b\)</b></div>
+  <p>In \(d=1\) let \(u=\mathbf 1_{[0,\infty)}\). Show \(\|P_tu-u\|_\infty\ge\frac12\) for every \(t\gt0\).</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>\(P_tu(0)=\P(B_t\ge0)=\frac12\) and \(u(0)=1\), so \(|P_tu(0)-u(0)|=\frac12\). The supremum is at least this, for every \(t\gt0\). The jump of \(u\) at 0 is smoothed out immediately and does not come back as \(t\downarrow0\). This is why generator theory is set up on \(C_\infty\).</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">2.3</span><span class="kind pf">proof</span><b>Feller but not strong Feller</b></div>
+  <p>Let \(X_t=x+t\) on \(\R\), so \(P_tu(x)=u(x+t)\). Show that \(P\) is Feller, compute its generator, and show it is not strong Feller.</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <ul>
+      <li>Feller: a shift of \(u\in C_\infty\) is in \(C_\infty\). Strong continuity: \(\|u(\cdot+t)-u\|_\infty\to0\) because \(u\in C_\infty\) is uniformly continuous.</li>
+      <li>Generator: \(\frac{u(x+t)-u(x)}{t}\to u'(x)\), uniformly when \(u'\in C_\infty\) (mean value theorem plus uniform continuity of \(u'\)). So \(A=\frac{\d}{\d x}\).</li>
+      <li>Not strong Feller: \(P_t\mathbf 1_{[0,\infty)}=\mathbf 1_{[-t,\infty)}\) is discontinuous. With no noise there is no smoothing.</li>
+    </ul>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">2.4</span><span class="kind pf">proof</span><b>The domain is dense</b></div>
+  <p>Given Lemma 2.16 b), show that \(u_\varepsilon=\frac1\varepsilon\int_0^\varepsilon P_su\,\d s\) lies in \(\cD(A)\) and \(u_\varepsilon\to u\) for every \(u\in C_\infty\).</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>Lemma 2.16 b) says \(\int_0^\varepsilon P_su\,\d s\in\cD(A)\), and \(\cD(A)\) is a linear space, so \(u_\varepsilon\in\cD(A)\). Then</p>
+    \[ \|u_\varepsilon-u\|_\infty=\Big\|\frac1\varepsilon\int_0^\varepsilon(P_su-u)\,\d s\Big\|_\infty\le\sup_{s\le\varepsilon}\|P_su-u\|_\infty\to0 \]
+    <p>by strong continuity. Smoothing in time produces elements of the domain, much as mollifying in space produces smooth functions.</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">2.5</span><span class="kind">calculation</span><b>Generator of BM with drift (1D)</b></div>
+  <p>Let \(X_t=x+bt+cB_t\). For \(u\in C^3_c\), show \(\frac1t(\E u(X_t)-u(x))\to bu'(x)+\frac{c^2}{2}u''(x)\).</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>Let \(\Delta=bt+cB_t\). Then \(\E\Delta=bt\), \(\E\Delta^2=b^2t^2+c^2t\), and \(\E|\Delta|^3\le C t^{3/2}\) for \(t\le1\). Taylor to third order:</p>
+    \[ \E u(x+\Delta)-u(x)=u'(x)\,bt+\tfrac12u''(x)(c^2t+b^2t^2)+O(t^{3/2}). \]
+    <p>Divide by \(t\) and let \(t\to0\). Only \(bu'+\frac{c^2}2u''\) survives, uniformly in \(x\) because \(u'''\) is bounded. The mean of \(\Delta\) gives the first-order term and the variance gives the second-order term, as in Kolmogorov's conditions (Thm 3.4).</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">2.6</span><span class="kind">calculation</span><b>Backward equation on test cases</b></div>
+  <p>For 1D BM, compute \(v(t,x)=\E^x u(B_t)\) for \(u(x)=x^2\) and \(u(x)=e^{\lambda x}\) and check \(\partial_tv=\frac12\partial_x^2v\). (Neither function is in \(C_\infty\); this is a formal check.)</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>\(u=x^2\): \(v=\E(x+B_t)^2=x^2+t\), so \(\partial_tv=1\) and \(\frac12\partial_x^2v=1\).</p>
+    <p>\(u=e^{\lambda x}\): \(v=e^{\lambda x}\E e^{\lambda B_t}=e^{\lambda x+\lambda^2t/2}\), so \(\partial_tv=\frac{\lambda^2}2v\) and \(\frac12\partial_x^2v=\frac{\lambda^2}{2}v\).</p>
+  </div></details>
+</div>
+
+
 <div class="pager"></div>
 </section>
 
@@ -760,6 +945,62 @@ window.MathJax = {
 <details class="qa"><summary>How does an SDE determine the generator?</summary><div class="a">\(a=\sigma\sigma^\top\) is the second-order coefficient, \(b\) the first-order one; by Itô's formula the \(\d t\) part of \(\d f(X_t)\) is \(Lf\).</div></details>
 <details class="qa"><summary>State the time-reversal formula and sketch the proof.</summary><div class="a">\(\tilde b=-b+a\nabla\log p_{T-t}+\nabla\cdot a\), same \(a\). Bayes for the reversed kernel, expand for small \(h\), use Fokker–Planck for the marginal; zero-order terms cancel.</div></details>
 <details class="qa"><summary>Why is the reversed process time-inhomogeneous?</summary><div class="a">Its drift involves \(p_{T-t}\), which changes with \(t\); at time \(T\) the reversed process must have the law of \(X_0\).</div></details>
+<h2 class="qhead" id="ex-ch3">Exercises <button class="reveal" type="button" data-sel="details.sol">Show all solutions</button></h2>
+<p class="exintro">Calculations: generators from SDEs, stationary laws, and the time-reversal formula on examples where you can check the answer.</p>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">3.1</span><span class="kind">calculation</span><b>Generator from a 2D SDE</b></div>
+  <p>Let \(\d X=b\,\d t+\sigma\,\d W\) in \(\R^2\) with \(\sigma=\begin{pmatrix}1&0\\1&1\end{pmatrix}\) and \(b=(-x_1,0)\). Write the generator. Then show that \(\tilde\sigma=\sigma U\) for any orthogonal \(U\) gives the same generator.</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>\(a=\sigma\sigma^\top=\begin{pmatrix}1&1\\1&2\end{pmatrix}\). With \(L=\frac12\sum a_{ij}\partial_i\partial_j+\sum b_j\partial_j\):</p>
+    \[ Lu=\tfrac12\partial_1^2u+\partial_1\partial_2u+\partial_2^2u-x_1\partial_1u. \]
+    <p>(The off-diagonal entries \(a_{12}=a_{21}=1\) each contribute \(\frac12\partial_1\partial_2u\).) Then \(\tilde\sigma\tilde\sigma^\top=\sigma UU^\top\sigma^\top=\sigma\sigma^\top\), so \(a\) is unchanged and the generator, and hence the law, is the same. The noise components are correlated: \(\d\langle X^1,X^2\rangle=a_{12}\,\d t=\d t\).</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">3.2</span><span class="kind">calculation</span><b>Kolmogorov's conditions rule out jumps</b></div>
+  <p>Check the first condition of Thm 3.4 for (a) BM and (b) a Poisson process with rate \(\lambda\). Which one passes?</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>(a) By Chebyshev, \(\P(|B_t|\gt\delta)\le\E B_t^4/\delta^4=3t^2/\delta^4\), so \(\frac1t\P(\ldots)\to0\). BM passes.</p>
+    <p>(b) For \(\delta\lt1\), \(\P(|N_t|\gt\delta)=\P(N_t\ge1)=1-e^{-\lambda t}\), so \(\frac1t\P(\ldots)\to\lambda\ne0\). A jump of size 1 happens with probability of order \(t\), not \(o(t)\). The Poisson process is Feller but not a diffusion, and its generator \(u(x+1)-u(x)\) (times \(\lambda\)) is nonlocal.</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">3.3</span><span class="kind">calculation</span><b>Stationary law from Fokker–Planck</b></div>
+  <p>Find the stationary density of the 1D Langevin diffusion \(\d X=-U'(X)\,\d t+\sqrt2\,\d W\), assuming \(e^{-U}\) is integrable. Specialise to \(U(x)=\frac{\theta x^2}{2}\) and compare with the OU stationary law for \(\sigma=\sqrt2\).</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>Stationary Fokker–Planck: \(0=\partial_x(U'p)+\partial_x^2p=\partial_x\big(U'p+p'\big)\). The flux \(J=U'p+p'\) is constant, and integrability forces \(J=0\). Then \(p'/p=-U'\), so \(p\propto e^{-U}\).</p>
+    <p>For \(U=\frac{\theta x^2}2\), \(p\propto e^{-\theta x^2/2}=\N(0,1/\theta)\). This matches \(\N(0,\frac{\sigma^2}{2\theta})\) with \(\sigma^2=2\). This density is the one used in Lemma 5.9, with \(U_t=-\log p_t\).</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">3.4</span><span class="kind">calculation</span><b>Reversing BM: the Brownian bridge</b></div>
+  <p>Let \(X\) be 1D BM started at 0 and \(Y_t=X_{T-t}\). Use the (corrected) reversal formula to find the drift of \(Y\). Check the answer by computing \(\E[Y_t\mid Y_s=y]\) for \(s\lt t\).</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>\(b=0\), \(a=1\), \(p(T-t,y)=\N(0,T-t)\), so \(\nabla\log p=-\frac{y}{T-t}\) and</p>
+    \[ \tilde b(t,y)=-\frac{y}{T-t}. \]
+    <p>This is the Brownian-bridge drift: it grows as \(t\to T\) and pulls \(Y\) to 0.</p>
+    <p>Check: \(Y_s=X_{T-s}\), \(Y_t=X_{T-t}\), and \(T-t\lt T-s\). For BM, \(\E[X_r\mid X_u=y]=\frac ruy\) when \(r\lt u\). So \(\E[Y_t\mid Y_s=y]=\frac{T-t}{T-s}y\). The ODE for the mean, \(m'=-\frac{m}{T-t}\) with \(m(s)=y\), has the same solution \(m(t)=\frac{T-t}{T-s}y\). The script's sign would give \(+\frac{y}{T-t}\), which pushes away from 0 and contradicts this.</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">3.5</span><span class="kind">calculation</span><b>Reversing non-stationary OU</b></div>
+  <p>Let \(\d X=-\theta X\,\d t+\sigma\,\d W\) (1D) with \(X_0\sim\N(0,s_0^2)\). Compute the variance \(s_t^2\) of \(X_t\) and the reverse drift. Check the stationary case and the case \(s_0=0\).</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>\(X_t=e^{-\theta t}X_0+(\text{independent Gaussian})\), so</p>
+    \[ s_t^2=e^{-2\theta t}s_0^2+\tfrac{\sigma^2}{2\theta}\big(1-e^{-2\theta t}\big),\qquad \tilde b(t,y)=\theta y+\sigma^2\Big(-\frac{y}{s_{T-t}^2}\Big)=\Big(\theta-\frac{\sigma^2}{s_{T-t}^2}\Big)y. \]
+    <ul>
+      <li>Stationary case \(s_0^2=\frac{\sigma^2}{2\theta}\): \(s_t^2\) is constant and \(\tilde b=(\theta-2\theta)y=-\theta y\), the same OU.</li>
+      <li>Case \(s_0=0\) (all data at one point): \(s_{T-t}^2\to0\) as \(t\to T\), so \(\tilde b\approx-\frac{\sigma^2}{s^2_{T-t}}y\) blows up and pulls everything to 0. This is the score blow-up near \(t=0\) discussed in Ch 2.</li>
+    </ul>
+  </div></details>
+</div>
+
+
 <div class="pager"></div>
 </section>
 
@@ -901,6 +1142,85 @@ window.MathJax = {
 <details class="qa"><summary>State Itô's formula and explain the extra term.</summary><div class="a">\(\d f(X)=f'\d X+\tfrac12f''\d\langle M\rangle\). Second-order Taylor terms do not vanish because \(\sum(\Delta M)^2\to\langle M\rangle_t\ne0\).</div></details>
 <details class="qa"><summary>Solve the OU equation.</summary><div class="a">Variation of constants or Itô on \(e^{\theta t}X_t\): \(X_t=e^{-\theta t}x+\sigma\int_0^te^{-\theta(t-s)}\d W_s\), Gaussian.</div></details>
 <details class="qa"><summary>Why is the left endpoint essential?</summary><div class="a">It makes integrands adapted, so increments are orthogonal to the integrand; this gives the isometry and the martingale property. Other evaluation points give other integrals (Stratonovich).</div></details>
+<h2 class="qhead" id="ex-ch4">Exercises <button class="reveal" type="button" data-sel="details.sol">Show all solutions</button></h2>
+<p class="exintro">Itô calculus by hand. Each of these is a typical "compute this" question.</p>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">4.1</span><span class="kind">calculation</span><b>\(\int W\,\d W\) from the definition</b></div>
+  <p>Compute the limit of \(\sum_iW_{t_i}(W_{t_{i+1}}-W_{t_i})\) as the mesh goes to 0. What do you get with right endpoints instead?</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>Use \(a(b-a)=\frac12\big(b^2-a^2-(b-a)^2\big)\). The sum telescopes:</p>
+    \[ \sum_iW_{t_i}\Delta_i=\tfrac12W_t^2-\tfrac12\sum_i\Delta_i^2\ \xrightarrow{L^2}\ \tfrac12(W_t^2-t). \]
+    <p>With right endpoints, \(b(b-a)=\frac12(b^2-a^2+(b-a)^2)\) gives \(\frac12(W_t^2+t)\). The two differ by the quadratic variation \(t\). The left-endpoint version is a martingale (mean 0); the right-endpoint one has mean \(t\).</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">4.2</span><span class="kind">calculation</span><b>Isometry check</b></div>
+  <p>Compute \(\E\big[(\int_0^tW_s\,\d W_s)^2\big]\) in two ways: with the Itô isometry and with the closed form from 4.1.</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>Isometry: \(\E\int_0^tW_s^2\,\d s=\int_0^ts\,\d s=\frac{t^2}{2}\).</p>
+    <p>Closed form: \(\frac14\E(W_t^2-t)^2=\frac14\operatorname{Var}(W_t^2)=\frac14\cdot2t^2=\frac{t^2}2\). Both give \(\frac{t^2}{2}\).</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">4.3</span><span class="kind">calculation</span><b>Moments and martingales via Itô</b></div>
+  <p>(a) Compute \(\E W_t^4\) with Itô's formula. (b) Show that \(W_t^2-t\) and \(\exp(\lambda W_t-\frac{\lambda^2}2t)\) are martingales by showing that their \(\d t\) terms vanish.</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>(a) \(\d(W^4)=4W^3\d W+6W^2\d t\), so \(\E W_t^4=6\int_0^ts\,\d s=3t^2\). The same recursion gives \(\E W_t^{2k}=(2k-1)!!\,t^k\).</p>
+    <p>(b) For \(f(t,x)\), the \(\d t\) part of \(\d f(t,W_t)\) is \(\partial_tf+\frac12\partial_x^2f\).</p>
+    <ul>
+      <li>\(f=x^2-t\): \(-1+1=0\).</li>
+      <li>\(f=e^{\lambda x-\lambda^2t/2}\): \(-\frac{\lambda^2}2f+\frac{\lambda^2}2f=0\).</li>
+    </ul>
+    <p>So both are local martingales (here true martingales, since the integrands are in \(\mathcal L^*\)). In general, \(f(t,X_t)\) is a local martingale when \(\partial_tf+Lf=0\), which links martingales to the backward equation.</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">4.4</span><span class="kind">calculation</span><b>Geometric Brownian motion</b></div>
+  <p>Solve \(\d S=\mu S\,\d t+\sigma S\,\d W\), \(S_0\gt0\). Compute \(\E S_t\). What happens to \(S_t\) as \(t\to\infty\) when \(0\lt\mu\lt\sigma^2/2\)?</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>Itô on \(\log S\): \(\d\log S=\frac{\d S}{S}-\frac12\frac{\d\langle S\rangle}{S^2}=(\mu-\frac{\sigma^2}2)\d t+\sigma\,\d W\). Hence</p>
+    \[ S_t=S_0\exp\big((\mu-\tfrac{\sigma^2}{2})t+\sigma W_t\big),\qquad \E S_t=S_0e^{\mu t}. \]
+    <p>(Use \(\E e^{\sigma W_t}=e^{\sigma^2t/2}\).) If \(\mu\lt\frac{\sigma^2}2\), then \(\log S_t\to-\infty\) a.s. because \(W_t/t\to0\), so \(S_t\to0\) a.s. while \(\E S_t\to\infty\). The mean is carried by rare, very large paths. This is the stochastic exponential of Thm 4.22 with \(K=\mu,\ H=\sigma\).</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">4.5</span><span class="kind">calculation</span><b>OU by integrating factor, with covariance</b></div>
+  <p>Solve \(\d X=-\theta X\,\d t+\sigma\,\d W\) using the product rule on \(e^{\theta t}X_t\). Compute \(\operatorname{Var}X_t\) and \(\operatorname{Cov}(X_s,X_t)\) for \(s\le t\), with \(X_0=x\) deterministic.</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>\(e^{\theta t}\) has bounded variation, so \(\d\langle e^{\theta\cdot},X\rangle=0\) and</p>
+    \[ \d(e^{\theta t}X_t)=\theta e^{\theta t}X_t\,\d t+e^{\theta t}\d X_t=\sigma e^{\theta t}\d W_t\ \Rightarrow\ X_t=e^{-\theta t}x+\sigma\!\int_0^te^{-\theta(t-r)}\d W_r. \]
+    <p>Isometry: \(\operatorname{Var}X_t=\sigma^2\int_0^te^{-2\theta(t-r)}\d r=\frac{\sigma^2}{2\theta}(1-e^{-2\theta t})\).</p>
+    <p>Covariance: for \(s\le t\), \(X_t=e^{-\theta(t-s)}X_s+(\text{noise on }(s,t])\), and that noise is independent of \(X_s\). So \(\operatorname{Cov}(X_s,X_t)=e^{-\theta(t-s)}\operatorname{Var}X_s\). Correlations decay exponentially, which is the forgetting used in §5.4.</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">4.6</span><span class="kind">calculation</span><b>Product rule and integrated BM</b></div>
+  <p>Use \(\d(tW_t)\) to show \(\int_0^ts\,\d W_s=tW_t-\int_0^tW_s\,\d s\), then compute \(\operatorname{Var}\int_0^tW_s\,\d s\).</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>\(\d(tW_t)=W_t\,\d t+t\,\d W_t\), with no covariation term because \(t\) has bounded variation. Integrating gives the identity. Rearranged,</p>
+    \[ \int_0^tW_s\,\d s=tW_t-\int_0^ts\,\d W_s=\int_0^t(t-s)\,\d W_s. \]
+    <p>Isometry: \(\operatorname{Var}=\int_0^t(t-s)^2\d s=\frac{t^3}3\).</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">4.7</span><span class="kind">calculation</span><b>Euler–Maruyama vs the exact OU step</b></div>
+  <p>For 1D OU (\(\theta,\sigma\)), compare the Euler–Maruyama step \(X_{k+1}=(1-\theta h)X_k+\sigma\sqrt h\,Z\) with the exact transition. What stationary variance does Euler–Maruyama have?</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>Exact transition: \(X_{k+1}=e^{-\theta h}X_k+\sqrt{\frac{\sigma^2}{2\theta}(1-e^{-2\theta h})}\,Z\). EM agrees to first order in \(h\).</p>
+    <p>Stationary variance of EM: \(v=(1-\theta h)^2v+\sigma^2h\), so</p>
+    \[ v=\frac{\sigma^2h}{1-(1-\theta h)^2}=\frac{\sigma^2}{2\theta-\theta^2h}=\frac{\sigma^2}{2\theta}\Big(1+\frac{\theta h}{2}+O(h^2)\Big). \]
+    <p>The bias is \(O(h)\), and EM is unstable when \(\theta h\gt2\). The exponential integrator in §5.4 solves the linear part exactly for this reason.</p>
+  </div></details>
+</div>
+
+
 <div class="pager"></div>
 </section>
 
@@ -1048,6 +1368,81 @@ window.MathJax = {
 <details class="qa"><summary>Name the three error sources and how each is controlled.</summary><div class="a">Initialisation: OU convergence via de Bruijn + LSI + Pinsker. Score: Assumption 3 through Girsanov. Discretisation: Lipschitz score plus movement and short-step lemmas through Girsanov.</div></details>
 <details class="qa"><summary>Why compare path measures with Girsanov rather than marginals?</summary><div class="a">Explicit Radon–Nikodym derivative on path space for equal diffusion coefficients; KL = integrated squared drift error; data processing passes the bound to marginals.</div></details>
 <details class="qa"><summary>What does Theorem 5.2 say about complexity?</summary><div class="a">With an \(L^2\)-accurate score, \(\tilde O(L^2d/\varepsilon^2)\) steps give TV error \(\tilde O(\varepsilon+\varepsilon_{\rm score})\): polynomial in dimension.</div></details>
+<h2 class="qhead" id="ex-ch5">Exercises <button class="reveal" type="button" data-sel="details.sol">Show all solutions</button></h2>
+<p class="exintro">Calculations that take the diffusion-model pipeline apart into steps you can check by hand.</p>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">5.1</span><span class="kind">calculation</span><b>OU invariant measure</b></div>
+  <p>In 1D, verify \(L^*\pi=0\) for \(\pi=\N(0,\frac{\sigma^2}{2\theta})\), where \(L=\frac{\sigma^2}2\partial_x^2-\theta x\partial_x\).</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>\(L^*p=\theta(xp)'+\frac{\sigma^2}2p''=\big(\theta xp+\frac{\sigma^2}2p'\big)'\). For \(\pi\propto e^{-\theta x^2/\sigma^2}\), \(\pi'=-\frac{2\theta x}{\sigma^2}\pi\), so \(\frac{\sigma^2}{2}\pi'=-\theta x\pi\). The bracket is zero, so \(L^*\pi=0\).</p>
+    <p>A stronger statement holds: the probability flux itself is zero. That is detailed balance, the reason OU is reversible.</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">5.2</span><span class="kind pf">proof</span><b>KL decay for Gaussian data by convexity</b></div>
+  <p>Use the forward process \(\theta=1,\sigma=\sqrt2\) with \(p=\N(0,s^2)\) in 1D. Show \(\KL(p_T\|\gamma_1)\le e^{-2T}\KL(p\|\gamma_1)\) directly. Use \(\KL(\N(0,v)\|\N(0,1))=\frac12(v-1-\log v)\).</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>\(p_T=\N(0,v_T)\) with \(v_T=e^{-2T}s^2+1-e^{-2T}=\lambda s^2+(1-\lambda)\cdot1\), where \(\lambda=e^{-2T}\). The function \(f(v)=\frac12(v-1-\log v)\) is convex with \(f(1)=0\), so</p>
+    \[ \KL(p_T\|\gamma_1)=f\big(\lambda s^2+(1-\lambda)\big)\le\lambda f(s^2)+(1-\lambda)f(1)=e^{-2T}\KL(p\|\gamma_1). \]
+    <p>For \(s^2\) near 1 the true decay is faster: \(f(1+\delta)\approx\frac{\delta^2}4\) with \(\delta=e^{-2T}(s^2-1)\), which goes like \(e^{-4T}\). The general bound uses log-Sobolev and is not tight for every \(p\).</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">5.3</span><span class="kind">calculation</span><b>Hyvärinen score matching on a Gaussian</b></div>
+  <p>Data \(p=\N(0,s^2)\) in 1D and model \(s_\vartheta(x)=-\vartheta x\). Write the implicit score matching objective and minimise it.</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>\(\nabla\cdot s_\vartheta=-\vartheta\), so</p>
+    \[ J(\vartheta)=\E\big[\tfrac12\vartheta^2X^2-\vartheta\big]=\tfrac12\vartheta^2s^2-\vartheta,\qquad J'(\vartheta)=0\Rightarrow\vartheta^*=\frac1{s^2}. \]
+    <p>The minimiser is the true score \(-x/s^2\), found without knowing the density, from samples only (through \(\E X^2\)).</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">5.4</span><span class="kind">calculation</span><b>From DSM to the noise-prediction loss</b></div>
+  <p>With \(x_t=mx_0+\sqrt v\,\varepsilon\), rewrite \(\|s_\vartheta(x_t,t)-\nabla\log p_{t|0}(x_t\mid x_0)\|^2\) in terms of \(\varepsilon_\vartheta=-\sqrt v\,s_\vartheta\). Which weighting \(\lambda(t)\) gives the plain loss \(\E\|\varepsilon_\vartheta-\varepsilon\|^2\)?</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>\(\nabla\log p_{t|0}=-\varepsilon/\sqrt v\), so</p>
+    \[ \Big\|s_\vartheta+\frac{\varepsilon}{\sqrt v}\Big\|^2=\frac1v\big\|\sqrt v\,s_\vartheta+\varepsilon\big\|^2=\frac1v\|\varepsilon-\varepsilon_\vartheta\|^2. \]
+    <p>Choosing \(\lambda(t)=v(t)\) cancels the \(1/v\) and gives the standard \(\E\|\varepsilon_\vartheta-\varepsilon\|^2\). With \(\lambda\equiv1\), small-noise times would dominate because \(1/v\to\infty\) as \(t\to0\).</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">5.5</span><span class="kind">calculation</span><b>Derive the exponential integrator</b></div>
+  <p>On \([t_k,t_k+h]\) solve \(\d X=(X+2s)\,\d t+\sqrt2\,\d W\) exactly, with \(s\) a fixed vector (the frozen score).</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>Product rule on \(e^{-t}X_t\): \(\d(e^{-t}X)=e^{-t}(\d X-X\,\d t)=2se^{-t}\d t+\sqrt2e^{-t}\d W\). Integrate over \([t_k,t_k+h]\) and multiply by \(e^{t_k+h}\):</p>
+    \[ X_{t_k+h}=e^hX_{t_k}+2s(e^h-1)+\sqrt2\int_{t_k}^{t_k+h}e^{t_k+h-r}\d W_r. \]
+    <p>The noise term is Gaussian with variance \(2\int_0^he^{2u}\d u=e^{2h}-1\) (isometry), which gives \(\sqrt{e^{2h}-1}\,\xi_k\). This is the formula in §5.4. With the score frozen, the only error left is in the score itself.</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">5.6</span><span class="kind">calculation</span><b>Girsanov vs data processing for BM with drift</b></div>
+  <p>On \([0,T]\), let \(\mathbb Q\) and \(\mathbb P\) be the laws of \(x+b_1t+W_t\) and \(x+b_2t+W_t\) (1D). Compute \(\KL(\mathbb Q\|\mathbb P)\) with Girsanov and compare it with the KL of the time-\(T\) marginals.</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <p>Girsanov with unit noise: \(\KL(\mathbb Q\|\mathbb P)=\frac12\E_{\mathbb Q}\int_0^T(b_1-b_2)^2\d t=\frac12(b_1-b_2)^2T\).</p>
+    <p>Marginals: \(\N(x+b_1T,T)\) vs \(\N(x+b_2T,T)\), with KL \(\frac{(b_1-b_2)^2T^2}{2T}=\frac12(b_1-b_2)^2T\).</p>
+    <p>They are equal here because, given the endpoint, both paths are the same Brownian bridge, so the path carries no information about the drift beyond \(X_T\). In general data processing gives only marginal KL \(\le\) path KL, which is the direction used in Thm 5.2.</p>
+  </div></details>
+</div>
+
+<div class="ex">
+  <div class="exhead"><span class="exnum">5.7</span><span class="kind">calculation</span><b>Error budget of Theorem 5.2</b></div>
+  <p>Ignore the \(Lm_2h\) term and assume \(\varepsilon_{\rm score}\) is small. Choose \(T\) and \(h\) so that each remaining term is at most \(\varepsilon\), and compute the number of steps \(K=T/h\).</p>
+  <details class="sol"><summary>Worked solution</summary><div>
+    <ul>
+      <li>Initialisation: \(\sqrt{\KL}\,e^{-T}\le\varepsilon\) for \(T=\log\frac{\sqrt{\KL(p\|\gamma_d)}}{\varepsilon}\).</li>
+      <li>Discretisation: \(L\sqrt{dh}\sqrt T\le\varepsilon\) for \(h=\frac{\varepsilon^2}{L^2dT}\). Check \(h\le1/L\), which holds for small \(\varepsilon\) since \(L\ge1\).</li>
+    </ul>
+    \[ K=\frac Th=\frac{L^2dT^2}{\varepsilon^2}=\tilde O\Big(\frac{L^2d}{\varepsilon^2}\Big). \]
+    <p>\(T\) enters only through a logarithm, so the cost is polynomial in \(d\), \(L\) and \(1/\varepsilon\). The score term \(\varepsilon_{\rm score}\sqrt T\) does not shrink with more steps; it is set by training.</p>
+  </div></details>
+</div>
+
 <div class="pager"></div>
 </section>
 
@@ -1183,12 +1578,19 @@ window.MathJax = {
   show(location.hash.slice(1), false);
 
   document.querySelectorAll('button.reveal').forEach(function(btn){
+    var sel = btn.getAttribute('data-sel') || 'details.qa';
+    var isSol = sel === 'details.sol';
     btn.addEventListener('click', function(){
-      var sec = btn.closest('section');
-      var qs = sec.querySelectorAll('details.qa');
-      var anyClosed = Array.prototype.some.call(qs, function(d){ return !d.open; });
+      var h = btn.closest('h2');
+      var qs = [], n = h.nextElementSibling;
+      while(n && n.tagName !== 'H2' && !n.classList.contains('pager')){
+        if(n.matches(sel)) qs.push(n);
+        n.querySelectorAll(sel).forEach(function(d){ qs.push(d); });
+        n = n.nextElementSibling;
+      }
+      var anyClosed = qs.some(function(d){ return !d.open; });
       qs.forEach(function(d){ d.open = anyClosed; });
-      btn.textContent = anyClosed ? 'Hide all answers' : 'Reveal all answers';
+      btn.textContent = (anyClosed ? (isSol ? 'Hide all solutions' : 'Hide all answers') : (isSol ? 'Show all solutions' : 'Reveal all answers'));
     });
   });
 })();
