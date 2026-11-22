@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Large Deviations and the Gibbs Variational Principle</title>
+<script>
+window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},svg:{fontCache:'global'},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};
+</script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+<style>
+:root{
+  --ink:#111;--gray:#666;--line:#ddd;--blue:#2b5fad;--green:#1f8a63;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font-family:var(--serif);
+  font-size:19px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.measure{max-width:42rem;margin:0 auto;padding:0 1.25rem}
+p{margin:0 0 1.05em}
+a{color:var(--blue)}
+::selection{background:#dbe7f6}
+
+header{padding:4.5rem 1rem 1.2rem;text-align:center}
+.eyebrow{letter-spacing:.4em;font-size:.85rem;color:var(--gray);text-transform:uppercase;margin-bottom:.5rem}
+h1.title{font-weight:400;font-style:italic;margin:0;font-size:clamp(2.1rem,6vw,3.6rem);line-height:1.1}
+.hero-eq{margin:2rem 0 .4rem;font-size:clamp(1rem,2.5vw,1.4rem)}
+
+h2{font-weight:400;font-size:1.5rem;margin:3.4rem 0 .3rem;font-style:italic}
+h2 .no{font-style:normal;color:var(--gray);font-size:.8rem;letter-spacing:.22em;
+  text-transform:uppercase;display:block;margin-bottom:.45rem;font-family:var(--serif)}
+h3{font-weight:400;font-style:italic;font-size:1.13rem;margin:2.2rem 0 .6rem;color:#333}
+hr{border:0;border-top:1px solid var(--line);max-width:42rem;margin:3rem auto}
+mjx-container[jax="SVG"][display="true"]{margin:1.25em 0!important;overflow-x:auto;overflow-y:hidden;padding:2px 0}
+
+/* ---- gwern-style expandable notes ---- */
+.pop{
+  font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;
+  border-bottom:1px solid #9db8dd;text-decoration:none;line-height:inherit;
+}
+.pop:hover{border-bottom-color:var(--blue);background:#f0f5fb}
+.pop::after{content:"\2009\25B8";font-size:.68em;color:var(--blue);vertical-align:.12em}
+.pop[aria-expanded=true]::after{content:"\2009\25BE"}
+.pop[aria-expanded=true]{background:#f0f5fb;border-bottom-color:var(--blue)}
+.popbody{
+  display:none;margin:1.1em 0 1.4em;padding:.85em 1.1em .3em;
+  border-left:2px solid var(--blue);background:#f7f9fc;
+  font-size:.93rem;line-height:1.58;
+}
+.popbody.open{display:block}
+.popbody .ttl{font-style:italic;color:var(--blue);font-size:.8rem;letter-spacing:.1em;
+  text-transform:uppercase;display:block;margin-bottom:.5em}
+.popbody p{margin:0 0 .8em}
+.popbody mjx-container[jax="SVG"][display="true"]{margin:.85em 0!important}
+
+/* ---- figures ---- */
+figure.sim{max-width:54rem;margin:2.2rem auto;padding:0 1.25rem}
+.sim-frame{border:1px solid var(--line);border-radius:3px;background:#fff;padding:10px}
+.sim-frame canvas{display:block;width:100%;touch-action:none}
+.sim-frame .split{display:flex;gap:10px}
+.sim-frame .split>div{flex:1;min-width:0}
+@media (max-width:760px){.sim-frame .split{flex-direction:column}}
+figcaption{font-size:.85rem;color:var(--gray);margin-top:.6rem;line-height:1.5}
+figcaption .figno{font-style:italic}
+.controls{display:flex;flex-wrap:wrap;gap:.8rem 1.5rem;align-items:center;margin-top:.8rem;font-size:.9rem}
+.controls label{color:var(--gray);font-size:.82rem;letter-spacing:.05em;margin-right:.4em}
+button.ui{font-family:var(--serif);font-size:.88rem;background:#fff;border:1px solid var(--ink);
+  color:var(--ink);padding:.3rem .9rem;cursor:pointer;border-radius:2px}
+button.ui:hover{background:var(--ink);color:#fff}
+button.ui.toggled{background:var(--blue);border-color:var(--blue);color:#fff}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+select{font-family:var(--serif);font-size:.9rem;border:1px solid var(--line);padding:.28rem .45rem;background:#fff;border-radius:2px}
+input[type=range]{accent-color:var(--blue);width:150px;vertical-align:middle}
+.readout{font-style:italic;color:var(--gray);min-width:3.2em;display:inline-block}
+.fig-note{font-style:italic;color:#444;font-size:.92rem;margin-top:.7rem;
+  border-left:2px solid var(--green);padding-left:.8rem;min-height:2.4em;transition:opacity .25s}
+.fig-note.dim{opacity:0}
+.legend{display:inline-flex;gap:1em;flex-wrap:wrap}
+.legend span{white-space:nowrap}
+.sw{display:inline-block;width:1.4em;height:0;border-top:2px solid;vertical-align:middle;margin-right:.3em}
+footer{height:4rem}
+
+/* ---- back link, post meta, part indicator ---- */
+.backlink{
+  position:fixed;top:1rem;left:1.1rem;z-index:30;
+  font-family:var(--serif);font-size:1.6rem;line-height:1;
+  color:#777;text-decoration:none;padding:.1em .4em .25em;
+}
+.backlink:hover{color:var(--ink)}
+
+.postmeta{
+  margin-top:1.9rem;text-align:center;
+  font-size:.78rem;letter-spacing:.055em;color:var(--gray);
+}
+.postmeta span{white-space:nowrap}
+.postmeta .dot{margin:0 .6em;opacity:.45}
+
+#partnav{
+  position:fixed;left:1.45rem;top:50%;transform:translateY(-50%);z-index:25;
+  display:flex;flex-direction:column;gap:.5rem;
+}
+#partnav a{
+  font-family:var(--serif);font-size:.8rem;letter-spacing:.09em;
+  color:#777;text-decoration:none;line-height:1;
+  min-width:1.7em;text-align:center;padding:.2em 0;
+  transition:color .18s ease;
+}
+#partnav a:hover{color:var(--gray)}
+#partnav a.on{color:var(--ink)}
+@media (max-width:900px){#partnav{display:none}}
+@media (prefers-reduced-motion:reduce){#partnav a{transition:none}}
+</style>
+<style>
+/* ---- additions for this essay ---- */
+.sim-frame canvas{touch-action:auto}
+.sim-frame canvas.drag{touch-action:none;cursor:crosshair}
+figure.static{max-width:30rem;margin:2rem auto;padding:0 1.25rem}
+figure.static svg{display:block;width:100%;height:auto}
+blockquote.claim{margin:1.2em 0 1.2em 1.5rem;border-left:2px solid var(--line);padding-left:1rem;font-style:italic}
+ol.refs{padding-left:1.3rem;font-size:.95rem;line-height:1.5}
+ol.refs li{margin-bottom:.7em}
+</style>
+</head>
+<body>
+
+<a class="backlink" href="index.html" aria-label="Back to index" title="Back">&lsaquo;</a>
+
+<nav id="partnav" aria-label="Sections of this essay">
+  <a href="#s-intro" data-sec="s-intro" title="Introduction">&ndash;</a>
+  <a href="#s-1"     data-sec="s-1"     title="Part I: Coins, dice, and Cram&eacute;r's theorem">I</a>
+  <a href="#s-2"     data-sec="s-2"     title="Part II: The Legendre transform">II</a>
+  <a href="#s-3"     data-sec="s-3"     title="Part III: What a large deviation principle is">III</a>
+  <a href="#s-4"     data-sec="s-4"     title="Part IV: Weak noise, and rare events as control problems">IV</a>
+  <a href="#s-5"     data-sec="s-5"     title="Part V: What reinforcement learning does with it">V</a>
+  <a href="#s-coda"  data-sec="s-coda"  title="Coda">C</a>
+</nav>
+
+<header>
+  <div class="eyebrow">large deviations and the</div>
+  <h1 class="title">Gibbs Variational Principle</h1>
+  <div class="hero-eq">$$-\,T\log \mathbb E_{\mu}\!\big[e^{-U/T}\big] \;=\; \inf_{\nu}\Big\{\,\mathbb E_{\nu}[U] \;+\; T\,\mathrm{KL}(\nu\,\|\,\mu)\Big\}$$</div>
+
+  <!-- ===================== POST META: edit here ===================== -->
+  <div class="postmeta">
+    <span class="author">Marv</span><span class="dot">&middot;</span><span class="published">published 14.11.26</span><span class="dot">&middot;</span><span class="edited">last edited 14.11.26</span>
+  </div>
+  <!-- =============================================================== -->
+</header>
+
+<section id="s-intro">
+  <div class="measure">
+    <p>Flip a fair coin a thousand times and count the heads. The law of large numbers says you will get about 500, and the central limit theorem says the typical error is around 16. Neither one tells you the probability of 900 heads. If you push the Gaussian approximation out that far anyway, it returns something like \(10^{-141}\). The true answer is close to \(10^{-161}\). The bell curve is off by twenty orders of magnitude, in a regime where insurers, engineers and physicists have real questions.</p>
+    <p>Large deviations is the part of probability that gets such numbers right. Its basic statement is that the chance of an average landing on an atypical value \(x\) decays exponentially in the number of samples,</p>
+    <p>$$\mathbb P\Big(\frac1n\sum_{i=1}^n X_i \approx x\Big)\;\asymp\; e^{-n\,I(x)},$$</p>
+    <p>with a <em>rate function</em> \(I\) that can be computed. The symbol \(\asymp\) says that the two sides agree on the exponential scale: take the logarithm of each, divide by \(n\), and the results have the same limit. It fixes the exponent and ignores every factor that grows or shrinks more slowly than an exponential. The \(\approx\) inside the probability means that the average lands in a small window around \(x\). The same kind of statement, with a different \(I\), holds for histograms of samples, for the paths of a diffusion with weak noise, and for most situations in which many small random contributions add up.</p>
+    <p>The first reason for this essay is a debt. In the <a href="fpe.html">Fokker–Planck essay</a> I quoted Kramers' law, that a particle escapes a well of depth \(\Delta V\) after a time of order \(e^{\Delta V/T}\), and gave no derivation. In the <a href="hjb.html">control essay</a> the main theorem rested on a fact that I waved through in a side note: minimizing an expected cost plus a KL penalty gives a Boltzmann-tilted distribution, and the minimal value is a free energy. Both are large deviations statements. The second has a name, the Gibbs variational principle, and it is the equation under the title.</p>
+    <p>The second reason is that this is where probability turns into optimization. A rare event, when it does happen, happens in a particular way, and that way solves a minimization problem. Of all the routes to the event, the cheapest one carries nearly all the probability. By Part IV the minimization will be an optimal control problem and the rate function will be its value function. So the control essay and this one are about the same equation, read at two temperatures.</p>
+    <p>Here is the plan. Part I does coins and dice by hand and proves Cramér's theorem. Part II is about the Legendre transform, the piece of convex analysis that does the work in Part I, and derives the title equation on a finite set. Part III says what a large deviation principle is in general, and shows that the title equation is the one case of the general theory that is exact with no limit taken. Part IV is about diffusions with weak noise, and about control. Part V collects what reinforcement learning does with all of it. As in the other essays, underlined terms open derivations, and the figures respond to you.</p>
+  </div>
+</section>
+
+<hr>
+
+<section id="s-1">
+  <div class="measure">
+    <h2><span class="no">Part I</span>Coins, dice, and Cramér's theorem</h2>
+
+    <h3>Counting heads</h3>
+    <p>Let \(S_n\) be the number of heads in \(n\) flips of a coin that lands heads with probability \(p\). The probability of exactly \(k\) heads is \(\binom nk p^k(1-p)^{n-k}\). Put \(k=xn\), take logarithms, and use
+      <button class="pop" data-target="pp-stirling" aria-expanded="false">Stirling's formula</button> on the binomial coefficient. What comes out is</p>
+    <div class="popbody" id="pp-stirling"><span class="ttl">the Stirling computation</span>
+      <p>Stirling: \(\log n! = n\log n - n + \tfrac12\log(2\pi n) + o(1)\). Applied three times,</p>
+      <p>$$\log\binom{n}{xn} \;=\; n\,H(x)\;-\;\tfrac12\log\!\big(2\pi n\,x(1-x)\big)+o(1),$$</p>
+      <p>where \(H(x)=-x\log x-(1-x)\log(1-x)\) is the entropy of a coin with bias \(x\).</p>
+      <p>The remaining factor contributes \(n\,[\,x\log p+(1-x)\log(1-p)\,]\). Adding the two,</p>
+      <p>$$\log \mathbb P(S_n=xn) \;=\; -\,n\,I(x)\;-\;\tfrac12\log\!\big(2\pi n\,x(1-x)\big)+o(1),$$</p>
+      <p>with \(I(x)=x\log\frac xp+(1-x)\log\frac{1-x}{1-p}\) as in the main text.</p>
+      <p>The first term is of order \(n\). The second is of order \(\log n\), and it is the reason the dots in Figure 1 sit slightly above the curve and sink onto it slowly.</p>
+    </div>
+    <p>$$\mathbb P(S_n = xn)\;\asymp\;e^{-n\,I(x)},\qquad I(x)\;=\;x\log\frac{x}{p}+(1-x)\log\frac{1-x}{1-p}.$$</p>
+    <p>The symbol
+      <button class="pop" data-target="pp-asymp" aria-expanded="false">\(\asymp\)</button> is the one from the introduction, equality of \(\frac1n\log\) in the limit. The exponent is a relative entropy, \(I(x)=\mathrm{KL}\big(\mathrm{Ber}(x)\,\|\,\mathrm{Ber}(p)\big)\), the divergence of the coin you would need from the coin you have. It is zero at \(x=p\), positive everywhere else, and convex.</p>
+    <div class="popbody" id="pp-asymp"><span class="ttl">what \(\asymp\) keeps and what it throws away</span>
+      <p>I write \(a_n\asymp b_n\) when \(\frac1n\log a_n-\frac1n\log b_n\to0\). When the left side is a probability of the form \(\mathbb P(Z_n\approx z)\), the window around \(z\) is held fixed while \(n\to\infty\) and shrunk afterwards. Part III gives the version of this with open and closed sets. This forgets every factor that grows or decays more slowly than an exponential. All of \(5\,e^{-nI}\), \(n^{-1/2}e^{-nI}\) and \(e^{-nI+\sqrt n}\) are \(\asymp e^{-nI}\).</p>
+      <p>That is a weak notion of equality, and it is the level at which the theory is clean. Exponents are robust and come from a variational formula. Prefactors depend on the details of the model and are much harder. For \(n=30\) a forgotten prefactor can matter more than the exponent, and the coda comes back to this.</p>
+    </div>
+  </div>
+
+  <figure class="sim" id="fig1">
+    <div class="sim-frame"><div class="split"><div><canvas height="300" data-role="left"></canvas></div><div><canvas height="300" data-role="right"></canvas></div></div></div>
+    <div class="controls">
+      <span><label>flips n</label><input type="range" data-role="n" min="0" max="1" step="0.002" value="0"><span class="readout" data-role="nval">5</span></span>
+      <button class="ui" data-role="auto" aria-pressed="true">let n grow</button>
+      <span><label>bias p</label><input type="range" data-role="p" min="0.05" max="0.95" step="0.01" value="0.5"><span class="readout" data-role="pval">0.50</span></span>
+      <span class="legend"><span><i class="sw" style="border-color:#1f8a63"></i>exact \(-\frac1n\log\mathbb P\)</span>
+      <span><i class="sw" style="border-color:#2b5fad"></i>\(I(x)\)</span>
+      <span><i class="sw" style="border-color:#999;border-top-style:dashed"></i>Gaussian guess</span></span>
+    </div>
+    <p class="fig-note" data-role="note">Left: the distribution of the fraction of heads, on a linear scale. Right: the same probabilities as \(-\frac1n\log\mathbb P\). The green dots are exact binomial values, with nothing approximated.</p>
+    <figcaption><span class="figno">Figure 1.</span> A bell that narrows on one scale is a fixed curve on another.</figcaption>
+  </figure>
+
+  <div class="measure">
+    <p>On a linear scale all you can see is a bell getting narrower, because everything outside the bell is indistinguishable from zero. On the scale of \(-\frac1n\log\mathbb P\) the same numbers line up along a curve that stops moving as \(n\) grows. That curve is what this essay studies. The dashed parabola is \((x-p)^2/2p(1-p)\), the exponent you get by trusting the central limit theorem at every \(x\). It matches \(I\) to second order at \(x=p\) and nowhere else, and the mismatch is the twenty orders of magnitude from the introduction.</p>
+    <p>The two theorems do not overlap. The central limit theorem describes deviations of size \(n^{-1/2}\), where \(n\,I(x)\) is of order one and \(\asymp\) has already thrown it away. Large deviations describes deviations of size one, where the Gaussian has no authority. That the curvature of \(I\) at its minimum is one over the variance is a consistency between two statements about different regimes, and neither implies the other.</p>
+
+    <h3>The same exponent without counting</h3>
+    <p>Stirling's formula needs something to count. In 1938 Harald Cramér, who worked on insurance risk and needed tail probabilities for total claims, found an argument that works for sums \(S_n=X_1+\dots+X_n\) of any independent, identically distributed variables with light tails. It has two halves, and I want to keep them apart because Part IV reuses the second half on its own.</p>
+    <p>Both halves use the
+      <button class="pop" data-target="pp-cgf" aria-expanded="false">cumulant generating function</button> of one sample,</p>
+    <div class="popbody" id="pp-cgf"><span class="ttl">the cumulant generating function</span>
+      <p>\(\Lambda(\theta)=\log\mathbb E[e^{\theta X}]\) is the logarithm of the moment generating function. It has \(\Lambda(0)=0\), \(\Lambda'(0)=\mathbb E[X]\) and \(\Lambda''(0)=\mathrm{Var}(X)\), and its higher derivatives at zero are the higher cumulants. It is convex: \(\Lambda''(\theta)\) is the variance of \(X\) under the tilted law defined below, which cannot be negative.</p>
+      <p>For a coin with bias \(p\) it is \(\log(1-p+p\,e^{\theta})\). For a standard Gaussian it is \(\theta^2/2\).</p>
+      <p>The standing assumption is that \(\Lambda\) is finite in a neighbourhood of \(\theta=0\), which says that the tails of \(X\) decay at least exponentially. Without it the argument fails and so does the theorem. The coda says what replaces it.</p>
+    </div>
+    <p>$$\Lambda(\theta)\;=\;\log \mathbb E\big[e^{\theta X}\big].$$</p>
+    <p><em>Upper bound.</em> For any \(\theta\ge0\), Markov's inequality applied to \(e^{\theta S_n}\) gives</p>
+    <p>$$\mathbb P(S_n\ge nx)\;\le\;e^{-\theta n x}\;\mathbb E\big[e^{\theta S_n}\big]\;=\;e^{-n\,(\theta x-\Lambda(\theta))}.$$</p>
+    <p>This is true for every \(\theta\ge0\) and every \(n\), so take the best \(\theta\). For \(x\) above the mean, restricting to \(\theta\ge0\)
+      <button class="pop" data-target="pp-side" aria-expanded="false">costs nothing</button>, and the result is the Chernoff bound</p>
+    <div class="popbody" id="pp-side"><span class="ttl">why the sign restriction is free</span>
+      <p>By Jensen's inequality \(\Lambda(\theta)\ge\theta\,m\), where \(m=\mathbb E[X]\). So for \(\theta&lt;0\) and \(x&gt;m\), \(\theta x-\Lambda(\theta)\le\theta(x-m)&lt;0\), which is worse than the value \(0\) at \(\theta=0\). The supremum over all real \(\theta\) is therefore attained at some \(\theta\ge0\). For \(x\) below the mean the mirror-image argument bounds \(\mathbb P(S_n\le nx)\) with \(\theta\le0\).</p>
+    </div>
+    <p>$$\mathbb P(S_n\ge nx)\;\le\;e^{-n\,I(x)},\qquad I(x)\;=\;\sup_{\theta}\big\{\theta x-\Lambda(\theta)\big\}.$$</p>
+    <p><em>Lower bound.</em> An upper bound could be loose. To show that this one is tight on the exponential scale you have to exhibit a way for the event to happen and work out what that way costs. The way is to change the distribution. Define the
+      <button class="pop" data-target="pp-tilt" aria-expanded="false">tilted law</button></p>
+    <div class="popbody" id="pp-tilt"><span class="ttl">three facts about the tilt</span>
+      <p>The tilted law \(\mu_\theta\) is a probability measure, since \(e^{\Lambda(\theta)}\) is by definition the normalizer of \(e^{\theta y}\mu(\mathrm dy)\). Differentiating \(\Lambda\) under the expectation gives</p>
+      <p>$$\Lambda'(\theta)=\mathbb E_{\mu_\theta}[X],\qquad \Lambda''(\theta)=\mathrm{Var}_{\mu_\theta}(X).$$</p>
+      <p>So as \(\theta\) increases, the mean of \(\mu_\theta\) increases with it, and in every example of this essay it sweeps through all the values the average could take. Its relative entropy to the original law is</p>
+      <p>$$\mathrm{KL}(\mu_\theta\,\|\,\mu)=\mathbb E_{\mu_\theta}\big[\theta X-\Lambda(\theta)\big]=\theta\,\Lambda'(\theta)-\Lambda(\theta).$$</p>
+      <p>Now pick \(\theta\) so that \(\Lambda'(\theta)=x\). That is the stationarity condition for \(\sup_\theta\{\theta x-\Lambda(\theta)\}\), and since the bracket is concave in \(\theta\) it is the maximizer. Hence \(\mathrm{KL}(\mu_\theta\|\mu)=\theta x-\Lambda(\theta)=I(x)\). For a coin, tilting \(\mathrm{Ber}(p)\) multiplies the odds of heads by \(e^{\theta}\), and the tilt with mean \(x\) is \(\mathrm{Ber}(x)\).</p>
+    </div>
+    <p>$$\mu_\theta(\mathrm dy)\;=\;e^{\theta y-\Lambda(\theta)}\,\mu(\mathrm dy),$$</p>
+    <p>and pick \(\theta\) so that its mean is \(x\). Under the tilted law the event \(\{S_n\approx nx\}\) is ordinary. Probabilities under the two laws differ by a likelihood ratio, and on that event the ratio is \(e^{-n(\theta x-\Lambda(\theta))}\) up to a factor that does not grow exponentially.
+      <button class="pop" data-target="pp-lower" aria-expanded="false">Written out</button>, this is a matching lower bound.</p>
+    <div class="popbody" id="pp-lower"><span class="ttl">the lower bound, in full</span>
+      <p>Let \(\mathbb P_\theta\) be the law under which the \(X_i\) are i.i.d. from \(\mu_\theta\). For any event \(A\) that depends on the first \(n\) samples,</p>
+      <p>$$\mathbb P(A)\;=\;\mathbb E_\theta\Big[e^{-\theta S_n+n\Lambda(\theta)}\,\mathbf 1_A\Big].$$</p>
+      <p>Take \(A=\{x\le S_n/n\le x+\delta\}\) and \(\theta\ge0\) with \(\Lambda'(\theta)=x\). On \(A\) the exponent is at least \(-n(\theta(x+\delta)-\Lambda(\theta))\), so</p>
+      <p>$$\mathbb P(A)\;\ge\;e^{-n(I(x)+\theta\delta)}\;\mathbb P_\theta(A).$$</p>
+      <p>Under \(\mathbb P_\theta\) the average has mean \(x\), so by the central limit theorem \(\mathbb P_\theta(A)\to\tfrac12\). Therefore \(\liminf\frac1n\log\mathbb P(A)\ge-I(x)-\theta\delta\), and \(\delta\) was arbitrary. The central limit theorem enters here as a tool. After tilting, the rare event is a typical one, and typical events are its department.</p>
+    </div>
+    <p>$$\boxed{\;\mathbb P\Big(\frac{S_n}{n}\approx x\Big)\;\asymp\;e^{-n\,I(x)},\qquad I(x)\;=\;\sup_{\theta}\big\{\theta x-\Lambda(\theta)\big\}\;}$$</p>
+    <p>This is Cramér's theorem. Read the lower bound again as a statement about cost. The fair coin does not produce 70% heads. A coin with bias 0.7 does so routinely. The probability that the fair coin imitates the biased one for \(n\) flips is the likelihood ratio between them, and per flip the logarithm of that ratio averages to \(\mathrm{KL}(\mu_\theta\,\|\,\mu)\), which is exactly \(I(x)\). I claim further that among all distributions that would make the event typical, the exponential tilt is the cheapest to imitate. Part III proves that.</p>
+    <p>Exponential tilting has been found many times. Actuaries call it the Esscher transform, after a 1932 paper. Statisticians call the family \(\{\mu_\theta\}\) an exponential family. A physicist would say that \(\mu_\theta\propto e^{\theta y}\mu\) is a Boltzmann distribution with energy \(-y\) and inverse temperature \(\theta\), and that \(\Lambda\) is the logarithm of a partition function. Hold on to the physicist's reading for Part II.</p>
+
+    <h3>How the rare event happens</h3>
+    <p>The tilt also describes what you would see if you watched. Condition on \(S_n\ge nx\) and look at one of the samples. As \(n\) grows, its conditional law converges to \(\mu_\theta\). This is the
+      <button class="pop" data-target="pp-cond" aria-expanded="false">conditional limit theorem</button>. A fair coin that came up 70% heads did it by looking, flip for flip, like a 0.7 coin. There are other ways to reach 70%, such as an opening streak of heads followed by ordinary flipping. They are possible, and their probability is smaller by a factor exponential in \(n\).</p>
+    <div class="popbody" id="pp-cond"><span class="ttl">the conditional limit theorem</span>
+      <p>The statement: if \(\Lambda'(\theta)=x\) and \(x\) is above the mean, then for every fixed \(k\) the conditional law of \((X_1,\dots,X_k)\) given \(S_n\ge nx\) converges to \(\mu_\theta^{\otimes k}\) as \(n\to\infty\). A finite handful of the samples look like independent draws from the tilt.</p>
+      <p>For a constraint on the average of a function of the samples this is due to Van Campenhout and Cover (1981). Csiszár (1984) proved it for general convex constraints on the empirical measure, with the tilt replaced by the distribution in the constraint set that is closest to \(\mu\) in relative entropy. Part III puts it in that form.</p>
+      <p>The reason is the one in the main text. Conditioning on an event of probability \(e^{-nI}\) selects the cheapest way of producing it, and any way other than uniform tilting costs strictly more per sample.</p>
+    </div>
+    <p>E. T. Jaynes used a die to make a point about inference, in lectures at Brandeis in 1962. A die has been rolled many times and all you are told is that the average was 4.5 where a fair die gives 3.5. The question is what probabilities to assign to the faces. Jaynes's answer was the distribution of maximum entropy with that mean, \(p_k\propto e^{\theta k}\) with \(\theta\approx0.371\), and he defended it as a principle of reasoning. If the die is in fact fair and the high average is a fluke, no principle is required. The conditional limit theorem says the faces will be distributed that way, and you can check by rolling dice and throwing out the runs that fail.</p>
+  </div>
+
+  <figure class="sim" id="fig2">
+    <div class="sim-frame"><div class="split"><div><canvas height="300" data-role="left"></canvas></div><div><canvas height="300" data-role="right"></canvas></div></div></div>
+    <div class="controls">
+      <span><label>dice per run n</label><input type="range" data-role="n" min="3" max="60" step="1" value="12"><span class="readout" data-role="nval">12</span></span>
+      <span><label>required average a</label><input type="range" data-role="a" min="3.5" max="5.5" step="0.05" value="4.5"><span class="readout" data-role="aval">4.50</span></span>
+      <button class="ui" data-role="reset">start over</button>
+      <span class="legend"><span><i class="sw" style="border-color:#1f8a63"></i>faces in accepted runs</span>
+      <span><i class="sw" style="border-color:#2b5fad"></i>tilt \(p_k\propto e^{\theta k}\)</span>
+      <span><i class="sw" style="border-color:#999;border-top-style:dashed"></i>fair die</span></span>
+    </div>
+    <p class="fig-note" data-role="note">Fair dice are rolled in runs of \(n\). A run is kept only if its average is at least \(a\). The bars count faces in the kept runs, and the blue marks are the exponential tilt with mean \(a\).</p>
+    <figcaption><span class="figno">Figure 2.</span> Jaynes's dice, by rejection. No maximum entropy principle is used anywhere in the simulation.</figcaption>
+  </figure>
+
+  <div class="measure">
+    <p>Raise \(n\) and the bars settle onto the blue marks while the fraction of runs that pass collapses. The readout compares that fraction with \(e^{-nI(a)}\). The measured exponent sits a little above \(I(a)\) and comes down toward it as \(n\) grows, which is the forgotten prefactor showing itself. Rejection sampling of a rare event costs about \(e^{nI}\) samples per success, and that is the practical reason to care about the tilt, since sampling from \(\mu_\theta\) directly costs nothing. The control essay made the same comparison in its last figure, between throwing away passive paths and steering them. Part IV explains why it is the same comparison.</p>
+  </div>
+</section>
+
+<hr>
+
+<section id="s-2">
+  <div class="measure">
+    <h2><span class="no">Part II</span>The Legendre transform</h2>
+    <p>The formula \(I(x)=\sup_\theta\{\theta x-\Lambda(\theta)\}\) arrived in Part I as the result of optimizing a bound. The operation has a name and a geometry, and the rest of the essay uses both.</p>
+
+    <h3>Slopes as coordinates</h3>
+    <p>For a function \(f\) on \(\mathbb R^d\), its Legendre transform, or convex conjugate, is</p>
+    <p>$$f^{*}(p)\;=\;\sup_{x}\big\{\langle p,x\rangle-f(x)\big\}.$$</p>
+    <p>In one dimension the picture is as follows. A convex function can be described by its graph, which records a height for each point. It can also be described by its tangent lines, by recording an intercept for each slope. The line of slope \(p\) that touches the graph of \(f\) from below crosses the vertical axis at height \(-f^{*}(p)\). So \(f^{*}\) is the same curve, indexed by slope.</p>
+    <p><button class="pop" data-target="pp-facts" aria-expanded="false">Four facts</button> about the transform are enough for this essay. The transform of any function is convex. Applying it twice returns the original function if that function was convex, and returns its convex hull otherwise. The derivatives \(f'\) and \((f^{*})'\) are inverse to each other, so the variable of \(f^{*}\) is the slope of \(f\). And for all \(x\) and \(p\), \(f(x)+f^{*}(p)\ge\langle p,x\rangle\), with equality exactly when \(p\) is the slope of \(f\) at \(x\).</p>
+    <div class="popbody" id="pp-facts"><span class="ttl">four facts, with reasons</span>
+      <p><em>Convexity.</em> For each fixed \(x\), the map \(p\mapsto\langle p,x\rangle-f(x)\) is affine. A supremum of affine functions is convex. This needs nothing from \(f\).</p>
+      <p><em>Fenchel–Young.</em> The inequality \(f(x)+f^{*}(p)\ge\langle p,x\rangle\) is the definition of the supremum, rearranged. Equality holds when \(x\) attains the supremum, which for differentiable convex \(f\) means \(p=\nabla f(x)\).</p>
+      <p><em>Inverse derivatives.</em> If \(x(p)\) is the maximizer, then \(f^{*}(p)=\langle p,x(p)\rangle-f(x(p))\) and differentiating in \(p\) gives \(\nabla f^{*}(p)=x(p)\), the other terms cancelling by stationarity. So \(\nabla f^{*}=(\nabla f)^{-1}\), and in one dimension the second derivatives are reciprocal: \((f^{*})''(p)=1/f''(x)\). For Cramér's pair this reads \(I''(x)=1/\mathrm{Var}_{\mu_\theta}(X)\), which at the mean is one over the variance. That is the parabola in Figure 1.</p>
+      <p><em>Biconjugate.</em> \(f^{**}\) is the largest convex, lower semicontinuous function below \(f\). If \(f\) already is convex and lower semicontinuous then \(f^{**}=f\) (Fenchel–Moreau). If \(f\) has a dent, \(f^{**}\) bridges it with a straight segment.</p>
+    </div>
+    <p>In the vocabulary of Part I, \(\Lambda\) and \(I\) are a Legendre pair. The tilt parameter \(\theta\) is the slope of \(I\), the mean \(x\) is the slope of \(\Lambda\), and the tilt that makes \(x\) typical is \(\theta=I'(x)\).</p>
+  </div>
+
+  <figure class="sim" id="fig3">
+    <div class="sim-frame"><div class="split"><div><canvas class="drag" height="320" data-role="left"></canvas></div><div><canvas class="drag" height="320" data-role="right"></canvas></div></div></div>
+    <div class="controls">
+      <span><label>distribution</label>
+        <select data-role="preset">
+          <option value="coin">fair coin</option>
+          <option value="biased">coin with p = 0.2</option>
+          <option value="die">fair die</option>
+          <option value="gauss">standard Gaussian</option>
+          <option value="expo">exponential</option>
+          <option value="magnet">magnet below its critical temperature</option>
+        </select></span>
+      <span class="legend"><span><i class="sw" style="border-color:#111"></i>\(\Lambda(\theta)\) and tangent</span>
+      <span><i class="sw" style="border-color:#2b5fad"></i>rate function</span>
+      <span><i class="sw" style="border-color:#1f8a63;border-top-style:dashed"></i>\(\Lambda^{*}\) where it differs</span></span>
+    </div>
+    <p class="fig-note" data-role="note">Left: \(\Lambda(\theta)\). Right: the rate function. Drag in either panel. The tangent on each side has the other side's horizontal coordinate as its slope and minus the other side's height as its intercept.</p>
+    <figcaption><span class="figno">Figure 3.</span> One curve, drawn by points and drawn by slopes.</figcaption>
+  </figure>
+
+  <div class="measure">
+    <p>The last preset is in the menu to show a failure. It is a magnet below its critical temperature, the Curie–Weiss model that Part III computes, and its true rate function has two wells. Its \(\Lambda\) has a corner at \(\theta=0\). Transform \(\Lambda\) back and you get the dashed green curve, which is flat between the wells. The transform returned the convex hull of the rate function, and the barrier is gone. Any method that computes \(\Lambda\) first and transforms second has this blind spot. The general theorem of that type, due to Gärtner and Ellis, guards against it by requiring \(\Lambda\) to be differentiable. Physicists know the flat piece as the Maxwell construction. It is also the pitchfork from Part IV of the Fokker–Planck essay, seen from the other side of the transform.</p>
+
+    <h3>The thermodynamic square</h3>
+    <p>Most physicists meet this transform in thermodynamics, usually without its name. The internal energy \(U(S,V)\) is a function of entropy and volume, and temperature is defined as a slope, \(T=\partial U/\partial S\). A thermometer is easier to operate than an entropy meter, so one would like the slope as the independent variable. The Legendre transform does that:</p>
+    <p>$$F(T,V)\;=\;\inf_{S}\big\{U(S,V)-T\,S\big\}.$$</p>
+    <p>This is the Helmholtz free energy, \(F=U-TS\) evaluated at the entropy where the slope of \(U\) is \(T\). Doing the same to the other pair, the volume and its slope \(-P\), gives the enthalpy \(H=U+PV\). Doing both gives the Gibbs free energy \(G=U-TS+PV\). The four potentials sit on a square whose edges are Legendre transforms.</p>
+  </div>
+
+  <figure class="static" id="fig4">
+    <svg viewBox="0 0 420 250" role="img" aria-label="The thermodynamic square: U, F, H and G at the corners, Legendre transforms along the edges">
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2b5fad"/></marker>
+      </defs>
+      <g font-family="Palatino, Georgia, serif" fill="#111">
+        <line x1="128" y1="52" x2="292" y2="52" stroke="#2b5fad" stroke-width="1.4" marker-start="url(#ah)" marker-end="url(#ah)"/>
+        <line x1="128" y1="198" x2="292" y2="198" stroke="#2b5fad" stroke-width="1.4" marker-start="url(#ah)" marker-end="url(#ah)"/>
+        <line x1="84" y1="70" x2="84" y2="180" stroke="#2b5fad" stroke-width="1.4" marker-start="url(#ah)" marker-end="url(#ah)"/>
+        <line x1="336" y1="70" x2="336" y2="180" stroke="#2b5fad" stroke-width="1.4" marker-start="url(#ah)" marker-end="url(#ah)"/>
+        <text x="84" y="50" text-anchor="middle" font-size="19" font-style="italic">U(S,V)</text>
+        <text x="84" y="28" text-anchor="middle" font-size="11" fill="#666">internal energy</text>
+        <text x="336" y="50" text-anchor="middle" font-size="19" font-style="italic">F(T,V)</text>
+        <text x="336" y="28" text-anchor="middle" font-size="11" fill="#666">Helmholtz</text>
+        <text x="84" y="206" text-anchor="middle" font-size="19" font-style="italic">H(S,P)</text>
+        <text x="84" y="228" text-anchor="middle" font-size="11" fill="#666">enthalpy</text>
+        <text x="336" y="206" text-anchor="middle" font-size="19" font-style="italic">G(T,P)</text>
+        <text x="336" y="228" text-anchor="middle" font-size="11" fill="#666">Gibbs</text>
+        <text x="210" y="42" text-anchor="middle" font-size="12" fill="#2b5fad">swap S for T: subtract TS</text>
+        <text x="210" y="216" text-anchor="middle" font-size="12" fill="#2b5fad">swap S for T: subtract TS</text>
+        <text x="96" y="122" font-size="12" fill="#2b5fad">swap V for P:</text>
+        <text x="96" y="138" font-size="12" fill="#2b5fad">add PV</text>
+        <text x="324" y="122" text-anchor="end" font-size="12" fill="#2b5fad">swap V for P:</text>
+        <text x="324" y="138" text-anchor="end" font-size="12" fill="#2b5fad">add PV</text>
+      </g>
+    </svg>
+    <figcaption><span class="figno">Figure 4.</span> The thermodynamic square. Every edge trades a variable for the slope conjugate to it.</figcaption>
+  </figure>
+
+  <div class="measure">
+    <p>Each corner holds the same information, arranged for a different experiment: an insulated rigid box, a rigid box in a heat bath, an insulated cylinder under a piston, a beaker open to the room. The top edge is the one this essay needs. In statistical mechanics it connects the entropy as a function of energy with the free energy as a function of temperature, and
+      <button class="pop" data-target="pp-edge" aria-expanded="false">that connection is Cramér's theorem</button>. Entropy is a rate function, the logarithm of the partition function is a cumulant generating function, and inverse temperature is a tilt parameter.</p>
+    <div class="popbody" id="pp-edge"><span class="ttl">the top edge, as a large deviation statement</span>
+      <p>Take \(n\) particles whose energies \(\varepsilon_i\) are independent under an a priori measure \(\mu\), for instance the uniform measure on single-particle states. Cramér's theorem for the mean energy says \(\mathbb P\big(\frac1n\sum\varepsilon_i\approx E\big)\asymp e^{-nI(E)}\) with \(I(E)=\sup_\theta\{\theta E-\Lambda(\theta)\}\). Write \(\theta=-\beta\). Then \(\Lambda(-\beta)=\log\mathbb E_\mu[e^{-\beta\varepsilon}]=\log Z(\beta)\), the logarithm of the single-particle partition function, and</p>
+      <p>$$-I(E)\;=\;\inf_{\beta}\big\{\beta E+\log Z(\beta)\big\}.$$</p>
+      <p>The left side is \(\frac1n\log\) of the fraction of configurations with energy per particle \(E\), which is Boltzmann's entropy per particle \(s(E)\) up to an additive constant. Writing \(\log Z=-\beta f\) for the free energy per particle \(f\), this reads \(s(E)=\inf_\beta\{\beta E-\beta f(\beta)\}\), and inverting the transform, \(\beta f(\beta)=\inf_E\{\beta E-s(E)\}\). At the minimizing \(E\) that is \(f=E-Ts\). This is the top edge of the square, per particle and with Boltzmann's constant set to one.</p>
+      <p>The minimizing \(\beta\) is the one at which the canonical mean energy is \(E\). It is the tilt parameter of Part I. Physicists call the resulting agreement between conditioning on the energy and tilting by it the equivalence of ensembles, and in Part I's terms it is the conditional limit theorem. It fails when \(s\) is not concave, which happens in some systems with long-range forces, and the failure is the one shown by the magnet preset in Figure 3.</p>
+    </div>
+
+    <h3>Log-sum-exp and entropy</h3>
+    <p>Now the computation that the title equation comes from. Take a finite set of \(k\) states, a vector \(x\in\mathbb R^k\), and the function</p>
+    <p>$$f(x)\;=\;\mathrm{LSE}(x)\;=\;\log\sum_{i}e^{x_i}.$$</p>
+    <p>I want its Legendre transform \(f^{*}(p)=\sup_x g_p(x)\), where \(g_p(x)=\langle x,p\rangle-f(x)\). The function \(f\) is
+      <button class="pop" data-target="pp-lse" aria-expanded="false">convex</button>, so \(g_p\) is linear minus convex, hence concave, and any stationary point is a maximum. The gradient is</p>
+    <div class="popbody" id="pp-lse"><span class="ttl">why log-sum-exp is convex, and where it is flat</span>
+      <p>The Hessian of \(\mathrm{LSE}\) at \(x\) is \(\mathrm{diag}(s)-ss^{\top}\) with \(s=\mathrm{softmax}(x)\). That is the covariance matrix of a one-hot random vector drawn from \(s\), so it is positive semidefinite.</p>
+      <p>It has exactly one direction of zero curvature, \((1,\dots,1)\): adding a constant \(c\) to every \(x_i\) adds \(c\) to \(f\). A direction along which \(f\) is affine shows up in \(f^{*}\) as a constraint, and here the constraint is \(\sum_ip_i=1\). In physical terms, shifting all energies by a constant changes nothing, and probabilities sum to one. These are one fact, seen from the two sides of the transform.</p>
+    </div>
+    <p>$$\nabla_x\,g_p(x)\;=\;p-\mathrm{softmax}(x),$$</p>
+    <p>which vanishes when</p>
+    <p>$$p_i=\frac{e^{x_i}}{\sum_je^{x_j}}\qquad\Longleftrightarrow\qquad x_i=\log p_i+f(x).$$</p>
+    <p>This can be solved for \(x\) only when \(p\) is a probability vector with positive entries.
+      <button class="pop" data-target="pp-off" aria-expanded="false">For any other \(p\)</button> the supremum is \(+\infty\) or is reached as a limit. Substitute, and use \(\sum_ip_i=1\):</p>
+    <div class="popbody" id="pp-off"><span class="ttl">off the simplex, and on its boundary</span>
+      <p>If \(\sum_ip_i\ne1\), move \(x\) along \((1,\dots,1)\): \(g_p(x+c\mathbf 1)=g_p(x)+c\,(\sum_ip_i-1)\), which is unbounded in one direction of \(c\). If some \(p_i&lt;0\), send \(x_i\to-\infty\): the term \(x_ip_i\) goes to \(+\infty\) while \(f\) stays bounded below by the other coordinates. In both cases \(f^{*}(p)=+\infty\).</p>
+      <p>If \(p\) is a probability vector with some zero entries, no stationary point exists, but sending the corresponding \(x_i\to-\infty\) approaches the value \(\sum_ip_i\log p_i\) with the convention \(0\log0=0\). So \(f^{*}(p)=-H(p)\) on the closed simplex and \(+\infty\) off it.</p>
+    </div>
+    <p>$$f^{*}(p)\;=\;\langle\log p,\,p\rangle+f(x)-f(x)\;=\;\sum_ip_i\log p_i\;=\;-H(p).$$</p>
+    <p>The conjugate of log-sum-exp is negative entropy on the simplex. Softmax and the logarithm are the two derivative maps, inverse to each other up to an additive constant.</p>
+    <p>Since \(f\) is convex and continuous, transforming twice gives it back:</p>
+    <p>$$\log\sum_ie^{x_i}\;=\;\sup_{p}\big\{\langle x,p\rangle+H(p)\big\}.$$</p>
+    <p>Set \(x=-U/T\) for a vector of energies \(U\) and a temperature \(T\), so that \(\langle x,p\rangle=-\mathbb E_p[U]/T\), and multiply through by \(-T\):</p>
+    <p>$$\boxed{\;-\,T\log\sum_ie^{-U_i/T}\;=\;\inf_{p}\Big\{\mathbb E_p[U]-T\,H(p)\Big\}\;}$$</p>
+    <p>with the infimum attained at \(p_i\propto e^{-U_i/T}\). This is Theorem 1 of the Fokker–Planck essay, that the Boltzmann distribution minimizes \(F=E-TS\). There I proved it with a Lagrange multiplier. The Legendre proof gives more for the same work. It says that the minimal free energy, as a function of the energies, and the entropy, as a function of the probabilities, are conjugate, so either one can be recovered from the other.</p>
+
+    <h3>With a reference measure: Donsker and Varadhan</h3>
+    <p>The finite computation used counting measure without saying so. Replace it by any probability measure \(\mu\) on any space, replace the vector \(x\) by a function \(f\), and the same pair of formulas holds:</p>
+    <p>$$\log\mathbb E_\mu\big[e^{f}\big]\;=\;\sup_{\nu}\Big\{\mathbb E_\nu[f]-\mathrm{KL}(\nu\,\|\,\mu)\Big\},$$</p>
+    <p>$$\mathrm{KL}(\nu\,\|\,\mu)\;=\;\sup_{f}\Big\{\mathbb E_\nu[f]-\log\mathbb E_\mu\big[e^{f}\big]\Big\}.$$</p>
+    <p>The first line is the Gibbs variational principle. The second is the Donsker–Varadhan formula for relative entropy, from their papers of the 1970s. They are one Legendre pair written in both directions, with functions and measures put in duality by \(\langle f,\nu\rangle=\mathbb E_\nu[f]\). Both follow from
+      <button class="pop" data-target="pp-dv" aria-expanded="false">a single identity</button>. Let \(\mu_f=e^{f}\mu\,/\,\mathbb E_\mu[e^{f}]\) be the tilt of \(\mu\) by \(f\). Then for every \(\nu\),</p>
+    <div class="popbody" id="pp-dv"><span class="ttl">the identity, and the two formulas from it</span>
+      <p>By definition \(\log\frac{\mathrm d\mu_f}{\mathrm d\mu}=f-\log\mathbb E_\mu[e^{f}]\). So for any \(\nu\) with a density against \(\mu\),</p>
+      <p>$$\mathrm{KL}(\nu\,\|\,\mu_f)=\mathbb E_\nu\Big[\log\frac{\mathrm d\nu}{\mathrm d\mu}-\log\frac{\mathrm d\mu_f}{\mathrm d\mu}\Big]=\mathrm{KL}(\nu\,\|\,\mu)-\mathbb E_\nu[f]+\log\mathbb E_\mu[e^{f}].$$</p>
+      <p>The left side is nonnegative and vanishes only at \(\nu=\mu_f\). Fix \(f\) and vary \(\nu\): this is the first formula, with the supremum attained at the tilt. Fix \(\nu\) and vary \(f\): the bracket in the second formula is at most \(\mathrm{KL}(\nu\|\mu)\), with equality when \(\mu_f=\nu\), that is, at \(f=\log\frac{\mathrm d\nu}{\mathrm d\mu}\). If that \(f\) is unbounded one approaches it by truncation, and the supremum over bounded measurable \(f\) (or bounded continuous \(f\), on a reasonable space) is still the relative entropy.</p>
+      <p>Read as an inequality, \(\mathbb E_\nu[f]\le\mathrm{KL}(\nu\|\mu)+\log\mathbb E_\mu[e^{f}]\) is the Fenchel–Young inequality for this pair. It lets you bound an expectation under a measure you do not control by an exponential moment under one you do, at the price of a relative entropy.</p>
+    </div>
+    <p>$$\log\mathbb E_\mu\big[e^{f}\big]-\Big(\mathbb E_\nu[f]-\mathrm{KL}(\nu\,\|\,\mu)\Big)\;=\;\mathrm{KL}(\nu\,\|\,\mu_f)\;\ge\;0.$$</p>
+    <p>So the supremum in the first line is attained at \(\nu=\mu_f\) and nowhere else, and the amount by which any other \(\nu\) falls short is its relative entropy to the tilt. Theorem 2 of the Fokker–Planck essay, that excess free energy is \(T\) times the KL divergence to equilibrium, is this identity. Put \(f=-U/T\), multiply by \(-T\), and you have the equation under the title:</p>
+    <p>$$\boxed{\;-\,T\log \mathbb E_{\mu}\big[e^{-U/T}\big] \;=\; \inf_{\nu}\Big\{\mathbb E_{\nu}[U] + T\,\mathrm{KL}(\nu\,\|\,\mu)\Big\}\;}$$</p>
+    <p>With \(\mu\) uniform on \(k\) states, \(\mathrm{KL}(\nu\|\mu)=\log k-H(\nu)\) and the lemma of the last section comes back. With \(\mu\) a prior, \(-U\) a log-likelihood and \(T=1\), the left side is the negative log evidence and the bracket on the right is the negative of the evidence lower bound, which was Theorem 3 of the Fokker–Planck essay. The pair has
+      <button class="pop" data-target="pp-uses" aria-expanded="false">other uses in machine learning</button> too.</p>
+    <div class="popbody" id="pp-uses"><span class="ttl">where the pair turns up</span>
+      <p><em>Variational inference.</em> With prior \(\mu\) and likelihood \(p(\mathcal D\mid z)\), the first formula with \(f=\log p(\mathcal D\mid z)\) reads \(\log p(\mathcal D)=\sup_q\{\mathbb E_q[\log p(\mathcal D\mid z)]-\mathrm{KL}(q\|\mu)\}\). The bracket is the ELBO, and the gap for a given \(q\) is its KL divergence to the posterior, by the identity above.</p>
+      <p><em>PAC-Bayes.</em> The inequality form, \(\mathbb E_\nu[f]\le\mathrm{KL}(\nu\|\mu)+\log\mathbb E_\mu[e^{f}]\), is known in that literature as the change of measure inequality. Taking \(\mu\) a prior over hypotheses, \(\nu\) a data-dependent posterior and \(f\) a multiple of the generalization gap is the first step of most PAC-Bayes bounds.</p>
+      <p><em>Estimating divergences.</em> The second formula turns relative entropy into an optimization over functions, which a neural network can attempt. MINE (Belghazi et al., 2018) estimates mutual information this way. The estimate is a lower bound when the optimization is done on the true distributions, and has its own bias when done on finite samples.</p>
+      <p><em>Regularized policy updates.</em> Part V.</p>
+    </div>
+  </div>
+
+  <figure class="sim" id="fig5">
+    <div class="sim-frame"><div class="split"><div><canvas class="drag" height="330" data-role="left"></canvas></div><div><canvas height="330" data-role="right"></canvas></div></div></div>
+    <div class="controls">
+      <span><label>\(U_2\)</label><input type="range" data-role="u2" min="0" max="3" step="0.02" value="1.0"><span class="readout" data-role="u2v">1.00</span></span>
+      <span><label>\(U_3\)</label><input type="range" data-role="u3" min="0" max="3" step="0.02" value="2.0"><span class="readout" data-role="u3v">2.00</span></span>
+      <span><label>temperature T</label><input type="range" data-role="temp" min="0.05" max="3" step="0.01" value="0.8"><span class="readout" data-role="tval">0.80</span></span>
+      <button class="ui" data-role="release">let go</button>
+    </div>
+    <p class="fig-note" data-role="note">Three states with energies \(0\), \(U_2\), \(U_3\). Each point of the triangle is a distribution \(p\), shaded by \(F[p]=\mathbb E_p[U]-T\,H(p)\), darker for lower. Drag the green dot. The ring is the Boltzmann distribution.</p>
+    <figcaption><span class="figno">Figure 5.</span> The Gibbs variational principle on three states. The gap and the KL divergence are computed separately.</figcaption>
+  </figure>
+
+  <div class="measure">
+    <p>Wherever you put the dot, \(F[p]\) stays above \(-T\log Z\), and the amount by which it exceeds it equals \(T\cdot\mathrm{KL}(p\,\|\,\text{Boltzmann})\) to every digit shown. Cool the system and the ring slides to the corner with the lowest energy. Heat it and the ring moves to the centre, where entropy is largest. The first state's energy is pinned at zero because only energy differences matter, which is the flat direction of log-sum-exp again.</p>
+  </div>
+</section>
+
+<hr>
+
+<section id="s-3">
+  <div class="measure">
+    <h2><span class="no">Part III</span>What a large deviation principle is</h2>
+    <p>Parts I and II were about averages of numbers. The general theory is about any sequence of random objects that concentrates, and the cleanest example is the histogram.</p>
+
+    <h3>Sanov's theorem</h3>
+    <p>Draw \(n\) samples from \(\mu\) and record their empirical measure \(L_n=\frac1n\sum_i\delta_{X_i}\), the normalized histogram. By the law of large numbers \(L_n\to\mu\). Sanov's theorem, from 1957, prices every other outcome:</p>
+    <p>$$\boxed{\;\mathbb P\big(L_n\approx\nu\big)\;\asymp\;e^{-n\,\mathrm{KL}(\nu\,\|\,\mu)}\;}$$</p>
+    <p>On a finite alphabet this is
+      <button class="pop" data-target="pp-types" aria-expanded="false">a count</button>, the multinomial version of the Stirling computation in Part I. The Fokker–Planck essay's note on entropy gave Boltzmann's combinatorial reading, that entropy is \(\frac1N\log\) of the number of microscopic arrangements with given occupation fractions. That computation dates from 1877 and it is Sanov's theorem with \(\mu\) uniform. Relative entropy is what the count turns into when the cells are not equally likely.</p>
+    <div class="popbody" id="pp-types"><span class="ttl">Sanov on a finite alphabet</span>
+      <p>With \(k\) symbols of probabilities \(\mu_1,\dots,\mu_k\), the chance that the histogram of \(n\) samples is exactly \(\nu\) (with every \(n\nu_j\) an integer) is multinomial:</p>
+      <p>$$\mathbb P(L_n=\nu)\;=\;\frac{n!}{\prod_j(n\nu_j)!}\;\prod_j\mu_j^{\,n\nu_j}.$$</p>
+      <p>Stirling turns the coefficient into \(e^{nH(\nu)}\) up to a polynomial factor, and the product is \(e^{n\sum_j\nu_j\log\mu_j}\). Together: \(e^{-n\sum_j\nu_j\log(\nu_j/\mu_j)}=e^{-n\,\mathrm{KL}(\nu\|\mu)}\). There are at most \((n+1)^k\) possible histograms, a polynomial number, so summing over a set of them changes nothing on the exponential scale. Information theorists call this the method of types.</p>
+      <p>On a general space there is nothing to count, and the theorem is proved by other means, one of which is the route through Part II: the Donsker–Varadhan formula identifies \(\mathrm{KL}(\cdot\|\mu)\) as the conjugate of \(f\mapsto\log\mathbb E_\mu[e^{f}]\), which is the cumulant generating function of \(L_n\) tested against \(f\). Sanov's theorem is then Cramér's theorem in infinitely many dimensions.</p>
+    </div>
+  </div>
+
+  <figure class="sim" id="fig6">
+    <div class="sim-frame"><div class="split"><div><canvas class="drag" height="340" data-role="left"></canvas></div><div><canvas height="340" data-role="right"></canvas></div></div></div>
+    <div class="controls">
+      <span><label>samples n</label><input type="range" data-role="n" min="5" max="300" step="1" value="40"><span class="readout" data-role="nval">40</span></span>
+      <span><label>threshold a</label><input type="range" data-role="a" min="0.1" max="0.9" step="0.01" value="0.5"><span class="readout" data-role="aval">0.50</span></span>
+      <button class="ui" data-role="reset">start over</button>
+      <span class="legend"><span><i class="sw" style="border-color:#999"></i>histograms \(L_n\)</span>
+      <span><i class="sw" style="border-color:#1f8a63"></i>those that landed in \(A\)</span>
+      <span><i class="sw" style="border-color:#2b5fad"></i>closest point of \(A\)</span></span>
+    </div>
+    <p class="fig-note" data-role="note">Each grey dot is the histogram of \(n\) samples from \(\mu\) (black dot, draggable) on three symbols. Shading and contour bands show \(\mathrm{KL}(\cdot\,\|\,\mu)\). The tinted band is the set \(A\) of histograms that give symbol 3 a share of at least \(a\).</p>
+    <figcaption><span class="figno">Figure 6.</span> Sanov's theorem on three symbols, and where a rare histogram lands.</figcaption>
+  </figure>
+
+  <div class="measure">
+    <p>The cloud of grey dots shrinks around \(\mu\) as \(n\) grows. Dots that fall in the rare set \(A\) are kept in green. They crowd against one point of \(A\), the one closest to \(\mu\) in relative entropy, and the crowding tightens with \(n\). The readout compares the measured exponent with the minimum of \(\mathrm{KL}(\cdot\|\mu)\) over \(A\).</p>
+
+    <h3>The definition</h3>
+    <p>A sequence of random objects \(Z_n\) satisfies a
+      <button class="pop" data-target="pp-ldp" aria-expanded="false">large deviation principle</button> with rate function \(I\) if, for every reasonable set \(A\),</p>
+    <div class="popbody" id="pp-ldp"><span class="ttl">the definition, precisely</span>
+      <p>The \(Z_n\) take values in a topological space, usually a complete separable metric space. A rate function is a lower semicontinuous \(I\ge0\), and it is called good if its sublevel sets \(\{I\le c\}\) are compact. The principle consists of two bounds:</p>
+      <p>$$\limsup_{n}\frac1n\log\mathbb P(Z_n\in C)\;\le\;-\inf_{C}I\qquad\text{for every closed set }C,$$</p>
+      <p>$$\liminf_{n}\frac1n\log\mathbb P(Z_n\in O)\;\ge\;-\inf_{O}I\qquad\text{for every open set }O.$$</p>
+      <p>The asymmetry between open and closed sets is the same as in the definition of weak convergence of measures, and for the same reason: \(Z_n\) may sit on a lattice that misses a thin set entirely, or pile up on a boundary. When the infimum of \(I\) over the interior of \(A\) equals the infimum over its closure, the two bounds meet and \(\mathbb P(Z_n\in A)\asymp e^{-n\inf_AI}\). That is what I mean by a reasonable set.</p>
+      <p>The speed need not be \(n\). In Part IV it is \(1/T\).</p>
+    </div>
+    <p>$$\mathbb P(Z_n\in A)\;\asymp\;\exp\Big(-n\,\inf_{z\in A}I(z)\Big).$$</p>
+    <p>The right side depends on \(A\) only through its cheapest point. A sum of exponentially small terms is dominated by the largest one, so a set of outcomes is as likely as its least unlikely member. The rest of the theory is a set of tools for computing with this.</p>
+
+    <h3>Three tools</h3>
+    <p><em>Contraction.</em> If \(Z_n\) satisfies a large deviation principle with rate \(I\) and \(g\) is a continuous map, then \(g(Z_n)\) satisfies one with rate \(J(y)=\inf\{I(z):g(z)=y\}\). For \(g(Z_n)\) to land on \(y\), \(Z_n\) must land somewhere in the preimage, and it picks the cheapest spot. The mean of a histogram is a continuous function of it, at least for bounded variables, so Cramér's theorem follows from Sanov's:</p>
+    <p>$$I(x)\;=\;\inf\Big\{\mathrm{KL}(\nu\,\|\,\mu)\;:\;\int y\,\nu(\mathrm dy)=x\Big\}.$$</p>
+    <p><button class="pop" data-target="pp-contract" aria-expanded="false">Solving this constrained problem</button> returns the exponential tilt and the Legendre formula. This is the proof I owed for the claim in Part I that the tilt is the cheapest distribution with the required mean.</p>
+    <div class="popbody" id="pp-contract"><span class="ttl">Cramér from Sanov</span>
+      <p>Apply the Gibbs variational principle with \(f(y)=\theta y\). It says \(\Lambda(\theta)=\sup_\nu\{\theta\,m(\nu)-\mathrm{KL}(\nu\|\mu)\}\), where \(m(\nu)\) is the mean of \(\nu\). Group the measures \(\nu\) by their mean:</p>
+      <p>$$\Lambda(\theta)=\sup_x\Big\{\theta x-\inf_{m(\nu)=x}\mathrm{KL}(\nu\|\mu)\Big\}=\sup_x\{\theta x-J(x)\}.$$</p>
+      <p>So \(\Lambda=J^{*}\), where \(J\) is the contracted rate function. \(J\) is convex, because relative entropy is convex and the constraint is linear, so \(J=J^{**}=\Lambda^{*}=I\). The minimizer is the \(\nu\) that attains the supremum in the variational principle, which is the tilt \(\mu_\theta\).</p>
+      <p>The same argument with a Lagrange multiplier: minimize \(\mathrm{KL}(\nu\|\mu)-\theta\,(m(\nu)-x)\) over \(\nu\). The stationarity condition is \(\log\frac{\mathrm d\nu}{\mathrm d\mu}=\theta y+\text{const}\). The Legendre parameter \(\theta\) of Part I is the Lagrange multiplier of the mean constraint.</p>
+    </div>
+    <p><em>Conditioning.</em> Given that \(L_n\) landed in \(A\), it landed near the minimizer of \(\mathrm{KL}(\cdot\|\mu)\) over \(A\), provided there is exactly one. This is the Gibbs conditioning principle, and Csiszár named the minimizer the I-projection of \(\mu\) on \(A\). The green dots above and the dice of Part I are two pictures of it. It also says what maximum entropy is in this setting. It is a description of how independent samples behave when their statistics are known to have come out atypical.</p>
+    <p><em>Varadhan's lemma.</em> If \(Z_n\) satisfies a large deviation principle with rate \(I\) and \(\varphi\) is bounded and continuous, then</p>
+    <p>$$\lim_{n\to\infty}\frac1n\log\mathbb E\big[e^{\,n\,\varphi(Z_n)}\big]\;=\;\sup_{z}\big\{\varphi(z)-I(z)\big\}.$$</p>
+    <p>This is
+      <button class="pop" data-target="pp-laplace" aria-expanded="false">Laplace's method</button> on an arbitrary space: an integral of \(e^{n(\varphi-I)}\) is governed by the maximum of the exponent. Bryc proved the converse. If the limit on the left exists for all bounded continuous \(\varphi\), and the laws are exponentially tight, then a large deviation principle holds, with rate function given by the Legendre-type formula \(I(z)=\sup_\varphi\{\varphi(z)-\lim\frac1n\log\mathbb E[e^{n\varphi(Z_n)}]\}\). So a large deviation principle and a Laplace principle are the same thing, and one may take the display above as the definition. Dupuis and Ellis built an approach to the whole subject on that choice, and Part IV follows them.</p>
+    <div class="popbody" id="pp-laplace"><span class="ttl">Laplace's method, and why the lemma is plausible</span>
+      <p>For a smooth function \(h\) on the line with a unique maximum, \(\int e^{nh(z)}\mathrm dz\asymp e^{n\max h}\): as \(n\) grows the integrand concentrates in a shrinking window around the maximizer, and the width of the window only contributes a power of \(n\).</p>
+      <p>Varadhan's lemma is this with \(\mathbb P(Z_n\in\mathrm dz)\) standing in for \(e^{-nI(z)}\mathrm dz\). Cut the space into small pieces. On each piece \(\varphi\) is nearly constant and the probability is \(\asymp e^{-n\inf I}\). Summing finitely many exponentials keeps only the largest. The tail condition in the full statement (boundedness of \(\varphi\), or a moment condition) is there so that the pieces far away cannot collectively matter.</p>
+    </div>
+
+    <h3>The title equation is the exact case</h3>
+    <p>Apply Varadhan's lemma to Sanov's theorem with the linear functional \(\varphi(\nu)=\mathbb E_\nu[f]\). Then \(n\,\varphi(L_n)=\sum_if(X_i)\), and by independence</p>
+    <p>$$\frac1n\log\mathbb E\Big[e^{\sum_if(X_i)}\Big]\;=\;\log\mathbb E_\mu\big[e^{f}\big]\qquad\text{for every }n,$$</p>
+    <p>with no limit required. The right side of the lemma is \(\sup_\nu\{\mathbb E_\nu[f]-\mathrm{KL}(\nu\|\mu)\}\). That is the Gibbs variational principle. It is the one instance of the Laplace principle that is already exact at \(n=1\), because the exponential of a linear functional of the histogram splits into independent factors.</p>
+    <p>This gives a compact description of the general theory. Large deviations is the Gibbs variational principle with the linearity dropped and a limit put in its place. Let the energy depend on the histogram nonlinearly, say through pairwise interactions between particles, so that the total energy is \(n\,\mathcal E(L_n)\) and the partition function is \(Z_n=\mathbb E\big[e^{-n\mathcal E(L_n)/T}\big]\). It no longer factorizes, and Varadhan's lemma still gives its exponential rate:</p>
+    <p>$$-\,T\lim_{n\to\infty}\frac1n\log Z_n\;=\;\inf_{\nu}\Big\{\mathcal E(\nu)+T\,\mathrm{KL}(\nu\,\|\,\mu)\Big\}.$$</p>
+    <p>The functional on the right is the free energy with an interaction term from Part IV of the Fokker–Planck essay. With a linear energy it is strictly convex and has one minimizer. With an interaction it may have several, and the
+      <button class="pop" data-target="pp-cw" aria-expanded="false">Curie–Weiss magnet</button> is the standard example.</p>
+    <div class="popbody" id="pp-cw"><span class="ttl">the Curie–Weiss magnet</span>
+      <p>Take \(n\) spins \(\sigma_i=\pm1\), a priori independent and fair, with energy \(-\frac{J}{2n}\big(\sum_i\sigma_i\big)^2=-n\,\frac J2\,m_n^2\), where \(m_n\) is the mean spin. Every spin feels the average of all the others. With \(\beta=1/T\),</p>
+      <p>$$\frac{Z_n}{2^n}\;=\;\mathbb E\Big[e^{\,n\,\beta J\,m_n^2/2}\Big].$$</p>
+      <p>By Cramér's theorem \(m_n\) has rate function \(c(m)=\tfrac{1+m}2\log(1+m)+\tfrac{1-m}2\log(1-m)\), the coin's rate function in spin variables. Varadhan's lemma with \(\varphi(m)=\beta Jm^2/2\) gives</p>
+      <p>$$\lim_n\frac1n\log\frac{Z_n}{2^n}\;=\;\sup_{m}\Big\{\frac{\beta J}{2}m^2-c(m)\Big\}.$$</p>
+      <p>Stationarity reads \(\beta Jm=c'(m)=\operatorname{artanh}(m)\), that is, \(m=\tanh(\beta Jm)\). For \(\beta J\le1\) the only solution is \(m=0\). For \(\beta J&gt;1\) there are two maximizers \(\pm m^{*}\), and the magnet has to pick one. Under the Gibbs measure, \(m_n\) has rate function \(c(m)-\beta Jm^2/2\) minus its minimum, which has two wells. That is the blue curve of the magnet preset in Figure 3, drawn for \(\beta J=1.6\). Its cumulant generating function in an external field has a corner at zero field, with one-sided slopes \(\pm m^{*}\): the spontaneous magnetization.</p>
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<section id="s-4">
+  <div class="measure">
+    <h2><span class="no">Part IV</span>Weak noise, and rare events as control problems</h2>
+    <p>So far the large parameter was a number of samples. For the diffusion of the earlier essays,</p>
+    <p>$$\mathrm dX_t\;=\;b(X_t)\,\mathrm dt+\sqrt{2T}\,\mathrm dW_t,$$</p>
+    <p>the large parameter is \(1/T\). As \(T\to0\) the paths collapse onto the solution of the ordinary differential equation \(\dot\varphi=b(\varphi)\), and anything else the process does is a rare event with probability of order \(e^{-(\text{something})/T}\). Freidlin and Wentzell worked out the something in the 1970s. I will get it from the title equation, because that route shows where control comes in.</p>
+
+    <h3>The title equation on path space</h3>
+    <p>Nothing in Part II required \(\mu\) to live on a small space. Let it be \(P\), the law of the whole path \((X_t)_{0\le t\le t_f}\), and let the energy be any functional \(G\) of the path. The title equation reads</p>
+    <p>$$-\,T\log\mathbb E_P\big[e^{-G(X)/T}\big]\;=\;\inf_{Q}\Big\{\mathbb E_Q[G]+T\,\mathrm{KL}(Q\,\|\,P)\Big\},$$</p>
+    <p>with the infimum over probability laws \(Q\) on paths. Two facts from stochastic calculus make the right side concrete, and the control essay used both. A law \(Q\) has finite relative entropy to \(P\) only if it is the law of the same diffusion with
+      <button class="pop" data-target="pp-girsanov" aria-expanded="false">an extra drift \(u\)</button> added. And the relative entropy of such a law is its expected control energy, \(\mathrm{KL}(Q\|P)=\mathbb E_Q\big[\frac1{4T}\int|u_s|^2\mathrm ds\big]\). Substitute, and the temperature cancels out of the penalty:</p>
+    <div class="popbody" id="pp-girsanov"><span class="ttl">relative entropy between diffusions is control energy</span>
+      <p>Girsanov's theorem says that if \(Q\) is absolutely continuous with respect to \(P\), then under \(Q\) the path solves \(\mathrm dX=(b+u)\,\mathrm dt+\sqrt{2T}\,\mathrm d\widetilde W\) for some adapted process \(u\) and a \(Q\)-Brownian motion \(\widetilde W\), and</p>
+      <p>$$\log\frac{\mathrm dQ}{\mathrm dP}\;=\;\frac1{\sqrt{2T}}\int u_s\cdot\mathrm d\widetilde W_s\;+\;\frac1{4T}\int|u_s|^2\,\mathrm ds.$$</p>
+      <p>The stochastic integral has mean zero under \(Q\), so \(\mathrm{KL}(Q\|P)=\mathbb E_Q\big[\frac1{4T}\int|u_s|^2\mathrm ds\big]\). The heuristic from the control essay: over a time \(\mathrm dt\) the increment is Gaussian with variance \(2T\,\mathrm dt\), displacing its mean by \(u\,\mathrm dt\) costs \(|u\,\mathrm dt|^2/(2\cdot2T\,\mathrm dt)\) nats, and the nats add up along the path.</p>
+      <p>There is one subtlety. The process \(u\) may depend on the whole past of the path, where a controller in the usual sense uses the current state. Boué and Dupuis proved that the infimum over all \(Q\) equals the infimum over adapted controls. For a Markov problem the optimum is a feedback law anyway, the one from the control essay.</p>
+    </div>
+    <p>$$\boxed{\;-\,T\log\mathbb E\big[e^{-G(X)/T}\big]\;=\;\inf_{u}\;\mathbb E\Big[\,G(X^{u})+\frac14\int_0^{t_f}|u_s|^2\,\mathrm ds\Big]\;}$$</p>
+    <p>where \(X^{u}\) is the controlled process, \(\mathrm dX^{u}=(b(X^{u})+u)\,\mathrm dt+\sqrt{2T}\,\mathrm dW\). In this form the formula is due to Boué and Dupuis (1998). It is also the control problem of the previous essay with effort price \(\alpha=\tfrac12\), for which that essay's \(\lambda=2\alpha T\) equals \(T\). Its headline \(V=-\lambda\log\psi\) and the title equation here are the same statement. The left side above is \(-\lambda\log\psi\) and the right side is the definition of the value function. The control essay got there by transforming a partial differential equation and mentioned the variational argument in a side note. Here the variational argument is the main line and no differential equation is needed.</p>
+    <p>Now look at where \(T\) went. It cancelled from the cost and survives in one place, the noise that drives the controlled process. Send \(T\to0\). The controlled process becomes a deterministic path with \(\dot\varphi=b(\varphi)+u\), so \(u=\dot\varphi-b(\varphi)\), and the expectation disappears:</p>
+    <p>$$\lim_{T\to0}\;-\,T\log\mathbb E\big[e^{-G(X)/T}\big]\;=\;\inf_{\varphi}\Big\{G(\varphi)+S[\varphi]\Big\},$$</p>
+    <p>$$S[\varphi]\;=\;\frac14\int_0^{t_f}\big|\dot\varphi_t-b(\varphi_t)\big|^2\,\mathrm dt.$$</p>
+    <p>Compare with Varadhan's lemma in Part III. This is a Laplace principle for the path of the diffusion, with speed \(1/T\) and rate function \(S\), and by Bryc's converse it is a large deviation principle:</p>
+    <p>$$\mathbb P\big(X\approx\varphi\big)\;\asymp\;e^{-S[\varphi]/T}.$$</p>
+    <p>Here \(\asymp\) is read with \(1/T\) in the role of \(n\): the two sides have the same \(T\log\) as \(T\to0\). \(S\) is the Freidlin–Wentzell action.
+      <button class="pop" data-target="pp-limit" aria-expanded="false">Passing to the limit takes work</button>, and that work is the actual proof. The structure is visible without it, though. The rate function is a control cost because relative entropy between diffusions is control energy.</p>
+    <div class="popbody" id="pp-limit"><span class="ttl">what the limit hides</span>
+      <p>Two exchanges are buried in "send \(T\to0\)": the limit with the infimum over controls, and the convergence of a controlled diffusion with a random control to a deterministic path. The weak convergence method of Dupuis and Ellis handles both. One shows that nearly optimal controls have bounded energy, hence are tight in a weak topology, that the controlled paths converge along subsequences to solutions of the limiting ODE, and that the cost is lower semicontinuous under that convergence. The reverse inequality comes from plugging a good deterministic control into the prelimit problem.</p>
+      <p>As written the statement needs \(G\) bounded and continuous. The choice used below, \(G=0\) on a set \(A\) and \(+\infty\) off it, is reached by approximation, and that is where the open and closed sets in the definition of a large deviation principle come from.</p>
+      <p>Freidlin and Wentzell's own proof runs differently. It starts from the large deviations of Brownian motion itself (Schilder's theorem) and pushes them through the map from noise path to solution path with the contraction principle.</p>
+    </div>
+    <blockquote class="claim">The probability that a weakly noisy system does something it would not do on its own is \(\exp(-\tfrac1T\,\cdot\) the least control energy that would force it to\()\).</blockquote>
+
+    <h3>Kramers' law</h3>
+    <p>Now the debt from the Fokker–Planck essay. Take a gradient drift \(b=-\nabla V\) and ask for the cheapest path from the bottom of a well, \(x_-\), to the saddle \(x_s\) on its rim. Expand the square with the opposite sign inside:</p>
+    <p>$$\begin{aligned}S[\varphi]&amp;=\frac14\int\big|\dot\varphi+\nabla V\big|^2\mathrm dt\\[2pt]&amp;=\frac14\int\big|\dot\varphi-\nabla V\big|^2\mathrm dt+\int\dot\varphi\cdot\nabla V\,\mathrm dt\;\ge\;V(x_s)-V(x_-).\end{aligned}$$</p>
+    <p>The last integral is the total change of \(V\) along the path, which is \(\Delta V\) whatever route is taken. So no escape path costs less than \(\Delta V\), and a path that solves \(\dot\varphi=+\nabla V(\varphi)\) costs exactly that. One escape attempt succeeds with probability of order \(e^{-\Delta V/T}\), and
+      <button class="pop" data-target="pp-exit" aria-expanded="false">the waiting time</button> is of order \(e^{\Delta V/T}\). That is the exponential in Kramers' law.</p>
+    <div class="popbody" id="pp-exit"><span class="ttl">from one path to a waiting time</span>
+      <p>Near the bottom of the well the particle forgets its past on a time scale of order one, set by the curvature. So its history is a sequence of nearly independent attempts, each of which reaches the saddle with probability \(\asymp e^{-\Delta V/T}\). The number of attempts before the first success is geometric, and the exit time \(\tau\) is close to exponentially distributed with mean \(\asymp e^{\Delta V/T}\). Freidlin and Wentzell proved \(\lim_{T\to0}T\log\mathbb E[\tau]=\Delta V\), and the exponential law of \(\tau/\mathbb E[\tau]\) is due to Day.</p>
+      <p>That is as far as large deviations goes. The Eyring–Kramers formula for the one-dimensional overdamped case,</p>
+      <p>$$\mathbb E[\tau]\;\approx\;\frac{2\pi}{\sqrt{V''(x_-)\,|V''(x_s)|}}\;e^{\Delta V/T},$$</p>
+      <p>has a prefactor that comes from the curvatures at the bottom and at the saddle. Getting it requires either an asymptotic expansion of the stationary flux or potential theory, and it is invisible to \(\asymp\).</p>
+    </div>
+    <p>Two remarks on the optimal path. It is the relaxation path run backwards in time, so the system climbs out along the route it would slide down. And the control that produces it is \(u=\dot\varphi-b=2\nabla V\), which cancels the drift and then applies it once more with the sign flipped. The time reversal is
+      <button class="pop" data-target="pp-db" aria-expanded="false">a consequence of detailed balance</button>, and it goes away when the drift has a rotational part.</p>
+    <div class="popbody" id="pp-db"><span class="ttl">detailed balance, and what a rotation changes</span>
+      <p>A gradient diffusion in its stationary state is reversible: run the film backwards and it has the same law. So the collection of excursions that climb from a level \(a\) to a level \(b\), reversed in time, is statistically identical to the collection that descend from \(b\) to \(a\). This is exact at every temperature. Large deviations adds that as \(T\to0\) both collections concentrate on one curve. In Figure 7 the first statement is why green and blue agree at any \(T\), and the second is why both approach the black curve as \(T\) falls.</p>
+      <p>Now add a rotation, as in the coda of the Fokker–Planck essay: \(b=-\nabla V+b_\perp\) with \(b_\perp\cdot\nabla V=0\). Expanding the square the same way,</p>
+      <p>$$S[\varphi]=\frac14\int\big|\dot\varphi-\nabla V-b_\perp\big|^2\mathrm dt+\int\dot\varphi\cdot\nabla V\,\mathrm dt,$$</p>
+      <p>so the cheapest escape still costs \(\Delta V\), along \(\dot\varphi=\nabla V+b_\perp\). It climbs against the gradient while turning in the same sense as the relaxation path \(\dot\varphi=-\nabla V+b_\perp\). A reversed relaxation path would turn the other way, so the two routes differ. An escape route that is distinct from the reversed relaxation route is an observable signature of a nonequilibrium steady state.</p>
+      <p>For a drift with neither structure the least cost of reaching \(x\) from the attractor is called the quasi-potential. It solves a Hamilton–Jacobi equation and has no closed form. A good share of the hard problems in this field live there.</p>
+    </div>
+  </div>
+
+  <figure class="sim" id="fig7">
+    <div class="sim-frame"><div class="split"><div><canvas height="340" data-role="left"></canvas></div><div><canvas height="340" data-role="right"></canvas></div></div></div>
+    <div class="controls">
+      <span><label>temperature T</label><input type="range" data-role="temp" min="0.1" max="0.5" step="0.01" value="0.15"><span class="readout" data-role="tval">0.15</span></span>
+      <button class="ui" data-role="clear">clear the rate plot</button>
+      <span class="legend"><span><i class="sw" style="border-color:#1f8a63"></i>mean climb</span>
+      <span><i class="sw" style="border-color:#2b5fad;border-top-style:dashed"></i>mean descent, reversed</span>
+      <span><i class="sw" style="border-color:#111"></i>\(\dot\varphi=+V'(\varphi)\)</span></span>
+    </div>
+    <p class="fig-note" data-role="note">Two thousand particles in the left well of \(V(x)=(x^2-1)^2\). Left: every climb from the well bottom to the saddle, with the clock set to zero where it crosses \(x=-0.5\). Right: measured escape rate against \(1/T\), one point per temperature you visit.</p>
+    <figcaption><span class="figno">Figure 7.</span> How a particle leaves a well, and how often.</figcaption>
+  </figure>
+
+  <div class="measure">
+    <p>Each grey line on the left is one successful climb. Green is their average. Blue is the average of the descents from the saddle back into the well, played backwards. Black is the solution of \(\dot\varphi=+V'(\varphi)\), computed with no noise at all. Green and blue coincide at every temperature, as detailed balance requires. At low temperature they follow the black curve through the steep middle of the climb. Near the saddle the black curve lags, because a noiseless path needs infinite time to reach a point where the drift vanishes, and real particles cover that last stretch on noise. Raise \(T\) and the climbs pull away from the black curve everywhere, since one path no longer dominates.</p>
+    <p>On the right, move the slider and let the points accumulate. Large deviations predicts the slope of that plot, which is \(\Delta V=1\), and says nothing about its height. The points fall along the line that includes the Eyring–Kramers prefactor, and they start to leave it at the warm end, where nothing is rare any more.</p>
+
+    <h3>The logarithm, run backwards</h3>
+    <p>The control essay took a nonlinear Hamilton–Jacobi–Bellman equation, substituted \(V=-\lambda\log\psi\), and obtained a linear one. Fleming noticed in 1978 that the same substitution run the other way proves large deviation estimates. Let \(h(x,t)\) be the probability of some rare event given \(X_t=x\). It is a conditional expectation of the future, so it solves the linear backward equation \(\partial_th+b\cdot\nabla h+T\Delta h=0\). Now
+      <button class="pop" data-target="pp-fleming" aria-expanded="false">substitute</button> \(W=-T\log h\):</p>
+    <div class="popbody" id="pp-fleming"><span class="ttl">the substitution</span>
+      <p>With \(h=e^{-W/T}\): \(\partial_th=-\frac{\partial_tW}{T}h\), \(\nabla h=-\frac{\nabla W}{T}h\), and \(\Delta h=\big(-\frac{\Delta W}{T}+\frac{|\nabla W|^2}{T^2}\big)h\). Insert these into the backward equation, divide by \(h\) and multiply by \(-T\):</p>
+      <p>$$\partial_tW+b\cdot\nabla W+T\,\Delta W-|\nabla W|^2=0.$$</p>
+      <p>Compare the boxed equation of the control essay, \(-\partial_tV=q+b\cdot\nabla V+T\Delta V-\frac1{2\alpha}|\nabla V|^2\). With \(q=0\) and \(\alpha=\tfrac12\) they coincide. The optimal control there was \(u^{*}=-\nabla V/\alpha\), which here is \(-2\nabla W=2T\nabla\log h\), the drift of the Doob transform.</p>
+      <p>As \(T\to0\) the solutions \(W^{T}\) converge to the viscosity solution of the first-order equation \(\partial_tW+b\cdot\nabla W-|\nabla W|^2=0\). Its Hamiltonian \(\mathcal H(x,p)=b\cdot p+|p|^2\) has Legendre transform \(\sup_p\{p\cdot v-\mathcal H(x,p)\}=\tfrac14|v-b|^2\) in the velocity variable, which is the Lagrangian of the Freidlin–Wentzell action. One more Legendre pair, this time between the Hamiltonian and Lagrangian descriptions of the same control problem.</p>
+    </div>
+    <p>$$-\,\partial_tW\;=\;b\cdot\nabla W-|\nabla W|^2+T\,\Delta W.$$</p>
+    <p>This is the Hamilton–Jacobi–Bellman equation of the control essay with \(\alpha=\tfrac12\), and the temperature now appears only as the coefficient of the Laplacian. As \(T\to0\) that term drops out. What is left is a first-order Hamilton–Jacobi equation whose solution is the least action needed to reach the event from \((x,t)\). So \(h\asymp e^{-W/T}\) with \(W\) a value function. In the language of differential equations, a large deviation principle is the vanishing-viscosity limit of a Bellman equation.</p>
+    <p>The same substitution says what the process does on its way to the rare event. Conditioning on the event is a Doob transform, which adds the drift \(2T\nabla\log h=-2\nabla W\). That is the optimal feedback control. A diffusion conditioned on a rare event behaves like a diffusion steered toward it at least cost. The last figure of the control essay, where a crowd selected by rejection and a crowd under control had the same histogram at every time, showed this at finite temperature.</p>
+  </div>
+</section>
+
+<hr>
+
+<section id="s-5">
+  <div class="measure">
+    <h2><span class="no">Part V</span>What reinforcement learning does with it</h2>
+    <p>Here are four places where the material above is in daily use, mostly without the name.</p>
+
+    <h3>Policy improvement is the title equation</h3>
+    <p>Fix a state. You have a prior policy \(\pi_0\) over actions and estimates \(Q(a)\) of how good each action is. A cautious update maximizes expected \(Q\) while paying for every nat it moves away from \(\pi_0\):</p>
+    <p>$$\max_{\pi}\Big\{\mathbb E_\pi[Q]-\eta\,\mathrm{KL}(\pi\,\|\,\pi_0)\Big\}.$$</p>
+    <p>By the Gibbs variational principle the maximizer is \(\pi\propto\pi_0\,e^{Q/\eta}\) and the maximum is \(\eta\log\mathbb E_{\pi_0}[e^{Q/\eta}]\). With \(\pi_0\) uniform these are a softmax and a log-sum-exp, and iterating over states gives the soft Bellman equation that closed the control essay. With \(\pi_0\) the previous policy they are the update at the centre of relative entropy policy search and of MPO. TRPO imposes the same KL constraint and solves it approximately. Soft actor-critic, maximum-entropy RL and KL control are this computation with different choices of \(\pi_0\) and different rules for setting \(\eta\).</p>
+
+    <h3>Optimism and paranoia are one sign apart</h3>
+    <p>The title equation has a twin with the signs reversed:</p>
+    <p>$$T\log\mathbb E_\mu\big[e^{C/T}\big]\;=\;\sup_{\nu}\Big\{\mathbb E_\nu[C]-T\,\mathrm{KL}(\nu\,\|\,\mu)\Big\}.$$</p>
+    <p>Read both with \(C\) a cost and \(\mu\) the distribution of the randomness you face. In the title equation the infimum hands the choice of \(\nu\) to whoever is minimizing the cost. The agent bends the noise in its own favour and pays \(T\) per nat for doing so. In the twin the supremum hands \(\nu\) to an adversary, who bends the noise against the agent at the same tariff. The first is the objective of control as inference. The second is risk-sensitive control with the entropic risk measure, and by this formula it equals robust control against every model within a KL budget of the nominal one. That equivalence goes back to Jacobson in the 1970s, and Dupuis, James and Petersen made it precise for diffusions.</p>
+    <p><button class="pop" data-target="pp-risk" aria-expanded="false">Expanding in cumulants</button> shows the difference in one line: the first objective is \(\mathbb E[C]-\mathrm{Var}(C)/2T+\dots\) and the second is \(\mathbb E[C]+\mathrm{Var}(C)/2T+\dots\). The coda of the control essay called its agent mildly risk-seeking and left it at that. The variational form says where the optimism comes from. The agent's objective treats the noise as something it gets to choose. When the KL term is a real control cost, as in that essay's setup where steering and noise enter through the same channel, that is correct accounting. When you take a problem whose randomness belongs to the environment and convert costs into log-likelihoods, you have given the agent a say over the weather.</p>
+    <div class="popbody" id="pp-risk"><span class="ttl">both signs, expanded</span>
+      <p>The function \(s\mapsto\log\mathbb E[e^{sC}]\) is the cumulant generating function of \(C\): \(s\,\mathbb E[C]+\frac{s^2}{2}\mathrm{Var}(C)+\dots\). Hence</p>
+      <p>$$-T\log\mathbb E\big[e^{-C/T}\big]=\mathbb E[C]-\frac{\mathrm{Var}(C)}{2T}+\dots,\qquad T\log\mathbb E\big[e^{C/T}\big]=\mathbb E[C]+\frac{\mathrm{Var}(C)}{2T}+\dots$$</p>
+      <p>Of two plans with equal expected cost the first criterion prefers the riskier and the second prefers the safer. As \(T\to\infty\) both reduce to the expected cost. As \(T\to0\) the first tends to the best case of \(C\) and the second to the worst case.</p>
+      <p>The robust reading of the second: for any model \(\nu\) with \(\mathrm{KL}(\nu\|\mu)\le r\), the formula gives \(\mathbb E_\nu[C]\le T\log\mathbb E_\mu[e^{C/T}]+T\,r\). A controller that keeps the entropic risk small under the nominal model has bounded expected cost under every model in a KL ball around it. Hansen and Sargent made the same idea a programme in economics.</p>
+    </div>
+
+    <h3>Sampling rare events</h3>
+    <p>Suppose you need the probability of an event of probability \(10^{-9}\), a failure mode or a barrier crossing. Plain Monte Carlo needs billions of runs to see it once. Importance sampling draws from a different law \(Q\) and reweights each sample by \(\mathrm dP/\mathrm dQ\). The best possible \(Q\) is the original law conditioned on the event, which gives an estimator with zero variance and requires knowing the answer beforehand. Large deviations says what that conditional law looks like: a tilt, for sums, and an optimally controlled process, for diffusions. So one approximates the tilt.</p>
+    <p>Rubinstein's cross-entropy method, from 1997, does it by iteration. Sample from a parametric \(Q\), keep the elite fraction of samples closest to the event, refit \(Q\) to the elites by maximum likelihood, which is a KL projection, and repeat. It was invented for estimating rare-event probabilities in stochastic networks. It turned out to be a decent black-box optimizer as well, since an optimum is a rare event under any broad sampling distribution, and that is the form in which RL uses it, for policy search and for planning inside learned models. MPPI, from the third figure of the control essay, is the same loop with exponential weights in place of an elite cutoff. The collapse of effective sample size in that figure is the rare-event problem. The standard remedy, sampling around the previous plan in place of the passive dynamics, is importance sampling from an approximate tilt.</p>
+
+    <h3>Exploration</h3>
+    <p>A bandit algorithm has to decide how many pulls to spend on an arm that looks bad. Lai and Robbins answered with a lower bound in 1985. For Bernoulli arms, any algorithm that does well on every bandit must pull a suboptimal arm with mean \(p_a\) at least</p>
+    <p>$$\frac{\log t}{\mathrm{KL}\big(\mathrm{Ber}(p_a)\,\|\,\mathrm{Ber}(p^{*})\big)}$$</p>
+    <p>times in \(t\) rounds, asymptotically, where \(p^{*}\) is the best arm's mean.
+      <button class="pop" data-target="pp-lr" aria-expanded="false">The proof</button> is the lower-bound half of Cramér's theorem: change the measure to a world in which that arm is the best one, and note that an algorithm cannot do well in both worlds unless it has enough samples of the arm to tell them apart.</p>
+    <div class="popbody" id="pp-lr"><span class="ttl">the Lai–Robbins argument, in outline</span>
+      <p>Call an algorithm consistent if on every bandit its expected number of suboptimal pulls up to time \(t\) is \(o(t^{\epsilon})\) for every \(\epsilon&gt;0\). Fix a bandit, and a suboptimal arm \(a\) with mean \(p_a\). Build a second bandit, identical except that arm \(a\) has mean \(p'\) slightly above \(p^{*}\), so that in the second world \(a\) is the best arm.</p>
+      <p>Let \(N_a(t)\) be the number of pulls of \(a\). The log-likelihood ratio between the two worlds, given what the algorithm has seen, is a sum of \(N_a(t)\) terms each with mean \(\mathrm{KL}(\mathrm{Ber}(p_a)\|\mathrm{Ber}(p'))\). If \(N_a(t)\) were much smaller than \(\log t/\mathrm{KL}\), the likelihood ratio would be smaller than \(t\), and the event "arm \(a\) was pulled rarely", which has probability near one in the first world, would have probability at least about \(1/t\) in the second. In the second world, pulling \(a\) rarely means regret of order \(t\) on that event, which contradicts consistency. Letting \(p'\downarrow p^{*}\) gives the bound.</p>
+      <p>It is the tilting argument of Part I. A change of measure makes an event typical, and the likelihood ratio is the price. The only new ingredient is that the number of samples is chosen by the algorithm.</p>
+    </div>
+    <p>KL-UCB, due to Garivier and Cappé (2011), turns the bound into an algorithm. After \(n\) pulls of an arm with empirical mean \(\hat p\), its index is the largest mean that the data cannot yet rule out at level \(1/t\):</p>
+    <p>$$U\;=\;\max\Big\{q\;:\;n\,\mathrm{KL}\big(\mathrm{Ber}(\hat p)\,\|\,\mathrm{Ber}(q)\big)\le\log t\Big\}.$$</p>
+    <p>The quantity \(n\,\mathrm{KL}(\hat p\|q)\) is the Sanov exponent for an arm of true mean \(q\) to have produced the average \(\hat p\). The usual UCB index is the same recipe with KL replaced by its lower bound \(2(\hat p-q)^2\) from Pinsker's inequality, which is what Hoeffding's inequality uses. Near \(p=\tfrac12\) the two rate functions are close. Near 0 or 1 the parabola badly underestimates how fast a Bernoulli average concentrates, the confidence intervals come out too wide, and the algorithm explores more than it has to.</p>
+  </div>
+
+  <figure class="sim" id="fig8">
+    <div class="sim-frame"><div class="split"><div><canvas height="320" data-role="left"></canvas></div><div><canvas height="320" data-role="right"></canvas></div></div></div>
+    <div class="controls">
+      <span><label>best arm's mean</label><input type="range" data-role="m" min="0.3" max="0.98" step="0.01" value="0.9"><span class="readout" data-role="mval">0.90</span></span>
+      <button class="ui" data-role="restart">restart</button>
+      <span class="legend"><span><i class="sw" style="border-color:#1f8a63"></i>KL index</span>
+      <span><i class="sw" style="border-color:#b03a3a"></i>Hoeffding index</span>
+      <span><i class="sw" style="border-color:#111;border-top-style:dashed"></i>asymptotic slopes</span></span>
+    </div>
+    <p class="fig-note" data-role="note">Three Bernoulli arms with means \(m\), \(m-0.1\), \(m-0.2\). Left: one run, with both upper confidence bounds computed from the same data. Right: regret averaged over 80 runs of each algorithm, against \(\log t\).</p>
+    <figcaption><span class="figno">Figure 8.</span> Two exploration bonuses built from two rate functions.</figcaption>
+  </figure>
+
+  <div class="measure">
+    <p>Regret is plotted against \(\log t\), so logarithmic regret shows as a straight line. The dashed lines are asymptotic slopes: the Lai–Robbins constant \(\sum_a\Delta_a/\mathrm{KL}(p_a\|p^{*})\) for the KL index, and the same sum with \(2\Delta_a^2\) in place of the KL divergence for the Hoeffding index, where \(\Delta_a=p^{*}-p_a\). Slide the best arm's mean toward 1 and the two separate. Put it near \(\tfrac12\) and they nearly coincide, because there the parabola is a good approximation to the rate function.</p>
+  </div>
+</section>
+
+<hr>
+
+<section id="s-coda">
+  <div class="measure">
+    <h2><span class="no">Coda</span>The fine print</h2>
+    <p>Here is what the theory does not give you, in the order in which it tends to bite.</p>
+    <p><em>Only the exponent.</em> Every statement above is at the level of \(\asymp\). The prefactor in Kramers' law, the \(\sqrt n\) in the coin and the height of the line in Figure 7 are all absent from the rate function. For moderate \(n\) or moderate \(1/T\) the missing factor can matter more than the exponent does, and getting it takes sharper tools.</p>
+    <p><em>Light tails.</em> Cramér's theorem needs \(\Lambda\) finite near zero. For heavy-tailed variables \(\Lambda(\theta)=\infty\) for every \(\theta&gt;0\), the rate function is zero on that side, and the theory returns nothing. What happens there is the
+      <button class="pop" data-target="pp-heavy" aria-expanded="false">opposite mechanism</button>. A sum of heavy-tailed variables is large because one of them is enormous. Under a tilt every sample shifts a little. Under a heavy tail one sample does everything and the others are ordinary. Which regime you are in depends on the tail, and it matters for anything involving returns, insurance claims or file sizes.</p>
+    <div class="popbody" id="pp-heavy"><span class="ttl">the single big jump</span>
+      <p>For i.i.d. variables with regularly varying tails, say \(\mathbb P(X&gt;y)\sim c\,y^{-\alpha}\) with \(\alpha&gt;1\), and \(x\) above the mean \(m\),</p>
+      <p>$$\mathbb P(S_n\ge nx)\;\sim\;n\;\mathbb P\big(X_1\ge n(x-m)\big).$$</p>
+      <p>The right side is the probability that at least one sample alone covers the whole excess. It decays like a power of \(n\). Conditional on the event, \(n-1\) of the samples look like draws from the original law and one is of size about \(n(x-m)\). There is no conditional limit theorem toward a tilt and no maximum entropy description. Results of this type go back to Nagaev and to Heyde.</p>
+    </div>
+    <p><em>Convexity.</em> The Legendre route sees only the convex hull of a rate function, as the magnet preset showed. Nonconvex rate functions are common once variables interact, and they have to be found by other means, usually the contraction principle or Varadhan's lemma applied to something that is convex one level up.</p>
+    <p><em>Independence.</em> Parts I to III assumed independent samples. For the long-time averages of a Markov process there is still a large deviation principle, and
+      <button class="pop" data-target="pp-dvm" aria-expanded="false">its rate function</button> is itself given by a variational formula. That theory is the subject of the four papers by Donsker and Varadhan whose names are on the lemma in Part II. I have left it out.</p>
+    <div class="popbody" id="pp-dvm"><span class="ttl">what Donsker and Varadhan were after</span>
+      <p>Let \(X_t\) be an ergodic Markov process with generator \(\mathcal L\), and let \(L_t=\frac1t\int_0^t\delta_{X_s}\mathrm ds\) be the fraction of time it spends in each region up to time \(t\). Then \(L_t\) satisfies a large deviation principle with speed \(t\) and rate function</p>
+      <p>$$I(\nu)\;=\;-\inf_{u&gt;0}\int\frac{\mathcal Lu}{u}\,\mathrm d\nu.$$</p>
+      <p>The analogue of the title equation is</p>
+      <p>$$\lim_{t\to\infty}\frac1t\log\mathbb E\Big[e^{\int_0^tf(X_s)\,\mathrm ds}\Big]\;=\;\sup_{\nu}\Big\{\int f\,\mathrm d\nu-I(\nu)\Big\},$$</p>
+      <p>and the left side is the principal eigenvalue of the operator \(\mathcal L+f\). This is the long-time limit of the Feynman–Kac formula from the control essay. For a reversible diffusion \(I(\nu)\) reduces to a Dirichlet form of \(\sqrt{\mathrm d\nu/\mathrm d\rho_\infty}\), and the formula becomes the Rayleigh–Ritz principle for the ground state of a Schrödinger operator. It is the entry point to ergodic and risk-sensitive control, where the eigenvalue plays the part of the optimal long-run cost.</p>
+    </div>
+    <p>Two loose ends from the other essays close here. Part III of the Fokker–Planck essay showed that diffusion is the steepest descent of the free energy in the Wasserstein metric, and offered no reason why that metric and that functional should belong together. Adams, Dirr, Peletier and Zimmer gave one in 2011. Take \(n\) independent Brownian particles and ask for the probability that their empirical measure moves from \(\rho_0\) to \(\rho\) in a short time \(\tau\). As \(\tau\to0\), the rate functional of that event agrees, up to a constant factor, with the functional that the JKO scheme minimizes. So a JKO step is the most likely thing for the particle system to do, and the JKO functional measures the improbability of its doing anything else. And Schrödinger's problem, from the last part of the <a href="ot.html">optimal transport essay</a>, is Sanov's theorem for whole paths followed by the contraction principle onto the two endpoints.</p>
+    <p>If I had to compress the essay into a sentence, it would be that a probability on the exponential scale is an optimal cost, and the optimizer is how the event happens. The Gibbs variational principle is the case in which this holds exactly, with no limit.</p>
+
+    <h3>Further reading</h3>
+    <ol class="refs">
+      <li>Hugo Touchette, <a href="https://arxiv.org/abs/0804.0327">The large deviation approach to statistical mechanics</a>, Physics Reports 478 (2009). The best first read for anyone who knows some physics. Entropy as a rate function, free energy as a cumulant generating function, nonconvex cases treated with care.</li>
+      <li>S. R. S. Varadhan, <a href="https://arxiv.org/abs/0804.2330">Large deviations</a>, Annals of Probability 36 (2008). A twenty-page survey by the person who built the general theory.</li>
+      <li>Amir Dembo and Ofer Zeitouni, <a href="https://doi.org/10.1007/978-3-642-03311-7">Large Deviations Techniques and Applications</a>, Springer. The standard reference: Cramér, Sanov, Gärtner–Ellis, Varadhan and Bryc, Freidlin–Wentzell, Gibbs conditioning.</li>
+      <li>Richard S. Ellis, <a href="https://doi.org/10.1007/3-540-29060-5">Entropy, Large Deviations, and Statistical Mechanics</a>, Springer. Legendre duality done slowly, and the Curie–Weiss model in full.</li>
+      <li>Paul Dupuis and Richard S. Ellis, <a href="https://doi.org/10.1002/9781118165904">A Weak Convergence Approach to the Theory of Large Deviations</a>, Wiley (1997). The book that starts from the relative entropy formula of Part II and treats every large deviation problem as a control problem.</li>
+      <li>Michelle Boué and Paul Dupuis, <a href="https://doi.org/10.1214/aop/1022855876">A variational representation for certain functionals of Brownian motion</a>, Annals of Probability 26 (1998). The boxed formula of Part IV.</li>
+      <li>Wendell H. Fleming, <a href="https://doi.org/10.1007/BF01442148">Exit probabilities and optimal stochastic control</a>, Applied Mathematics and Optimization 4 (1978). The logarithmic transformation.</li>
+      <li>Mark I. Freidlin and Alexander D. Wentzell, <a href="https://doi.org/10.1007/978-3-642-25847-3">Random Perturbations of Dynamical Systems</a>, Springer. Exit problems, quasi-potentials, and transitions between attractors.</li>
+      <li>Stefan Adams, Nicolas Dirr, Mark Peletier and Johannes Zimmer, <a href="https://arxiv.org/abs/1004.4076">From a large-deviations principle to the Wasserstein gradient flow: a new micro-macro passage</a>, Communications in Mathematical Physics 307 (2011).</li>
+      <li>Tze Leung Lai and Herbert Robbins, <a href="https://doi.org/10.1016/0196-8858(85)90002-8">Asymptotically efficient adaptive allocation rules</a>, Advances in Applied Mathematics 6 (1985).</li>
+      <li>Aurélien Garivier and Olivier Cappé, <a href="https://arxiv.org/abs/1102.2490">The KL-UCB algorithm for bounded stochastic bandits and beyond</a>, COLT 2011.</li>
+      <li>Sergey Levine, <a href="https://arxiv.org/abs/1805.00909">Reinforcement learning and control as probabilistic inference: tutorial and review</a> (2018). The RL side of Part V's first two sections.</li>
+    </ol>
+  </div>
+</section>
+
+<footer></footer>
+<script>
+/* ---- part indicator: highlight the section currently being read ---- */
+(function(){
+  var nav = document.getElementById('partnav');
+  if(!nav) return;
+  var links = [].slice.call(nav.querySelectorAll('a'));
+  var secs  = links.map(function(a){ return document.getElementById(a.dataset.sec); });
+  var queued = false;
+  function update(){
+    queued = false;
+    var mark = window.scrollY + window.innerHeight*0.28, idx = 0;
+    for(var i=0;i<secs.length;i++){
+      if(secs[i] && secs[i].getBoundingClientRect().top + window.scrollY <= mark) idx = i;
+    }
+    for(var j=0;j<links.length;j++) links[j].classList.toggle('on', j===idx);
+  }
+  function onScroll(){ if(!queued){ queued = true; requestAnimationFrame(update); } }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  window.addEventListener('resize', onScroll);
+  window.addEventListener('load', function(){ update(); setTimeout(update, 1200); });
+  update();
+})();
+</script>
+<script>
+(function(){
+'use strict';
+
+// ---------- popups ----------
+document.addEventListener('click',function(ev){
+  const btn=ev.target.closest('.pop');
+  if(!btn) return;
+  const el=document.getElementById(btn.dataset.target);
+  if(!el) return;
+  const open=el.classList.toggle('open');
+  btn.setAttribute('aria-expanded',String(open));
+  if(open && !el.dataset.typeset && window.MathJax && MathJax.typesetPromise){
+    el.dataset.typeset='1';
+    MathJax.typesetPromise([el]).catch(()=>{});
+  }
+});
+
+// ---------- shared helpers ----------
+const INK='#111111', GRAY='#999999', LINE='#dddddd', BLUE='#2b5fad', GREEN='#1f8a63', RED='#b03a3a';
+const SQ3=Math.sqrt(3);
+// canvases get their CSS height from the height attribute, so layout does not depend on aspect-ratio rules
+document.querySelectorAll('figure.sim canvas').forEach(function(c){ c.style.height=c.getAttribute('height')+'px'; });
+
+let spare=null;
+function rnd(){ if(spare!==null){ const v=spare; spare=null; return v; }
+  let u,v,r; do{ u=Math.random()*2-1; v=Math.random()*2-1; r=u*u+v*v; }while(r>=1||r===0);
+  const f=Math.sqrt(-2*Math.log(r)/r); spare=v*f; return u*f; }
+function fit(c){
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  const w=Math.round(c.clientWidth*dpr), h=Math.round(c.clientHeight*dpr);
+  if(c.width!==w||c.height!==h){ c.width=w; c.height=h; }
+  const x=c.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); return x;
+}
+function lab(ctx,t,x,y,col,align){ ctx.font='11px Palatino, Georgia, serif'; ctx.fillStyle=col||GRAY;
+  ctx.textAlign=align||'left'; ctx.fillText(t,x,y); ctx.textAlign='left'; }
+function Q(fig,r){ return fig.querySelector('[data-role='+r+']'); }
+function say(fig,html){
+  const n=Q(fig,'note'); if(!n) return;
+  n.classList.add('dim'); clearTimeout(n._t);
+  n._t=setTimeout(function(){ n.innerHTML=html; n.classList.remove('dim'); },240);
+}
+function clamp(v,a,b){ return v<a?a:(v>b?b:v); }
+function xlogy(x,y){ return x>0 ? x*Math.log(x/y) : 0; }
+function klBer(x,p){ return xlogy(x,p)+xlogy(1-x,1-p); }
+function fmt(n){ return n.toLocaleString('en-US'); }
+function dragOn(canvas,fn){
+  let on=false;
+  function pt(ev){ const r=canvas.getBoundingClientRect(); return [ev.clientX-r.left, ev.clientY-r.top]; }
+  canvas.addEventListener('pointerdown',function(ev){ on=true; canvas.setPointerCapture(ev.pointerId); fn(pt(ev)); ev.preventDefault(); });
+  canvas.addEventListener('pointermove',function(ev){ if(on) fn(pt(ev)); });
+  function end(){ on=false; }
+  canvas.addEventListener('pointerup',end); canvas.addEventListener('pointercancel',end);
+}
+// ---- the 2-simplex, drawn as an equilateral triangle: vertex 1 bottom left, 2 bottom right, 3 top ----
+function simplexGeom(w,h,padX,top,bottom){
+  const side=Math.min(w-2*padX,(h-top-bottom)*2/SQ3);
+  const hh=side*SQ3/2, x0=(w-side)/2, y0=top+hh;
+  return {side:side,hh:hh,x0:x0,y0:y0,
+    xy:function(p){ return [x0+side*(p[1]+p[2]/2), y0-hh*p[2]]; },
+    p:function(X,Y){ const p3=(y0-Y)/hh, p2=(X-x0)/side-p3/2; return [1-p2-p3,p2,p3]; }};
+}
+function toSimplex(p,eps){
+  const a=Math.max(p[0],eps), b=Math.max(p[1],eps), c=Math.max(p[2],eps), t=a+b+c;
+  return [a/t,b/t,c/t];
+}
+function simplexImage(fn,opt){
+  const NW=200, NH=174, off=document.createElement('canvas'); off.width=NW; off.height=NH;
+  const ic=off.getContext('2d'), im=ic.createImageData(NW,NH), vals=new Float64Array(NW*NH);
+  let lo=Infinity, hi=-Infinity;
+  for(let py=0;py<NH;py++) for(let px=0;px<NW;px++){
+    const v=1-(py+0.5)/NH, u=(px+0.5)/NW, p3=v, p2=u-v/2, p1=1-p2-p3, idx=py*NW+px;
+    if(p1<0||p2<0||p3<0){ vals[idx]=NaN; continue; }
+    let f=fn([p1,p2,p3]); if(opt.cap!==undefined && f>opt.cap) f=opt.cap;
+    vals[idx]=f; if(f<lo) lo=f; if(f>hi) hi=f;
+  }
+  for(let idx=0;idx<NW*NH;idx++){
+    const f=vals[idx], q=idx*4;
+    if(f!==f){ im.data[q+3]=0; continue; }
+    const v=clamp((f-lo)/((hi-lo)||1),0,1);
+    const t=opt.darkLow ? 1-Math.pow(v,0.45) : Math.pow(v,0.6);
+    const band = opt.step ? ((f<opt.cap-1e-9 && (f/opt.step)%1<0.07) ? 0.87 : 1) : (Math.sin(v*46)>0.86 ? 0.88 : 1);
+    im.data[q]=Math.round((255-150*t)*band); im.data[q+1]=Math.round((255-125*t)*band);
+    im.data[q+2]=Math.round((255-55*t)*band); im.data[q+3]=255;
+  }
+  ic.putImageData(im,0,0); return off;
+}
+function drawTriangle(ctx,g,img,names){
+  ctx.imageSmoothingEnabled=true;
+  ctx.drawImage(img,g.x0,g.y0-g.hh,g.side,g.hh);
+  ctx.beginPath(); ctx.moveTo(g.x0,g.y0); ctx.lineTo(g.x0+g.side,g.y0); ctx.lineTo(g.x0+g.side/2,g.y0-g.hh); ctx.closePath();
+  ctx.strokeStyle='#555'; ctx.lineWidth=1; ctx.stroke();
+  lab(ctx,names[0],g.x0,g.y0+14,INK,'left'); lab(ctx,names[1],g.x0+g.side,g.y0+14,INK,'right');
+  lab(ctx,names[2],g.x0+g.side/2,g.y0-g.hh-6,INK,'center');
+}
+
+// =================== FIGURE 1: the exponent, converging ===================
+function Fig1(){
+  const s=this, fig=document.getElementById('fig1'); s.fig=fig; s.active=false;
+  const cL=Q(fig,'left'), cR=Q(fig,'right');
+  const NMAX=2000, NMIN=5;
+  const LF=new Float64Array(NMAX+1); for(let i=1;i<=NMAX;i++) LF[i]=LF[i-1]+Math.log(i);
+  s.u=0; s.n=NMIN; s.p=0.5; s.auto=true;
+  const nOf=function(u){ return Math.round(Math.exp(Math.log(NMIN)+clamp(u,0,1)*Math.log(NMAX/NMIN))); };
+  const logP=function(k){ return LF[s.n]-LF[k]-LF[s.n-k]+k*Math.log(s.p)+(s.n-k)*Math.log(1-s.p); };
+  const nS=Q(fig,'n'), nV=Q(fig,'nval'), pS=Q(fig,'p'), pV=Q(fig,'pval'), aB=Q(fig,'auto');
+  function sync(){ nS.value=String(clamp(s.u,0,1)); nV.textContent=String(s.n); }
+  s.step=function(){ if(!s.auto) return; s.u+=0.004; if(s.u>1.3) s.u=0; s.n=nOf(s.u); sync(); };
+  s.draw=function(){
+    const n=s.n, p=s.p;
+    // ---- left: linear scale ----
+    let ctx=fit(cL), w=cL.clientWidth, h=cL.clientHeight;
+    const pl=14, pr=14, top=26, bot=h-24;
+    ctx.clearRect(0,0,w,h);
+    const X=function(x){ return pl+x*(w-pl-pr); };
+    let lmax=-Infinity; for(let k=0;k<=n;k++){ const v=logP(k); if(v>lmax) lmax=v; }
+    ctx.strokeStyle=LINE; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(pl,bot); ctx.lineTo(w-pr,bot); ctx.stroke();
+    if(n<=150){
+      ctx.strokeStyle=GREEN; ctx.lineWidth=clamp((w-pl-pr)/n*0.45,1,7);
+      for(let k=0;k<=n;k++){ const y=bot-Math.exp(logP(k)-lmax)*(bot-top);
+        if(bot-y<0.3) continue; ctx.beginPath(); ctx.moveTo(X(k/n),bot); ctx.lineTo(X(k/n),y); ctx.stroke(); }
+    } else {
+      ctx.beginPath(); ctx.moveTo(X(0),bot);
+      for(let k=0;k<=n;k++) ctx.lineTo(X(k/n),bot-Math.exp(logP(k)-lmax)*(bot-top));
+      ctx.lineTo(X(1),bot); ctx.closePath();
+      ctx.fillStyle='rgba(31,138,99,0.25)'; ctx.fill(); ctx.strokeStyle=GREEN; ctx.lineWidth=1.3; ctx.stroke();
+    }
+    lab(ctx,'probability of each fraction of heads (scaled to its peak)',pl,14,INK);
+    lab(ctx,'0',pl,h-8); lab(ctx,'1',w-pr,h-8,GRAY,'right'); lab(ctx,'p',X(p),h-8,GRAY,'center');
+    // ---- right: exponential scale ----
+    ctx=fit(cR); w=cR.clientWidth; h=cR.clientHeight;
+    ctx.clearRect(0,0,w,h);
+    const ql=34, qr=12, t2=26, b2=h-24;
+    const yMax=Math.min(3.2,1.12*Math.max(-Math.log(1-p),-Math.log(p)));
+    const X2=function(x){ return ql+x*(w-ql-qr); }, Y2=function(v){ return b2-(v/yMax)*(b2-t2); };
+    ctx.strokeStyle=LINE; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(ql,t2); ctx.lineTo(ql,b2); ctx.lineTo(w-qr,b2); ctx.stroke();
+    lab(ctx,'0',ql-6,b2+3,GRAY,'right'); lab(ctx,yMax.toFixed(1),ql-6,t2+6,GRAY,'right');
+    lab(ctx,'0',ql,h-8); lab(ctx,'1',w-qr,h-8,GRAY,'right'); lab(ctx,'x',X2(0.5),h-8,GRAY,'center');
+    ctx.save(); ctx.beginPath(); ctx.rect(ql,t2-2,w-ql-qr,b2-t2+4); ctx.clip();
+    ctx.setLineDash([5,4]); ctx.beginPath();
+    for(let i=0;i<=200;i++){ const x=i/200, v=(x-p)*(x-p)/(2*p*(1-p)); i?ctx.lineTo(X2(x),Y2(v)):ctx.moveTo(X2(x),Y2(v)); }
+    ctx.strokeStyle=GRAY; ctx.lineWidth=1.3; ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath();
+    for(let i=0;i<=240;i++){ const x=i/240, v=klBer(x,p); i?ctx.lineTo(X2(x),Y2(v)):ctx.moveTo(X2(x),Y2(v)); }
+    ctx.strokeStyle=BLUE; ctx.lineWidth=1.9; ctx.stroke();
+    const stp=Math.max(1,Math.ceil((n+1)/260)); let gap=0;
+    ctx.fillStyle=GREEN;
+    for(let k=0;k<=n;k++){ const v=-logP(k)/n, g=v-klBer(k/n,p); if(g>gap) gap=g;
+      if(k%stp===0 || k===n) ctx.fillRect(X2(k/n)-1.6,Y2(v)-1.6,3.2,3.2); }
+    ctx.restore();
+    lab(ctx,'n = '+n+'      largest gap between dots and curve: '+gap.toFixed(4),ql+4,14,INK);
+  };
+  nS.addEventListener('input',function(){ s.auto=false; aB.classList.remove('toggled'); aB.setAttribute('aria-pressed','false');
+    s.u=parseFloat(nS.value); s.n=nOf(s.u); nV.textContent=String(s.n); });
+  pS.addEventListener('input',function(){ s.p=parseFloat(pS.value); pV.textContent=s.p.toFixed(2); });
+  pS.addEventListener('change',function(){ say(fig, Math.abs(s.p-0.5)<0.06
+    ? 'A fair coin. The rate function is symmetric and tops out at log 2 ≈ 0.69 at both ends: the price per flip of all heads or all tails.'
+    : 'A biased coin. The rate function is lopsided, and the Gaussian parabola is too pessimistic on one side and too optimistic on the other.'); });
+  aB.addEventListener('click',function(){ s.auto=!s.auto; aB.classList.toggle('toggled',s.auto); aB.setAttribute('aria-pressed',String(s.auto)); });
+  aB.classList.add('toggled'); sync();
+}
+
+// =================== FIGURE 2: Jaynes's dice by rejection ===================
+function Fig2(){
+  const s=this, fig=document.getElementById('fig2'); s.fig=fig; s.active=false;
+  const cL=Q(fig,'left'), cR=Q(fig,'right');
+  s.n=12; s.a=4.5;
+  function tilt(a){
+    let lo=0, hi=12;
+    for(let it=0;it<70;it++){ const th=(lo+hi)/2; let z=0,m=0;
+      for(let k=1;k<=6;k++){ const wk=Math.exp(th*(k-6)); z+=wk; m+=k*wk; }
+      if(m/z<a) lo=th; else hi=th; }
+    const th=(lo+hi)/2, p=[]; let z=0;
+    for(let k=1;k<=6;k++){ p.push(Math.exp(th*(k-6))); z+=p[k-1]; }
+    for(let k=0;k<6;k++) p[k]/=z;
+    return {th:th, p:p, I:th*a-(Math.log(z/6)+6*th)};
+  }
+  s.reset=function(){ s.cnt=new Float64Array(6); s.tot=0; s.acc=0; s.last=null; s.t=tilt(s.a); s.faces=new Uint8Array(s.n); };
+  s.reset();
+  s.step=function(){
+    const n=s.n, need=s.a*n-1e-9, runs=Math.max(1,Math.floor(110000/n)), f=s.faces;
+    for(let r=0;r<runs;r++){
+      let sum=0;
+      for(let i=0;i<n;i++){ const v=1+((Math.random()*6)|0); f[i]=v; sum+=v; }
+      if(sum>=need){ s.acc++; for(let i=0;i<n;i++) s.cnt[f[i]-1]++; s.last=Array.prototype.slice.call(f); }
+    }
+    s.tot+=runs;
+  };
+  s.draw=function(){
+    let ctx=fit(cL), w=cL.clientWidth, h=cL.clientHeight;
+    ctx.clearRect(0,0,w,h);
+    const pl=30, pr=10, top=24, bot=h-30, t=s.t;
+    const yMax=Math.max(0.42,Math.max.apply(null,t.p)*1.18);
+    const Y=function(v){ return bot-(v/yMax)*(bot-top); }, bw=(w-pl-pr)/6;
+    ctx.strokeStyle=LINE; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(pl,top); ctx.lineTo(pl,bot); ctx.lineTo(w-pr,bot); ctx.stroke();
+    lab(ctx,'0',pl-5,bot+3,GRAY,'right'); lab(ctx,yMax.toFixed(2),pl-3,top+6,GRAY,'right');
+    const tot=s.acc*s.n;
+    for(let k=0;k<6;k++){
+      const x0=pl+k*bw+bw*0.18, x1=pl+(k+1)*bw-bw*0.18;
+      if(tot>0){ const v=s.cnt[k]/tot; ctx.fillStyle='rgba(31,138,99,0.55)'; ctx.fillRect(x0,Y(v),x1-x0,bot-Y(v)); }
+      ctx.strokeStyle=BLUE; ctx.lineWidth=2.2; ctx.beginPath(); ctx.moveTo(x0-4,Y(t.p[k])); ctx.lineTo(x1+4,Y(t.p[k])); ctx.stroke();
+      lab(ctx,String(k+1),(x0+x1)/2,bot+15,INK,'center');
+    }
+    ctx.setLineDash([5,4]); ctx.strokeStyle=GRAY; ctx.lineWidth=1.1; ctx.beginPath();
+    ctx.moveTo(pl,Y(1/6)); ctx.lineTo(w-pr,Y(1/6)); ctx.stroke(); ctx.setLineDash([]);
+    lab(ctx,'how often each face shows up in the runs that passed',pl+4,14,INK);
+    // right: the ledger
+    ctx=fit(cR); w=cR.clientWidth; h=cR.clientHeight; ctx.clearRect(0,0,w,h);
+    let y=22; const L=14, ln=function(tx,col){ lab(ctx,tx,L,y,col||INK); y+=20; };
+    ln('runs rolled:  '+fmt(s.tot));
+    ln('runs with average ≥ '+s.a.toFixed(2)+':  '+fmt(s.acc));
+    y+=6;
+    if(s.acc>0) ln('measured  −(1/n) log(fraction kept)  =  '+(-Math.log(s.acc/s.tot)/s.n).toFixed(3),GREEN);
+    else ln('measured exponent: waiting for the first run to pass',GREEN);
+    ln('Cramér  I(a) = θa − Λ(θ)  =  '+t.I.toFixed(3),BLUE);
+    ln('tilt parameter  θ = '+t.th.toFixed(3));
+    const ex=s.n*t.I/Math.LN10;
+    ln('e^(−nI) is about 1 in '+(ex<6?fmt(Math.round(Math.pow(10,ex))):'10^'+ex.toFixed(1)));
+    y+=6;
+    ln('the most recent run that passed:',GRAY);
+    if(s.last){ const per=Math.max(8,Math.floor((w-2*L)/11));
+      for(let i=0;i<s.last.length;i+=per){ lab(ctx,s.last.slice(i,i+per).join(' '),L,y,INK); y+=16; } }
+    else lab(ctx,'(none yet)',L,y,GRAY);
+  };
+  const nS=Q(fig,'n'), nV=Q(fig,'nval'), aS=Q(fig,'a'), aV=Q(fig,'aval');
+  nS.addEventListener('input',function(){ s.n=parseInt(nS.value,10); nV.textContent=String(s.n); s.reset(); });
+  aS.addEventListener('input',function(){ s.a=parseFloat(aS.value); aV.textContent=s.a.toFixed(2); s.reset(); });
+  nS.addEventListener('change',function(){ say(fig, s.n>=30
+    ? 'Long runs. The kept faces sit close to the blue tilt, and almost no run is kept. Both effects have the same cause: the constraint now binds on a law-of-large-numbers scale.'
+    : 'Short runs. Passing is easy, and the kept faces are only partly tilted, because a few lucky sixes are enough. The conditional limit theorem is a statement about large n.'); });
+  Q(fig,'reset').addEventListener('click',function(){ s.reset(); });
+}
+
+// =================== FIGURE 3: the Legendre transform ===================
+function Fig3(){
+  const s=this, fig=document.getElementById('fig3'); s.fig=fig; s.active=false;
+  const cL=Q(fig,'left'), cR=Q(fig,'right');
+  const c2=function(m){ const a=(1+m)/2, b=(1-m)/2; return (a>0?a*Math.log(2*a):0)+(b>0?b*Math.log(2*b):0); };
+  const BJ=1.6;
+  const MODES={
+    coin:  {th:[-4,4], x:[0,1], dom:[0,1], wide:[-18,18], Lam:function(t){ return Math.log(0.5+0.5*Math.exp(t)); }, I:function(x){ return klBer(x,0.5); }, xn:'x = fraction of heads'},
+    biased:{th:[-4,4], x:[0,1], dom:[0,1], wide:[-18,18], Lam:function(t){ return Math.log(0.8+0.2*Math.exp(t)); }, I:function(x){ return klBer(x,0.2); }, xn:'x = fraction of heads'},
+    die:   {th:[-2,2], x:[0,7], dom:[1,6], wide:[-14,14], Lam:function(t){ let z=0; for(let k=1;k<=6;k++) z+=Math.exp(t*k); return Math.log(z/6); }, I:null, xn:'x = average face'},
+    gauss: {th:[-3,3], x:[-3,3], dom:[-3,3], wide:[-6,6], Lam:function(t){ return t*t/2; }, I:function(x){ return x*x/2; }, xn:'x = sample mean'},
+    expo:  {th:[-4,1.2], x:[0,6], dom:[0.03,6], wide:[-60,0.9995], thmax:0.97, Lam:function(t){ return t<1 ? -Math.log(1-t) : Infinity; }, I:function(x){ return x-1-Math.log(x); }, xn:'x = sample mean'},
+    magnet:{th:[-1.5,1.5], x:[-1,1], dom:[-1,1], wide:[-6,6], hull:true, Lam:null, I:null, xn:'m = mean spin', tn:'h'}
+  };
+  (function(){ // the magnet: true rate function has two wells, Lambda is its conjugate
+    const NM=1201, ms=new Float64Array(NM), It=new Float64Array(NM); let mn=Infinity;
+    for(let i=0;i<NM;i++){ ms[i]=-1+2*i/(NM-1); It[i]=c2(ms[i])-BJ/2*ms[i]*ms[i]; if(It[i]<mn) mn=It[i]; }
+    for(let i=0;i<NM;i++) It[i]-=mn;
+    MODES.magnet.I=function(m){ return c2(m)-BJ/2*m*m-mn; };
+    MODES.magnet.Lam=function(hf){ let b=-Infinity; for(let i=0;i<NM;i++){ const v=hf*ms[i]-It[i]; if(v>b) b=v; } return b; };
+  })();
+  const G=2400, NX=320;
+  function build(name){
+    const m=MODES[name]; s.m=m; s.name=name;
+    m.TH=new Float64Array(G); m.LAM=new Float64Array(G);
+    for(let j=0;j<G;j++){ m.TH[j]=m.wide[0]+(m.wide[1]-m.wide[0])*j/(G-1); m.LAM[j]=m.Lam(m.TH[j]); }
+    m.conj=function(x){ let b=-Infinity, bj=0; for(let j=0;j<G;j++){ const v=m.TH[j]*x-m.LAM[j]; if(v>b){ b=v; bj=j; } } return [b,m.TH[bj]]; };
+    m.xs=new Float64Array(NX); m.It=new Float64Array(NX); m.Ih=new Float64Array(NX);
+    let imax=0;
+    for(let i=0;i<NX;i++){ const x=m.dom[0]+(m.dom[1]-m.dom[0])*i/(NX-1); m.xs[i]=x;
+      m.Ih[i]=m.conj(x)[0]; m.It[i]=m.I?m.I(x):m.Ih[i]; if(m.It[i]>imax) imax=m.It[i]; }
+    m.yR=[-0.5*Math.min(imax,3),1.12*Math.min(imax,3)];
+    let lo=Infinity, hi=-Infinity;
+    for(let i=0;i<=200;i++){ const t=m.th[0]+(m.th[1]-m.th[0])*i/200; if(m.thmax!==undefined&&t>m.thmax) break;
+      const v=m.Lam(t); if(v<lo) lo=v; if(v>hi) hi=v; }
+    hi=Math.min(hi,4); lo=Math.min(lo,-Math.min(imax,2.2));
+    m.yL=[lo-0.08*(hi-lo),hi+0.06*(hi-lo)];
+    s.auto=true; s.ph=0;
+  }
+  function xOf(th){ const m=s.m, e=1e-3; let a=th-e, b=th+e; if(m.thmax!==undefined&&b>=1) b=th; return (m.Lam(b)-m.Lam(a))/(b-a); }
+  function setTheta(th){ const m=s.m; s.th=clamp(th,m.th[0],m.thmax!==undefined?m.thmax:m.th[1]); s.x=xOf(s.th); }
+  function setX(x){ const m=s.m; s.x=clamp(x,m.dom[0],m.dom[1]); s.th=m.conj(s.x)[1]; }
+  build('coin'); setTheta(0.8);
+  s.step=function(){
+    if(!s.auto) return; const m=s.m; s.ph+=0.012;
+    const hiT=m.thmax!==undefined?0.8:m.th[1]*0.82, loT=m.th[0]*0.82;
+    setTheta((hiT+loT)/2+(hiT-loT)/2*Math.sin(s.ph));
+  };
+  s.draw=function(){
+    const m=s.m, tn=m.tn||'θ';
+    // ---- left ----
+    let ctx=fit(cL), w=cL.clientWidth, h=cL.clientHeight;
+    ctx.clearRect(0,0,w,h);
+    const pl=12, pr=12, top=20, bot=h-44;
+    const XL=function(t){ return pl+(t-m.th[0])/(m.th[1]-m.th[0])*(w-pl-pr); };
+    const YL=function(v){ return bot-(v-m.yL[0])/(m.yL[1]-m.yL[0])*(bot-top); };
+    s.gL={pl:pl,pr:pr,w:w};
+    ctx.strokeStyle=LINE; ctx.lineWidth=1; ctx.beginPath();
+    ctx.moveTo(pl,YL(0)); ctx.lineTo(w-pr,YL(0)); ctx.moveTo(XL(0),top); ctx.lineTo(XL(0),bot); ctx.stroke();
+    ctx.save(); ctx.beginPath(); ctx.rect(pl,top,w-pl-pr,bot-top); ctx.clip();
+    if(m.thmax!==undefined){ ctx.setLineDash([3,4]); ctx.strokeStyle=LINE; ctx.beginPath(); ctx.moveTo(XL(1),top); ctx.lineTo(XL(1),bot); ctx.stroke(); ctx.setLineDash([]); }
+    ctx.beginPath(); let started=false;
+    for(let i=0;i<=300;i++){ const t=m.th[0]+(m.th[1]-m.th[0])*i/300, v=m.Lam(t);
+      if(!isFinite(v)||v>m.yL[1]+50) continue; started?ctx.lineTo(XL(t),YL(v)):ctx.moveTo(XL(t),YL(v)); started=true; }
+    ctx.strokeStyle=INK; ctx.lineWidth=1.9; ctx.stroke();
+    const lam=m.Lam(s.th), c0=lam-s.x*s.th;
+    ctx.beginPath(); ctx.moveTo(XL(m.th[0]),YL(lam+s.x*(m.th[0]-s.th))); ctx.lineTo(XL(m.th[1]),YL(lam+s.x*(m.th[1]-s.th)));
+    ctx.strokeStyle=GREEN; ctx.lineWidth=1.3; ctx.stroke();
+    ctx.fillStyle=INK; ctx.beginPath(); ctx.arc(XL(s.th),YL(lam),4,0,6.29); ctx.fill();
+    ctx.fillStyle=BLUE; ctx.beginPath(); ctx.arc(XL(0),YL(c0),3.6,0,6.29); ctx.fill();
+    ctx.restore();
+    lab(ctx,'−I(x)',XL(0)+7,clamp(YL(c0)+4,top+10,bot-2),BLUE);
+    lab(ctx,'Λ('+tn+')',pl+2,top-6,INK); lab(ctx,tn+' →',w-pr,bot+13,GRAY,'right');
+    lab(ctx,tn+' = '+s.th.toFixed(2)+'     Λ = '+lam.toFixed(3)+'     slope = x = '+s.x.toFixed(3),pl,h-8,INK);
+    // ---- right ----
+    ctx=fit(cR); w=cR.clientWidth; h=cR.clientHeight; ctx.clearRect(0,0,w,h);
+    const XR=function(x){ return pl+(x-m.x[0])/(m.x[1]-m.x[0])*(w-pl-pr); };
+    const YR=function(v){ return bot-(v-m.yR[0])/(m.yR[1]-m.yR[0])*(bot-top); };
+    s.gR={pl:pl,pr:pr,w:w};
+    ctx.strokeStyle=LINE; ctx.lineWidth=1; ctx.beginPath();
+    ctx.moveTo(pl,YR(0)); ctx.lineTo(w-pr,YR(0));
+    if(m.x[0]<=0&&m.x[1]>=0){ ctx.moveTo(XR(0),top); ctx.lineTo(XR(0),bot); }
+    ctx.stroke();
+    ctx.save(); ctx.beginPath(); ctx.rect(pl,top,w-pl-pr,bot-top); ctx.clip();
+    ctx.beginPath(); for(let i=0;i<NX;i++){ const X=XR(m.xs[i]), Y=YR(m.It[i]); i?ctx.lineTo(X,Y):ctx.moveTo(X,Y); }
+    ctx.strokeStyle=BLUE; ctx.lineWidth=1.9; ctx.stroke();
+    if(m.hull){ ctx.setLineDash([6,4]); ctx.beginPath();
+      for(let i=0;i<NX;i++){ const X=XR(m.xs[i]), Y=YR(m.Ih[i]); i?ctx.lineTo(X,Y):ctx.moveTo(X,Y); }
+      ctx.strokeStyle=GREEN; ctx.lineWidth=1.7; ctx.stroke(); ctx.setLineDash([]); }
+    const Ix=m.conj(s.x)[0];
+    ctx.beginPath(); ctx.moveTo(XR(m.x[0]),YR(Ix+s.th*(m.x[0]-s.x))); ctx.lineTo(XR(m.x[1]),YR(Ix+s.th*(m.x[1]-s.x)));
+    ctx.strokeStyle=GREEN; ctx.lineWidth=1.3; ctx.stroke();
+    ctx.fillStyle=BLUE; ctx.beginPath(); ctx.arc(XR(s.x),YR(Ix),4,0,6.29); ctx.fill();
+    const c1=Ix-s.th*s.x;
+    if(m.x[0]<=0&&m.x[1]>=0){ ctx.fillStyle=INK; ctx.beginPath(); ctx.arc(XR(0),YR(c1),3.6,0,6.29); ctx.fill(); }
+    ctx.restore();
+    if(m.x[0]<=0&&m.x[1]>=0 && c1>m.yR[0] && c1<m.yR[1]) lab(ctx,'−Λ('+tn+')',XR(0)+7,YR(c1)+4,INK);
+    lab(ctx,m.hull?'rate function (blue) and Λ* (green)':'I(x) = Λ*(x)',pl+2,top-6,BLUE); lab(ctx,m.xn+' →',w-pr,bot+13,GRAY,'right');
+    lab(ctx,'x = '+s.x.toFixed(3)+'     '+(m.hull?'Λ*':'I')+' = '+Ix.toFixed(3)+'     slope = '+tn+' = '+s.th.toFixed(2),pl,h-24,INK);
+    lab(ctx,tn+'·x = Λ + '+(m.hull?'Λ*':'I')+' :    '+(s.th*s.x).toFixed(3)+'  =  '+lam.toFixed(3)+'  +  '+Ix.toFixed(3),pl,h-8,GREEN);
+  };
+  dragOn(cL,function(pt){ if(!s.gL) return; s.auto=false; const g=s.gL, m=s.m;
+    setTheta(m.th[0]+(pt[0]-g.pl)/(g.w-g.pl-g.pr)*(m.th[1]-m.th[0])); });
+  dragOn(cR,function(pt){ if(!s.gR) return; s.auto=false; const g=s.gR, m=s.m;
+    setX(m.x[0]+(pt[0]-g.pl)/(g.w-g.pl-g.pr)*(m.x[1]-m.x[0])); });
+  const MSG={
+    coin:'A fair coin. Λ flattens out on the left and becomes a line of slope 1 on the right, so the slopes it can offer run from 0 to 1, which is the range of x on the other side.',
+    biased:'A coin with p = 0.2. The minimum of I sits at 0.2, and reaching x = 1 costs log 5 per flip where x = 0 costs only log 1.25.',
+    die:'A fair die. Outside the interval from 1 to 6 no tilt can produce the average, no tangent line has that slope, and the rate function is infinite.',
+    gauss:'The Gaussian is its own Legendre transform: θ²/2 on one side and x²/2 on the other. It is the only case in which the Gaussian guess of Figure 1 is exact.',
+    expo:'An exponential variable. Λ blows up at θ = 1, since the tail e^(−y) cannot absorb a tilt stronger than that, and correspondingly I grows only linearly for large x.',
+    magnet:'A magnet below its critical temperature. Drag in the right panel across the flat green segment and watch the left: the tangent rocks about the corner of Λ at h = 0 without moving. Every magnetization between the two wells is paired with the same field, and Λ cannot tell them apart.'
+  };
+  Q(fig,'preset').addEventListener('change',function(){ build(this.value); setTheta(0.5); say(fig,MSG[this.value]); });
+}
+
+// =================== FIGURE 5: the Gibbs variational principle on three states ===================
+function Fig5(){
+  const s=this, fig=document.getElementById('fig5'); s.fig=fig; s.active=false;
+  const cL=Q(fig,'left'), cR=Q(fig,'right');
+  s.U=[0,1,2]; s.T=0.8; s.p=[0.12,0.2,0.68]; s.rel=false; s.dirty=true;
+  const F=function(p){ let e=0,hm=0; for(let i=0;i<3;i++){ e+=p[i]*s.U[i]; if(p[i]>0) hm+=p[i]*Math.log(p[i]); } return e+s.T*hm; };
+  function gibbs(){ const g=[0,0,0]; let z=0, um=Math.min(s.U[0],s.U[1],s.U[2]);
+    for(let i=0;i<3;i++){ g[i]=Math.exp(-(s.U[i]-um)/s.T); z+=g[i]; }
+    for(let i=0;i<3;i++) g[i]/=z; s.g=g; s.Fmin=um-s.T*Math.log(z); }
+  s.step=function(){
+    if(s.dirty){ s.dirty=false; gibbs(); s.img=simplexImage(F,{darkLow:true}); }
+    if(!s.rel) return;
+    for(let k=0;k<3;k++){ const mu=[0,0,0]; let avg=0;
+      for(let i=0;i<3;i++){ mu[i]=s.U[i]+s.T*(Math.log(Math.max(s.p[i],1e-12))+1); avg+=s.p[i]*mu[i]; }
+      let z=0; for(let i=0;i<3;i++){ s.p[i]*=Math.exp(-0.05*(mu[i]-avg)); z+=s.p[i]; }
+      for(let i=0;i<3;i++) s.p[i]/=z; }
+  };
+  s.draw=function(){
+    if(!s.img) return;
+    let ctx=fit(cL), w=cL.clientWidth, h=cL.clientHeight; ctx.clearRect(0,0,w,h);
+    const g=simplexGeom(w,h,16,22,22); s.geo=g;
+    drawTriangle(ctx,g,s.img,['state 1, U = 0','state 2, U = '+s.U[1].toFixed(2),'state 3, U = '+s.U[2].toFixed(2)]);
+    let q=g.xy(s.g); ctx.strokeStyle=BLUE; ctx.lineWidth=2.2; ctx.beginPath(); ctx.arc(q[0],q[1],7,0,6.29); ctx.stroke();
+    q=g.xy(s.p); ctx.fillStyle=GREEN; ctx.beginPath(); ctx.arc(q[0],q[1],5,0,6.29); ctx.fill();
+    ctx.strokeStyle='#fff'; ctx.lineWidth=1.2; ctx.stroke();
+    // right
+    ctx=fit(cR); w=cR.clientWidth; h=cR.clientHeight; ctx.clearRect(0,0,w,h);
+    const pl=20, top=16, bot=Math.round(h*0.40), bw=(w-2*pl)/3;
+    ctx.strokeStyle=LINE; ctx.beginPath(); ctx.moveTo(pl,bot); ctx.lineTo(w-pl,bot); ctx.stroke();
+    for(let i=0;i<3;i++){
+      const x0=pl+i*bw+bw*0.2, x1=pl+(i+1)*bw-bw*0.2, Y=function(v){ return bot-v*(bot-top); };
+      ctx.fillStyle='rgba(31,138,99,0.55)'; ctx.fillRect(x0,Y(s.p[i]),x1-x0,bot-Y(s.p[i]));
+      ctx.strokeStyle=BLUE; ctx.lineWidth=2.2; ctx.beginPath(); ctx.moveTo(x0-4,Y(s.g[i])); ctx.lineTo(x1+4,Y(s.g[i])); ctx.stroke();
+      lab(ctx,'p'+(i+1)+' = '+s.p[i].toFixed(3),(x0+x1)/2,bot+14,INK,'center');
+    }
+    let e=0, hm=0, kl=0;
+    for(let i=0;i<3;i++){ e+=s.p[i]*s.U[i]; if(s.p[i]>0){ hm-=s.p[i]*Math.log(s.p[i]); kl+=s.p[i]*Math.log(s.p[i]/s.g[i]); } }
+    const Fp=e-s.T*hm; let y=bot+42; const ln=function(tx,col){ lab(ctx,tx,pl,y,col||INK); y+=19; };
+    ln('energy  E_p[U]  =  '+e.toFixed(4));
+    ln('T · H(p)  =  '+(s.T*hm).toFixed(4));
+    ln('F[p]  =  E_p[U] − T·H(p)  =  '+Fp.toFixed(4),GREEN);
+    ln('−T log Z  =  '+s.Fmin.toFixed(4),BLUE);
+    y+=5;
+    ln('gap  F[p] − (−T log Z)  =  '+(Fp-s.Fmin).toFixed(6));
+    ln('T · KL(p || Boltzmann)  =  '+(s.T*kl).toFixed(6));
+  };
+  dragOn(cL,function(pt){ if(!s.geo) return; s.rel=false; rb.classList.remove('toggled'); rb.textContent='let go';
+    s.p=toSimplex(s.geo.p(pt[0],pt[1]),1e-5); });
+  const rb=Q(fig,'release');
+  rb.addEventListener('click',function(){ s.rel=!s.rel; rb.classList.toggle('toggled',s.rel); rb.textContent=s.rel?'hold':'let go';
+    if(s.rel) say(fig,'Released. The dot slides down F by reweighting, with no mass moved between states: this is the Fisher–Rao flow from the Fokker–Planck essay, also known as the replicator equation. It stops at the ring.'); });
+  [['u2',1,'u2v'],['u3',2,'u3v']].forEach(function(z){ const el=Q(fig,z[0]), rv=Q(fig,z[2]);
+    el.addEventListener('input',function(){ s.U[z[1]]=parseFloat(el.value); rv.textContent=s.U[z[1]].toFixed(2); s.dirty=true; }); });
+  const tm=Q(fig,'temp'), tv=Q(fig,'tval');
+  tm.addEventListener('input',function(){ s.T=parseFloat(tm.value); tv.textContent=s.T.toFixed(2); s.dirty=true; });
+  tm.addEventListener('change',function(){ say(fig, s.T<0.4
+    ? 'Cold. Entropy is cheap to give up, so the minimizer sits near the corner with the lowest energy, and −T log Z is close to that lowest energy.'
+    : 'Warm. Entropy is worth more per unit, the minimizer moves toward the centre of the triangle, and −T log Z drops below every single energy.'); });
+}
+
+// =================== FIGURE 6: Sanov on three symbols ===================
+function Fig6(){
+  const s=this, fig=document.getElementById('fig6'); s.fig=fig; s.active=false;
+  const cL=Q(fig,'left'), cR=Q(fig,'right');
+  s.mu=[0.5,0.3,0.2]; s.n=40; s.a=0.5; s.dirty=true;
+  const KC=420, KH=500;
+  const KL=function(p){ let v=0; for(let i=0;i<3;i++) v+=xlogy(p[i],s.mu[i]); return v; };
+  s.reset=function(){ s.tot=0; s.hit=0; s.cloud=new Float32Array(KC*3); s.nc=0; s.hits=new Float32Array(KH*3); s.nh=0; s.hsum=[0,0,0];
+    const m3=s.mu[2];
+    if(s.a<=m3){ s.star=s.mu.slice(); s.Imin=0; }
+    else { const f=(1-s.a)/(1-m3); s.star=[s.mu[0]*f,s.mu[1]*f,s.a]; s.Imin=klBer(s.a,m3); } };
+  s.reset();
+  s.step=function(){
+    if(s.dirty){ s.dirty=false; s.img=simplexImage(KL,{darkLow:false,cap:1.2,step:0.1}); }
+    const n=s.n, runs=Math.max(40,Math.floor(100000/n)), m1=s.mu[0], m12=s.mu[0]+s.mu[1];
+    s.nc=0;
+    for(let r=0;r<runs;r++){
+      let c1=0,c2=0;
+      for(let i=0;i<n;i++){ const u=Math.random(); if(u<m1) c1++; else if(u<m12) c2++; }
+      const p1=c1/n, p2=c2/n, p3=1-p1-p2;
+      if(s.nc<KC){ const b=s.nc*3; s.cloud[b]=p1; s.cloud[b+1]=p2; s.cloud[b+2]=p3; s.nc++; }
+      if(p3>=s.a-1e-9){ const b=(s.hit%KH)*3; s.hits[b]=p1; s.hits[b+1]=p2; s.hits[b+2]=p3;
+        s.hit++; if(s.nh<KH) s.nh++; s.hsum[0]+=p1; s.hsum[1]+=p2; s.hsum[2]+=p3; }
+    }
+    s.tot+=runs;
+  };
+  s.draw=function(){
+    if(!s.img) return;
+    let ctx=fit(cL), w=cL.clientWidth, h=cL.clientHeight; ctx.clearRect(0,0,w,h);
+    const g=simplexGeom(w,h,16,22,22); s.geo=g;
+    drawTriangle(ctx,g,s.img,['symbol 1','symbol 2','symbol 3']);
+    const A1=g.xy([1-s.a,0,s.a]), A2=g.xy([0,1-s.a,s.a]), C=g.xy([0,0,1]);
+    ctx.beginPath(); ctx.moveTo(A1[0],A1[1]); ctx.lineTo(A2[0],A2[1]); ctx.lineTo(C[0],C[1]); ctx.closePath();
+    ctx.fillStyle='rgba(31,138,99,0.16)'; ctx.fill();
+    ctx.strokeStyle=GREEN; ctx.lineWidth=1.2; ctx.beginPath(); ctx.moveTo(A1[0],A1[1]); ctx.lineTo(A2[0],A2[1]); ctx.stroke();
+    lab(ctx,'A',A2[0]+6,A2[1]-4,GREEN);
+    ctx.fillStyle='rgba(60,60,60,0.42)';
+    for(let i=0;i<s.nc;i++){ const q=g.xy([s.cloud[i*3],s.cloud[i*3+1],s.cloud[i*3+2]]); ctx.fillRect(q[0]-1.1,q[1]-1.1,2.2,2.2); }
+    ctx.fillStyle='rgba(31,138,99,0.75)';
+    for(let i=0;i<s.nh;i++){ const q=g.xy([s.hits[i*3],s.hits[i*3+1],s.hits[i*3+2]]); ctx.fillRect(q[0]-1.5,q[1]-1.5,3,3); }
+    let q=g.xy(s.star); ctx.strokeStyle=BLUE; ctx.lineWidth=2.2; ctx.beginPath(); ctx.arc(q[0],q[1],7,0,6.29); ctx.stroke();
+    q=g.xy(s.mu); ctx.fillStyle=INK; ctx.beginPath(); ctx.arc(q[0],q[1],4.5,0,6.29); ctx.fill();
+    lab(ctx,'μ',q[0]+8,q[1]+4,INK);
+    // right
+    ctx=fit(cR); w=cR.clientWidth; h=cR.clientHeight; ctx.clearRect(0,0,w,h);
+    const pl=20, top=22, bot=Math.round(h*0.40), bw=(w-2*pl)/3, hm=s.hit>0?[s.hsum[0]/s.hit,s.hsum[1]/s.hit,s.hsum[2]/s.hit]:null;
+    ctx.strokeStyle=LINE; ctx.beginPath(); ctx.moveTo(pl,bot); ctx.lineTo(w-pl,bot); ctx.stroke();
+    lab(ctx,'average of the green histograms (bars), closest point of A (blue), μ (grey)',pl,12,INK);
+    for(let i=0;i<3;i++){
+      const x0=pl+i*bw+bw*0.2, x1=pl+(i+1)*bw-bw*0.2, Y=function(v){ return bot-v*(bot-top); };
+      if(hm){ ctx.fillStyle='rgba(31,138,99,0.55)'; ctx.fillRect(x0,Y(hm[i]),x1-x0,bot-Y(hm[i])); }
+      ctx.strokeStyle=GRAY; ctx.lineWidth=1.4; ctx.setLineDash([4,3]); ctx.beginPath(); ctx.moveTo(x0-4,Y(s.mu[i])); ctx.lineTo(x1+4,Y(s.mu[i])); ctx.stroke(); ctx.setLineDash([]);
+      ctx.strokeStyle=BLUE; ctx.lineWidth=2.2; ctx.beginPath(); ctx.moveTo(x0-4,Y(s.star[i])); ctx.lineTo(x1+4,Y(s.star[i])); ctx.stroke();
+      lab(ctx,'symbol '+(i+1),(x0+x1)/2,bot+14,INK,'center');
+    }
+    let y=bot+42; const ln=function(tx,col){ lab(ctx,tx,pl,y,col||INK); y+=19; };
+    ln('histograms drawn:  '+fmt(s.tot));
+    ln('landed in A:  '+fmt(s.hit));
+    y+=5;
+    if(s.hit>0) ln('measured  −(1/n) log(fraction in A)  =  '+(-Math.log(s.hit/s.tot)/s.n).toFixed(4),GREEN);
+    else ln('measured exponent: nothing has landed in A yet',GREEN);
+    ln('Sanov:  min over A of KL(ν || μ)  =  '+s.Imin.toFixed(4),BLUE);
+    ln('closest point  ν* = ('+s.star.map(function(v){ return v.toFixed(2); }).join(', ')+')');
+  };
+  dragOn(cL,function(pt){ if(!s.geo) return; s.mu=toSimplex(s.geo.p(pt[0],pt[1]),0.04); s.dirty=true; s.reset(); });
+  const nS=Q(fig,'n'), nV=Q(fig,'nval'), aS=Q(fig,'a'), aV=Q(fig,'aval');
+  nS.addEventListener('input',function(){ s.n=parseInt(nS.value,10); nV.textContent=String(s.n); s.reset(); });
+  aS.addEventListener('input',function(){ s.a=parseFloat(aS.value); aV.textContent=s.a.toFixed(2); s.reset(); });
+  nS.addEventListener('change',function(){ say(fig, s.n<25
+    ? 'Few samples. The histograms sit on a coarse lattice of multiples of 1/n, the cloud covers much of the triangle, and landing in A is not rare.'
+    : 'More samples. The cloud has shrunk to a blob around μ whose size goes like 1/√n. Histograms in A are now exponentially rare, and the ones that do land there hug the blue ring.'); });
+  Q(fig,'reset').addEventListener('click',function(){ s.reset(); });
+}
+
+// =================== FIGURE 7: leaving a well ===================
+function Fig7(){
+  const s=this, fig=document.getElementById('fig7'); s.fig=fig; s.active=false;
+  const cL=Q(fig,'left'), cR=Q(fig,'right');
+  const M=2000, DT=0.005, REC=2, DEL=DT*REC, SUB=36, L=600, XLO=-0.8, XA=-0.5, XR=0.9, K1=150, K2=260, KT=K1+K2+1;
+  const dV=function(x){ return 4*x*(x*x-1); }, V=function(x){ const u=x*x-1; return u*u; };
+  s.T=0.15; s.bins={};
+  const X=new Float64Array(M), buf=new Float32Array(M*L), len=new Int32Array(M), org=new Int8Array(M);
+  for(let k=0;k<M;k++){ X[k]=-1+0.12*rnd(); org[k]=1; }
+  function resetPaths(){ s.accU=new Float64Array(KT); s.accD=new Float64Array(KT); s.nU=0; s.nD=0; s.recent=[]; s.burn=2; }
+  resetPaths();
+  const inst=new Float64Array(KT);
+  (function(){
+    function rk(x,hs){ const k1=dV(x), k2=dV(x+hs*k1/2), k3=dV(x+hs*k2/2), k4=dV(x+hs*k3); return x+hs*(k1+2*k2+2*k3+k4)/6; }
+    let x=XA; inst[K1]=XA;
+    for(let o=1;o<=K2;o++){ for(let j=0;j<10;j++) x=rk(x,DEL/10); inst[K1+o]=Math.min(x,0); }
+    x=XA;
+    for(let o=1;o<=K1;o++){ for(let j=0;j<10;j++) x=rk(x,-DEL/10); inst[K1-o]=Math.max(x,XLO); }
+  })();
+  function process(k,up){
+    const n=len[k], base=k*L; if(n<3) return;
+    // align at the midpoint between the first and the last crossing of XA; this rule is symmetric under time reversal
+    let jl=-1, jf=-1;
+    for(let i=n-1;i>=0;i--){ if((up?buf[base+i]:buf[base+n-1-i])<XA){ jl=i; break; } }
+    for(let i=0;i<n;i++){ if((up?buf[base+i]:buf[base+n-1-i])>=XA){ jf=i; break; } }
+    if(jl<0||jf<0) return;
+    const j=Math.round((jl+jf)/2);
+    const acc=up?s.accU:s.accD, path=up?new Float32Array(KT):null;
+    for(let o=-K1;o<=K2;o++){ const i=j+o;
+      const v= i<0 ? XLO : (i>=n ? 0 : (up?buf[base+i]:buf[base+n-1-i]));
+      acc[o+K1]+=v; if(path) path[o+K1]=v; }
+    if(up){ s.nU++; s.recent.push(path); if(s.recent.length>26) s.recent.shift(); } else s.nD++;
+  }
+  s.step=function(){
+    const T=s.T, sg=Math.sqrt(2*T*DT), key=Math.round(T*100);
+    let b=s.bins[key]; if(!b) b=s.bins[key]={ev:0,time:0};
+    for(let it=0;it<SUB;it++){
+      for(let k=0;k<M;k++) X[k]+=-dV(X[k])*DT+sg*rnd();
+      if(it%REC===REC-1){
+        for(let k=0;k<M;k++){ const x=X[k];
+          if(x<=XLO){ if(org[k]===2&&len[k]>0) process(k,false); org[k]=1; len[k]=0; }
+          else if(x>=0){ if(org[k]===1&&len[k]>0) process(k,true); org[k]=2; len[k]=0;
+            if(x>=XR){ if(s.burn<=0) b.ev++; X[k]=-1; org[k]=1; } }
+          else if(org[k]!==0){ if(len[k]<L) buf[k*L+len[k]++]=x; else { org[k]=0; len[k]=0; } }
+        }
+      }
+    }
+    if(s.burn>0) s.burn-=SUB*DT; else b.time+=SUB*DT*M;
+  };
+  s.draw=function(){
+    let ctx=fit(cL), w=cL.clientWidth, h=cL.clientHeight; ctx.clearRect(0,0,w,h);
+    const pl=58, pr=10, top=16, bot=h-28;
+    const PX=function(o){ return pl+(o+K1)/(KT-1)*(w-pl-pr); }, PY=function(x){ return top+(0.18-x)/(0.18+1.12)*(bot-top); };
+    ctx.beginPath();
+    for(let i=0;i<=120;i++){ const x=-1.12+1.3*i/120, xx=6+Math.min(V(x),1.25)*38; i?ctx.lineTo(xx,PY(x)):ctx.moveTo(xx,PY(x)); }
+    ctx.strokeStyle='rgba(17,17,17,0.4)'; ctx.lineWidth=1.2; ctx.stroke(); lab(ctx,'V(x)',8,top+2);
+    ctx.strokeStyle=LINE; ctx.lineWidth=1;
+    [[0,'saddle'],[XLO,'edge of well bottom'],[-1,'x = −1']].forEach(function(z){
+      ctx.beginPath(); ctx.moveTo(pl,PY(z[0])); ctx.lineTo(w-pr,PY(z[0])); ctx.stroke(); lab(ctx,z[1],w-pr-2,PY(z[0])-3,GRAY,'right'); });
+    ctx.strokeStyle='rgba(90,90,90,0.22)'; ctx.lineWidth=0.9;
+    for(let r=0;r<s.recent.length;r++){ const pth=s.recent[r]; ctx.beginPath();
+      for(let o=0;o<KT;o+=2){ const xx=PX(o-K1), yy=PY(pth[o]); o?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy); } ctx.stroke(); }
+    function curve(arr,div,col,wd,dash){ if(dash) ctx.setLineDash(dash); ctx.beginPath();
+      for(let o=0;o<KT;o++){ const xx=PX(o-K1), yy=PY(arr[o]/div); o?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy); }
+      ctx.strokeStyle=col; ctx.lineWidth=wd; ctx.stroke(); ctx.setLineDash([]); }
+    curve(inst,1,INK,1.5);
+    if(s.nU>2) curve(s.accU,s.nU,GREEN,2.2);
+    if(s.nD>2) curve(s.accD,s.nD,BLUE,1.8,[6,4]);
+    lab(ctx,'time, measured from the crossing of x = −0.5 →',w-pr,h-8,GRAY,'right');
+    lab(ctx,'climbs: '+fmt(s.nU)+'   descents: '+fmt(s.nD)+'   T = '+s.T.toFixed(2),pl+4,top+2,INK);
+    // right: Arrhenius plot
+    ctx=fit(cR); w=cR.clientWidth; h=cR.clientHeight; ctx.clearRect(0,0,w,h);
+    const ql=40, qr=12, t2=16, b2=h-28, A0=1.6, A1=8.8, B0=-4.6, B1=0.1;
+    const AX=function(v){ return ql+(v-A0)/(A1-A0)*(w-ql-qr); }, AY=function(v){ return b2-(v-B0)/(B1-B0)*(b2-t2); };
+    ctx.strokeStyle=LINE; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(ql,t2); ctx.lineTo(ql,b2); ctx.lineTo(w-qr,b2); ctx.stroke();
+    for(let v=-4;v<=0;v++){ lab(ctx,'10^'+v,ql-5,AY(v)+3,GRAY,'right'); }
+    for(let v=2;v<=8;v+=2){ lab(ctx,String(v),AX(v),b2+13,GRAY,'center'); }
+    lab(ctx,'1/T →',w-qr,h-6,GRAY,'right'); lab(ctx,'escapes per particle per unit time',ql+6,t2+2,INK);
+    ctx.save(); ctx.beginPath(); ctx.rect(ql,t2,w-ql-qr,b2-t2); ctx.clip();
+    const ek=function(v){ return Math.log10(Math.sqrt(32)/(2*Math.PI))-v/Math.LN10; };
+    ctx.beginPath(); ctx.moveTo(AX(A0),AY(ek(A0))); ctx.lineTo(AX(A1),AY(ek(A1))); ctx.strokeStyle=BLUE; ctx.lineWidth=1.6; ctx.stroke();
+    ctx.setLineDash([5,4]); ctx.strokeStyle=GRAY; ctx.lineWidth=1.1;
+    [0.75,1.5].forEach(function(sh){ ctx.beginPath(); ctx.moveTo(AX(A0),AY(ek(A0)+sh)); ctx.lineTo(AX(A1),AY(ek(A1)+sh)); ctx.stroke(); });
+    ctx.setLineDash([]);
+    const cur=Math.round(s.T*100);
+    Object.keys(s.bins).forEach(function(key){ const bb=s.bins[key]; if(bb.ev<6||bb.time<=0) return;
+      const xx=AX(100/parseInt(key,10)), yy=AY(Math.log10(bb.ev/bb.time));
+      ctx.fillStyle=GREEN; ctx.beginPath(); ctx.arc(xx,yy,3.4,0,6.29); ctx.fill();
+      if(parseInt(key,10)===cur){ ctx.strokeStyle=RED; ctx.lineWidth=1.4; ctx.beginPath(); ctx.arc(xx,yy,6.5,0,6.29); ctx.stroke(); } });
+    ctx.restore();
+    lab(ctx,'blue: Eyring–Kramers.  dashed: same slope −ΔV, other heights',ql+6,b2-8,GRAY);
+  };
+  const tm=Q(fig,'temp'), tv=Q(fig,'tval');
+  tm.addEventListener('input',function(){ s.T=parseFloat(tm.value); tv.textContent=s.T.toFixed(2); resetPaths(); });
+  tm.addEventListener('change',function(){ say(fig, s.T<0.2
+    ? 'Cold. Escapes are rare, so give it a while. The climbs that do happen follow the black curve closely, and the green average needs only a few of them to settle.'
+    : (s.T>0.33 ? 'Warm. The barrier is only a few units of T high, crossings are routine, and the climbs wander. Green and blue still agree, because detailed balance does not care about temperature. Neither follows the black curve any more.'
+                : 'In between. Count the climbs as they come in, and watch the new point on the right settle onto the blue line.')); });
+  Q(fig,'clear').addEventListener('click',function(){ s.bins={}; s.burn=0.5; });
+}
+
+// =================== FIGURE 8: two exploration bonuses ===================
+function Fig8(){
+  const s=this, fig=document.getElementById('fig8'); s.fig=fig; s.active=false;
+  const cL=Q(fig,'left'), cR=Q(fig,'right');
+  const R=80, K=3, HOR=10000;
+  s.m=0.9;
+  function klIdx(p,n,lt){ const d=lt/n; let lo=p, hi=1;
+    for(let i=0;i<13;i++){ const q=(lo+hi)/2; if(klBer(p,q)>d) hi=q; else lo=q; } return lo; }
+  function setup(){
+    s.mu=[s.m,Math.max(0.02,s.m-0.1),Math.max(0.01,s.m-0.2)];
+    s.N=[new Float64Array(R*K),new Float64Array(R*K)]; s.S=[new Float64Array(R*K),new Float64Array(R*K)];
+    s.reg=[0,0]; s.t=0; s.hist=[]; s.next=3; s.done=false; s.cLR=0; s.cH=0;
+    for(let a=1;a<K;a++){ const d=s.mu[0]-s.mu[a]; s.cLR+=d/klBer(s.mu[a],s.mu[0]); s.cH+=d/(2*d*d); }
+  }
+  setup();
+  s.step=function(){
+    if(s.done) return;
+    const steps=Math.min(160,Math.max(1,Math.ceil(s.t*0.05)));
+    for(let st=0;st<steps&&s.t<HOR;st++){
+      s.t++; const t=s.t, lt=Math.log(t);
+      for(let alg=0;alg<2;alg++){ const N=s.N[alg], S=s.S[alg]; let rg=0;
+        for(let r=0;r<R;r++){ const b=r*K; let a=0;
+          if(t<=K) a=t-1;
+          else { let best=-1; for(let j=0;j<K;j++){ const n=N[b+j], p=S[b+j]/n;
+            const idx= alg===0 ? klIdx(p,n,lt) : p+Math.sqrt(lt/(2*n)); if(idx>best){ best=idx; a=j; } } }
+          N[b+a]++; if(Math.random()<s.mu[a]) S[b+a]++; rg+=s.mu[0]-s.mu[a]; }
+        s.reg[alg]+=rg/R; }
+      if(t>=s.next){ s.hist.push([Math.log10(t),s.reg[0],s.reg[1]]); s.next=Math.ceil(t*1.03); }
+    }
+    if(s.t>=HOR) s.done=true;
+  };
+  s.draw=function(){
+    let ctx=fit(cL), w=cL.clientWidth, h=cL.clientHeight; ctx.clearRect(0,0,w,h);
+    const pl=16, pr=16, lt=Math.log(Math.max(s.t,2));
+    const PX=function(v){ return pl+v*(w-pl-pr); };
+    lab(ctx,'one run of the KL algorithm at t = '+fmt(s.t),pl,14,INK);
+    for(let j=0;j<K;j++){
+      const y=58+j*((h-90)/K), n=s.N[0][j], p=n>0?s.S[0][j]/n:0.5;
+      ctx.strokeStyle=LINE; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(PX(0),y); ctx.lineTo(PX(1),y); ctx.stroke();
+      lab(ctx,'arm '+(j+1)+'   true mean '+s.mu[j].toFixed(2)+'   pulled '+fmt(n)+' times',pl,y-26,INK);
+      ctx.strokeStyle=INK; ctx.lineWidth=1.4; ctx.beginPath(); ctx.moveTo(PX(s.mu[j]),y-9); ctx.lineTo(PX(s.mu[j]),y+9); ctx.stroke();
+      if(n>0){
+        const uk=klIdx(p,n,lt), uh=Math.min(1,p+Math.sqrt(lt/(2*n)));
+        ctx.strokeStyle=RED; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(PX(p),y+5); ctx.lineTo(PX(uh),y+5); ctx.stroke();
+        ctx.strokeStyle=GREEN; ctx.beginPath(); ctx.moveTo(PX(p),y-5); ctx.lineTo(PX(uk),y-5); ctx.stroke();
+        ctx.fillStyle=INK; ctx.beginPath(); ctx.arc(PX(p),y,3.2,0,6.29); ctx.fill();
+      }
+    }
+    lab(ctx,'0',PX(0),h-10,GRAY,'center'); lab(ctx,'1',PX(1),h-10,GRAY,'center');
+    lab(ctx,'dot: empirical mean.  tick: true mean.  bars: reach of each upper bound',PX(0.5),h-10,GRAY,'center');
+    // right
+    ctx=fit(cR); w=cR.clientWidth; h=cR.clientHeight; ctx.clearRect(0,0,w,h);
+    const ql=36, qr=12, t2=18, b2=h-28, L0=0.5, L1=4;
+    let ym=Math.max(8,1.15*s.cLR*Math.log(HOR));
+    for(let i=0;i<s.hist.length;i++) ym=Math.max(ym,1.1*s.hist[i][1],1.1*s.hist[i][2]);
+    const RX=function(v){ return ql+(v-L0)/(L1-L0)*(w-ql-qr); }, RY=function(v){ return b2-(v/ym)*(b2-t2); };
+    ctx.strokeStyle=LINE; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(ql,t2); ctx.lineTo(ql,b2); ctx.lineTo(w-qr,b2); ctx.stroke();
+    for(let v=1;v<=4;v++) lab(ctx,'10^'+v,RX(v),b2+13,GRAY,'center');
+    lab(ctx,'0',ql-5,b2+3,GRAY,'right'); lab(ctx,ym.toFixed(0),ql-5,t2+6,GRAY,'right');
+    lab(ctx,'average regret',ql+6,t2+2,INK); lab(ctx,'t →',w-qr,h-6,GRAY,'right');
+    ctx.save(); ctx.beginPath(); ctx.rect(ql,t2,w-ql-qr,b2-t2); ctx.clip();
+    ctx.setLineDash([5,4]); ctx.lineWidth=1.1;
+    [[s.cLR,GREEN],[s.cH,RED]].forEach(function(z){ ctx.strokeStyle=z[1]; ctx.beginPath();
+      ctx.moveTo(RX(L0),RY(z[0]*L0*Math.LN10)); ctx.lineTo(RX(L1),RY(z[0]*L1*Math.LN10)); ctx.stroke(); });
+    ctx.setLineDash([]);
+    [[1,GREEN],[2,RED]].forEach(function(z){ ctx.beginPath();
+      for(let i=0;i<s.hist.length;i++){ const xx=RX(s.hist[i][0]), yy=RY(s.hist[i][z[0]]); i?ctx.lineTo(xx,yy):ctx.moveTo(xx,yy); }
+      ctx.strokeStyle=z[1]; ctx.lineWidth=2; ctx.stroke(); });
+    ctx.restore();
+    lab(ctx,'dashed: '+s.cLR.toFixed(2)+' log t (Lai–Robbins) and '+s.cH.toFixed(2)+' log t',ql+6,t2+17,GRAY);
+  };
+  const mS=Q(fig,'m'), mV=Q(fig,'mval');
+  mS.addEventListener('input',function(){ s.m=parseFloat(mS.value); mV.textContent=s.m.toFixed(2); setup(); });
+  mS.addEventListener('change',function(){ say(fig, s.m>0.8
+    ? 'Means near 1. A Bernoulli average near 1 has very little variance, the KL bound knows this and the Hoeffding bound does not. Compare the red and green bars on the left: same data, very different reach.'
+    : (s.m<0.62 ? 'Means near one half. Here 2(p̂ − q)² is close to the KL divergence, the two bars on the left are nearly the same length, and the two algorithms behave alike.'
+                : 'In between. The gap between the two slopes is there and modest.')); });
+  Q(fig,'restart').addEventListener('click',function(){ setup(); });
+}
+
+// ---------- run only what is on screen ----------
+const sims=[new Fig1(),new Fig2(),new Fig3(),new Fig5(),new Fig6(),new Fig7(),new Fig8()];
+const io=new IntersectionObserver(function(es){
+  for(const e of es){ const sm=sims.find(function(z){ return z.fig===e.target; }); if(sm) sm.active=e.isIntersecting; }
+},{threshold:0.02});
+for(const sm of sims) io.observe(sm.fig);
+(function loop(){
+  if(!document.hidden) for(const sm of sims) if(sm.active){ sm.step(); sm.draw(); }
+  requestAnimationFrame(loop);
+})();
+})();
+</script>
+</body>
+</html>
