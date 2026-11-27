@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>On the Geometry of Information</title>
+<script>
+window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},svg:{fontCache:'global'},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};
+</script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+<style>
+:root{
+  --ink:#111;--gray:#666;--line:#ddd;--blue:#2b5fad;--green:#1f8a63;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font-family:var(--serif);
+  font-size:19px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.measure{max-width:42rem;margin:0 auto;padding:0 1.25rem}
+p{margin:0 0 1.05em}
+a{color:var(--blue)}
+::selection{background:#dbe7f6}
+
+header{padding:4.5rem 1rem 1.2rem;text-align:center}
+.eyebrow{letter-spacing:.4em;font-size:.85rem;color:var(--gray);text-transform:uppercase;margin-bottom:.5rem}
+h1.title{font-weight:400;font-style:italic;margin:0;font-size:clamp(2.1rem,6vw,3.6rem);line-height:1.1}
+.hero-eq{margin:2rem 0 .4rem;font-size:clamp(1rem,2.5vw,1.4rem)}
+
+h2{font-weight:400;font-size:1.5rem;margin:3.4rem 0 .3rem;font-style:italic}
+h2 .no{font-style:normal;color:var(--gray);font-size:.8rem;letter-spacing:.22em;
+  text-transform:uppercase;display:block;margin-bottom:.45rem;font-family:var(--serif)}
+h3{font-weight:400;font-style:italic;font-size:1.13rem;margin:2.2rem 0 .6rem;color:#333}
+hr{border:0;border-top:1px solid var(--line);max-width:42rem;margin:3rem auto}
+mjx-container[jax="SVG"][display="true"]{margin:1.25em 0!important;overflow-x:auto;overflow-y:hidden;padding:2px 0}
+
+/* ---- gwern-style expandable notes ---- */
+.pop{
+  font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer;
+  border-bottom:1px solid #9db8dd;text-decoration:none;line-height:inherit;
+}
+.pop:hover{border-bottom-color:var(--blue);background:#f0f5fb}
+.pop::after{content:"\2009\25B8";font-size:.68em;color:var(--blue);vertical-align:.12em}
+.pop[aria-expanded=true]::after{content:"\2009\25BE"}
+.pop[aria-expanded=true]{background:#f0f5fb;border-bottom-color:var(--blue)}
+.popbody{
+  display:none;margin:1.1em 0 1.4em;padding:.85em 1.1em .3em;
+  border-left:2px solid var(--blue);background:#f7f9fc;
+  font-size:.93rem;line-height:1.58;
+}
+.popbody.open{display:block}
+.popbody .ttl{font-style:italic;color:var(--blue);font-size:.8rem;letter-spacing:.1em;
+  text-transform:uppercase;display:block;margin-bottom:.5em}
+.popbody p{margin:0 0 .8em}
+.popbody mjx-container[jax="SVG"][display="true"]{margin:.85em 0!important}
+
+/* ---- figures ---- */
+figure.sim{max-width:54rem;margin:2.2rem auto;padding:0 1.25rem}
+.sim-frame{border:1px solid var(--line);border-radius:3px;background:#fff;padding:10px}
+.sim-frame canvas{display:block;width:100%;touch-action:none}
+.sim-frame .split{display:flex;gap:10px}
+.sim-frame .split>div{flex:1;min-width:0}
+@media (max-width:760px){.sim-frame .split{flex-direction:column}}
+figcaption{font-size:.85rem;color:var(--gray);margin-top:.6rem;line-height:1.5}
+figcaption .figno{font-style:italic}
+.controls{display:flex;flex-wrap:wrap;gap:.8rem 1.5rem;align-items:center;margin-top:.8rem;font-size:.9rem}
+.controls label{color:var(--gray);font-size:.82rem;letter-spacing:.05em;margin-right:.4em}
+button.ui{font-family:var(--serif);font-size:.88rem;background:#fff;border:1px solid var(--ink);
+  color:var(--ink);padding:.3rem .9rem;cursor:pointer;border-radius:2px}
+button.ui:hover{background:var(--ink);color:#fff}
+button.ui.toggled{background:var(--blue);border-color:var(--blue);color:#fff}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+input[type=range]{accent-color:var(--blue);width:150px;vertical-align:middle}
+.readout{font-style:italic;color:var(--gray);min-width:3.2em;display:inline-block}
+.fig-note{font-style:italic;color:#444;font-size:.92rem;margin-top:.7rem;
+  border-left:2px solid var(--green);padding-left:.8rem;min-height:2.4em;transition:opacity .25s}
+.fig-note.dim{opacity:0}
+.legend{display:inline-flex;gap:1em;flex-wrap:wrap}
+.legend span{white-space:nowrap}
+.sw{display:inline-block;width:1.4em;height:0;border-top:2px solid;vertical-align:middle;margin-right:.3em}
+footer{height:4rem}
+
+/* ---- comparison table ---- */
+table.dict{width:100%;border-collapse:collapse;font-size:.86rem;margin:1.6rem 0 1.9rem;line-height:1.45}
+table.dict th{font-weight:400;font-style:italic;text-align:left;color:var(--gray);
+  border-bottom:1px solid var(--ink);padding:.35rem .55rem}
+table.dict td{border-bottom:1px solid var(--line);padding:.42rem .55rem;vertical-align:top}
+table.dict td:first-child{color:var(--gray);width:28%}
+
+/* ---- reading list ---- */
+.refs{font-size:.88rem;line-height:1.55}
+.refs li{margin-bottom:.45em}
+
+/* ---- back link, post meta, part indicator ---- */
+.backlink{
+  position:fixed;top:1rem;left:1.1rem;z-index:30;
+  font-family:var(--serif);font-size:1.6rem;line-height:1;
+  color:#777;text-decoration:none;padding:.1em .4em .25em;
+}
+.backlink:hover{color:var(--ink)}
+
+.postmeta{
+  margin-top:1.9rem;text-align:center;
+  font-size:.78rem;letter-spacing:.055em;color:var(--gray);
+}
+.postmeta span{white-space:nowrap}
+.postmeta .dot{margin:0 .6em;opacity:.45}
+
+#partnav{
+  position:fixed;left:1.45rem;top:50%;transform:translateY(-50%);z-index:25;
+  display:flex;flex-direction:column;gap:.5rem;
+}
+#partnav a{
+  font-family:var(--serif);font-size:.8rem;letter-spacing:.09em;
+  color:#777;text-decoration:none;line-height:1;
+  min-width:1.7em;text-align:center;padding:.2em 0;
+  transition:color .18s ease;
+}
+#partnav a:hover{color:var(--gray)}
+#partnav a.on{color:var(--ink)}
+@media (max-width:900px){#partnav{display:none}}
+@media (prefers-reduced-motion:reduce){#partnav a{transition:none}}
+</style>
+
+</head>
+<body>
+
+<a class="backlink" href="index.html" aria-label="Back to index" title="Back">&lsaquo;</a>
+
+<nav id="partnav" aria-label="Sections of this essay">
+  <a href="#s-intro" data-sec="s-intro" title="Introduction">&ndash;</a>
+  <a href="#s-1"     data-sec="s-1"     title="Part I: Distinguishability">I</a>
+  <a href="#s-2"     data-sec="s-2"     title="Part II: Two kinds of straight line">II</a>
+  <a href="#s-3"     data-sec="s-3"     title="Part III: Pythagoras for divergences">III</a>
+  <a href="#s-4"     data-sec="s-4"     title="Part IV: Walking downhill">IV</a>
+  <a href="#s-5"     data-sec="s-5"     title="Part V: Fisher meets Wasserstein">V</a>
+  <a href="#s-coda"  data-sec="s-coda"  title="Coda">C</a>
+</nav>
+
+<header>
+  <h1 class="title">On the Geometry of Information</h1>
+  <div class="hero-eq">$$\mathrm{KL}\big(p_\theta\,\big\|\,p_{\theta'}\big) \;=\; \psi(\theta') \;+\; \varphi(\eta) \;-\; \theta'\cdot\eta,$$</div>
+
+  <!-- ===================== POST META: edit here ===================== -->
+  <div class="postmeta">
+    <span class="author">Marv</span><span class="dot">&middot;</span><span class="published">published 27.11.26</span><span class="dot">&middot;</span><span class="edited">last edited 27.11.26</span>
+  </div>
+  <!-- =============================================================== -->
+</header>
+
+<section id="s-intro">
+  <div class="measure">
+    <p>Take a coin and two hypotheses about it: heads with probability 0.50, or heads with probability 0.51. Then a second pair, 0.98 against 0.99. Both pairs sit one percentage point apart on the parameter axis, and yet no statistician would call them equally far apart. To separate 0.50 from 0.51 by two standard errors you need about ten thousand tosses. For 0.98 against 0.99 you need fewer than six hundred, because near 0.99 a tail is rare and each one you see carries a lot of evidence. The parameter axis is a poor ruler for the thing we usually care about, which is how hard two models are to tell apart from data.</p>
+    <p>Information geometry starts by taking that complaint seriously. Give a family of probability distributions the ruler that data provides, and ask what geometry comes out. Rao wrote the ruler down in 1945. Most of what makes the subject useful came later, much of it from Shun-ichi Amari in the 1980s, and it is stranger than a ruler. A statistical model carries two distinct notions of straight line, dual to each other, and a version of Pythagoras' theorem holds in which the squared lengths are Kullback&ndash;Leibler divergences. Maximum likelihood, maximum entropy, the EM algorithm and the natural gradient all turn out to be projections or descents in this geometry.</p>
+    <p>I'll keep the differential geometry as light as it can go. The words metric and geodesic appear and very little that is heavier; where Amari writes down an affine connection, I draw two families of curves and say which ones count as straight. The last part sets this geometry next to optimal transport, the other big way of putting geometry on probability distributions. I wrote about transport <a href="ot.html">in an earlier essay</a>, and about the Fokker&ndash;Planck equation <a href="fpe.html">before that</a>. Neither is needed here, and whatever gets used is recapped. The two subjects tend to be introduced as rivals, and the comparisons between them are usually loose. I want to pin down where they disagree (on what a small change of a distribution is), where they agree exactly, and which of the apparent agreements are shared names and nothing more.</p>
+    <p>As in the other essays, underlined terms open into definitions and derivations, and most figures respond to dragging.</p>
+  </div>
+</section>
+
+<hr>
+
+<section id="s-1">
+  <div class="measure">
+    <h2><span class="no">Part I</span>Distinguishability</h2>
+    <p>Write a statistical model as a family of distributions \(p_\theta(x)\) indexed by a parameter vector \(\theta\). The question from the introduction becomes local: if the truth is \(p_\theta\) and I nudge the parameter to \(\theta+\mathrm d\theta\), how much does the data notice? The relevant quantity is the
+      <button class="pop" data-target="pp-score" aria-expanded="false">score</button>, \(\partial_i \log p_\theta(x)\), the rate at which the log-likelihood of an observation \(x\) changes as you move the \(i\)-th parameter. Its average under the model is zero. Its covariance is the <em>Fisher information matrix</em>,</p>
+    <div class="popbody" id="pp-score"><span class="ttl">the score, and why it averages to zero</span>
+      <p>\(\mathbb E_\theta[\partial_i\log p_\theta] = \int p_\theta\,\frac{\partial_i p_\theta}{p_\theta} = \partial_i\!\int p_\theta = \partial_i 1 = 0.\) At the true parameter the log-likelihood is flat on average, which is the reason maximum likelihood works at all: the expected log-likelihood \(\mathbb E_\theta[\log p_{\theta'}(x)]\) is maximized at \(\theta'=\theta\), and the score is its gradient there.</p>
+      <p>What the Fisher matrix measures is the spread of the score around zero. A model whose score swings a lot from sample to sample is one where single observations move the likelihood a lot, so the parameter is easy to pin down. Differentiating the zero-mean identity once more gives the other common form, \(g_{ij} = -\mathbb E_\theta[\partial_i\partial_j\log p_\theta]\): the expected curvature of the log-likelihood, sharp peaks meaning lots of information.</p>
+    </div>
+    <p>$$g_{ij}(\theta) \;=\; \mathbb E_\theta\big[\,\partial_i \log p_\theta(x)\;\partial_j \log p_\theta(x)\,\big],$$</p>
+    <p>and Rao's proposal was to use it as a Riemannian metric, so that the squared length of a small step is \(\mathrm ds^2 = \sum_{ij} g_{ij}(\theta)\,\mathrm d\theta_i\,\mathrm d\theta_j\). Three facts back the choice up, and each stands on its own.</p>
+    <p>The first is that the Fisher matrix is the curvature of the KL divergence at the diagonal. For a small step,
+      <button class="pop" data-target="pp-klexp" aria-expanded="false">expanding to second order</button> gives</p>
+    <div class="popbody" id="pp-klexp"><span class="ttl">KL, to second order</span>
+      <p>Write \(s\) for the score and \(H\) for the Hessian of \(\log p_\theta\). Then \(\log p_{\theta+\mathrm d\theta} = \log p_\theta + \mathrm d\theta\cdot s + \tfrac12\mathrm d\theta^{\mathsf T}H\,\mathrm d\theta + \dots\), so</p>
+      <p>$$\mathrm{KL}(p_\theta\,\|\,p_{\theta+\mathrm d\theta}) \;=\; -\,\mathbb E_\theta\big[\mathrm d\theta\cdot s\big] \;-\; \tfrac12\,\mathrm d\theta^{\mathsf T}\,\mathbb E_\theta[H]\,\mathrm d\theta \;+\; O(|\mathrm d\theta|^3).$$</p>
+      <p>The first term vanishes because the score has mean zero, and \(-\mathbb E[H]=g\) by the previous box. The expansion is the same with the arguments swapped, so the metric cannot see that KL is asymmetric. The asymmetry first appears at third order, and Part II is largely about where it comes from.</p>
+    </div>
+    <p>$$\mathrm{KL}\big(p_\theta\,\big\|\,p_{\theta+\mathrm d\theta}\big) \;=\; \tfrac12 \sum_{ij} g_{ij}(\theta)\,\mathrm d\theta_i\,\mathrm d\theta_j \;+\; O(|\mathrm d\theta|^3).$$</p>
+    <p>KL is the expected log-likelihood ratio, the average evidence per sample that the data came from \(p_\theta\) and not from its neighbour, and the metric is what that becomes when the neighbour is close. The second fact is the
+      <button class="pop" data-target="pp-cr" aria-expanded="false">Cramér&ndash;Rao bound</button>: no unbiased estimator built from \(n\) samples has a covariance smaller than \(g(\theta)^{-1}/n\), and maximum likelihood reaches the bound as \(n\) grows. A Fisher distance \(d\) between two nearby models is therefore worth \(\sqrt n\,d\) standard errors after \(n\) samples. The third fact is
+      <button class="pop" data-target="pp-chentsov" aria-expanded="false">Chentsov's theorem</button>: up to a constant factor, Fisher's is the only metric that stays the same when you relabel outcomes or pass the data through a sufficient statistic. Any other choice would let the distance between two models depend on bookkeeping that the data cannot see.</p>
+    <div class="popbody" id="pp-cr"><span class="ttl">Cramér&ndash;Rao in four lines</span>
+      <p>Take a scalar parameter and an unbiased estimator \(\hat\theta\). Differentiating \(\mathbb E_\theta[\hat\theta]=\theta\) under the integral gives \(\mathrm{Cov}(\hat\theta, s) = 1\). Cauchy&ndash;Schwarz then says \(1 \le \mathrm{Var}(\hat\theta)\,\mathrm{Var}(s) = \mathrm{Var}(\hat\theta)\,g\), so \(\mathrm{Var}(\hat\theta)\ge 1/g\) for one sample, and \(1/(ng)\) for \(n\) independent samples because Fisher information adds over independent observations. The matrix version is the same argument with a vector of scores.</p>
+      <p>Two qualifications. Biased estimators can beat the bound, which is the content of Stein's paradox and the reason shrinkage works, so the bound describes a class of estimators. And reaching it at finite \(n\) is special to exponential families (Part II); in general only the asymptotic statement holds, and only for regular models, a qualifier the coda returns to.</p>
+    </div>
+    <div class="popbody" id="pp-chentsov"><span class="ttl">Chentsov, and two different invariances</span>
+      <p>The setting is finite sample spaces and the maps between them that lose no information: merging outcomes into a coarser description, or more generally the Markov embeddings of a small simplex into a bigger one that can be undone. Chentsov proved in 1972 that a family of Riemannian metrics, one on every simplex, that is invariant under all such maps must be a constant multiple of the Fisher metric. Ay, Jost, Lê and Schwachhöfer extended this to general sample spaces under sufficient statistics, and Bauer, Bruveris and Michor (2016) showed that on smooth densities over a compact manifold, invariance under all diffeomorphisms of the sample space already forces Fisher&ndash;Rao. Keep that last version in mind for Part V, because invariance under rearranging \(x\) is exactly the property optimal transport refuses to have.</p>
+      <p>Don't confuse this with the much weaker invariance that every Riemannian metric has, independence from how you parametrize the model. That one is about \(\theta\). Chentsov's is about \(x\).</p>
+    </div>
+
+    <h3>The coin is a quarter circle</h3>
+    <p>For a coin with bias \(p\), the score of one toss is \(1/p\) on heads and \(-1/(1-p)\) on tails, and its variance is \(g(p) = 1/\big(p(1-p)\big)\). The metric blows up at both ends, which is the formal version of the remark about rare tails. Now substitute \(p=\sin^2\varphi\). Then \(\mathrm dp = 2\sin\varphi\cos\varphi\,\mathrm d\varphi\), and</p>
+    <p>$$\mathrm ds^2 \;=\; \frac{\mathrm dp^2}{p(1-p)} \;=\; 4\,\mathrm d\varphi^2 ,$$</p>
+    <p>so the angle \(\varphi\) is arc length up to a factor of two. The family of all coins, measured by distinguishability, is a quarter circle of radius 2 and total length \(\pi\), traced by the points \((2\sqrt p,\, 2\sqrt{1-p})\). Equal steps along the arc bunch up near \(p=0\) and \(p=1\) on the parameter axis. The two pairs from the introduction sit at Fisher distances 0.020 and 0.083.</p>
+    <p>The circle comes with a bonus that is exact, with no asymptotics anywhere. The
+      <button class="pop" data-target="pp-bc" aria-expanded="false">Bhattacharyya coefficient</button> of two distributions, \(\sum_x\sqrt{p(x)\,q(x)}\), measures how much they overlap, and it controls how well any test can separate them. For the head counts of \(n\) tosses of two coins at Fisher distance \(d\),</p>
+    <div class="popbody" id="pp-bc"><span class="ttl">the overlap, and what it controls</span>
+      <p>For two distributions \(P\) and \(Q\) and the best possible test between them at even prior odds, the error probability \(P_e\) satisfies \(\tfrac12\big(1-\sqrt{1-\mathrm{BC}^2}\big)\le P_e\le\tfrac12\,\mathrm{BC}\). So the overlap pins the error down to within a factor that does not depend on the problem.</p>
+      <p>The count formula is a one-line binomial expansion: \(\sum_k \binom nk \sqrt{p^k(1-p)^{n-k}q^k(1-q)^{n-k}} = \big(\sqrt{pq}+\sqrt{(1-p)(1-q)}\big)^n\). The same number comes out if you compute the overlap of the full sequences of tosses instead of the head counts, because the count is a sufficient statistic, which is Chentsov's invariance in miniature. And \(\sqrt{pq}+\sqrt{(1-p)(1-q)}\) is the inner product of the unit vectors \((\sqrt p,\sqrt{1-p})\) and \((\sqrt q,\sqrt{1-q})\), the cosine of the angle between them on the circle.</p>
+    </div>
+    <p>$$\mathrm{BC} \;=\; \Big(\sqrt{pq}+\sqrt{(1-p)(1-q)}\Big)^{n} \;=\; \cos(d/2)^{n},$$</p>
+    <p>because the bracket is the cosine of the angle between the two points on the circle. How much the two sampling distributions overlap depends on \(p\) and \(q\) only through their distance along the arc. Figure 1 lets you check this by dragging a pair of hypotheses along the axis.</p>
+  </div>
+
+  <figure class="sim" id="fig1">
+    <div class="sim-frame"><canvas height="380"></canvas></div>
+    <div class="controls">
+      <button class="ui toggled" data-role="mode">holding fixed: Fisher distance</button>
+      <span><label>separation</label><input type="range" data-role="sep" min="0" max="1" step="0.001" value="0.55"><span class="readout" data-role="seplab"></span></span>
+      <span><label>tosses n</label><input type="range" data-role="n" min="0" max="1" step="0.001" value="0.55"><span class="readout" data-role="nlab"></span></span>
+    </div>
+    <p class="fig-note" data-role="note">Drag anywhere along the axis or the arc to move the pair. With the Fisher distance held fixed, the overlap of the two head-count histograms stays at \(\cos(d/2)^n\) to every digit shown, and the error of the best test barely moves. Switch to holding \(|p-q|\) fixed and drag toward either end: the histograms pull apart and the error collapses.</p>
+    <figcaption><span class="figno">Figure 1.</span> Two hypotheses about a coin, measured two ways. The ticks on the axis are equally spaced in Fisher length.</figcaption>
+  </figure>
+
+  <div class="measure">
+    <h3>Every finite distribution is a point on a sphere</h3>
+    <p>Nothing about the coin was special. A distribution on \(k\) outcomes is a vector \(p\) with nonnegative entries summing to one. The score of outcome \(i\) in the direction \(\dot p\) is \(\dot p_i/p_i\), and the Fisher metric is</p>
+    <p>$$\mathrm ds^2 \;=\; \sum_i \frac{\mathrm dp_i^2}{p_i}.$$</p>
+    <p>The substitution that straightened the coin works in every dimension. Put \(s_i = 2\sqrt{p_i}\). Then \(\mathrm ds_i = \mathrm dp_i/\sqrt{p_i}\), the metric becomes \(\sum_i \mathrm ds_i^2\), which is plain Euclidean length, and the constraint \(\sum p_i = 1\) becomes \(\sum s_i^2 = 4\). The probability simplex with the Fisher metric is the part of the sphere of radius 2 where all coordinates are nonnegative, and the Fisher distance between two distributions is a great-circle distance,</p>
+    <p>$$d_F(p,q) \;=\; 2\arccos \sum_i \sqrt{p_i\,q_i}.$$</p>
+    <p>Statisticians met the chord of this arc before the arc, as the
+      <button class="pop" data-target="pp-hell" aria-expanded="false">Hellinger distance</button>. On the sphere, statistical resolution is uniform: from any point, the empirical frequencies of \(n\) samples scatter in an approximately round cloud whose standard deviation is \(1/\sqrt n\) in every direction, the same everywhere. On the flat simplex the same clouds are ellipses that flatten against the edges. Figure 2 shows both pictures at once.</p>
+    <div class="popbody" id="pp-hell"><span class="ttl">Hellinger, the chord</span>
+      <p>Write \(H(p,q)=\|\sqrt p-\sqrt q\|\) (conventions differ by a factor of \(\sqrt2\)). It is the straight-line distance between the points \(\sqrt p\) and \(\sqrt q\) on the unit sphere, cutting through the inside, while the Fisher distance walks along the surface. The two agree to leading order for nearby distributions and part ways for distant ones. On the unit sphere the chord tops out at \(\sqrt2\) and the arc at \(\pi/2\); the Fisher metric lives on the sphere of radius 2, which gives it a maximum of \(\pi\), reached exactly when the two distributions have disjoint supports.</p>
+      <p>The cloud claim is the delta method. The empirical frequencies \(\hat p\) have covariance \((\mathrm{diag}\,p - pp^{\mathsf T})/n\), which is \(g^{-1}/n\) on the simplex. Pushed through \(p\mapsto2\sqrt p\), whose Jacobian is \(\mathrm{diag}(1/\sqrt p)\), that covariance becomes \((I - \sqrt p\sqrt p^{\mathsf T})/n\): the identity on the tangent plane of the sphere, divided by \(n\).</p>
+    </div>
+  </div>
+
+  <figure class="sim" id="fig2">
+    <div class="sim-frame"><div class="split"><div><canvas height="320" data-role="left"></canvas></div><div><canvas height="320" data-role="right"></canvas></div></div></div>
+    <div class="controls">
+      <span><label>samples per batch n</label><input type="range" data-role="n" min="0" max="1" step="0.001" value="0.35"><span class="readout" data-role="nlab"></span></span>
+      <button class="ui" data-role="reset">reset view</button>
+    </div>
+    <p class="fig-note" data-role="note">Left: distributions on three outcomes, with circles of equal Fisher radius. Drag the dark point. The green dots are empirical frequencies from repeated batches of \(n\) draws, and the ring around the point has Fisher radius \(2/\sqrt n\), so it should hold about 86% of them wherever you put it. Right: the same objects carried onto the sphere by \(p\mapsto2\sqrt p\). Drag to rotate. On the sphere every circle has the same size, and so does every cloud.</p>
+    <figcaption><span class="figno">Figure 2.</span> Distributions on three outcomes, as a flat triangle and as the curved surface they form under Fisher's metric.</figcaption>
+  </figure>
+</section>
+
+<hr>
+
+<section id="s-2">
+  <div class="measure">
+    <h2><span class="no">Part II</span>Two kinds of straight line</h2>
+    <p>A metric comes with shortest paths, and on the sphere of Part I they are great circles. Statisticians interpolate between distributions in two other ways far more often, and both are natural enough that it is worth seeing why neither is the shortest path.</p>
+    <p>The first is the <em>mixture</em> \((1-t)\,p + t\,q\). To sample from it, flip a coin with bias \(t\) and draw from \(q\) or \(p\) accordingly. Averaging over a latent variable, marginalizing and pooling populations all produce mixtures. The second is the <em>geometric mixture</em> \(p^{1-t}q^{t}/Z_t\), with \(Z_t\) the normalizer: multiply the two densities with weights and renormalize. Bayesian updating does this, since a posterior is prior times likelihood, and so do tempering, products of experts, and the Boltzmann distribution \(e^{-V/T}/Z\) as the temperature changes. On a histogram the two look very different. A mixture of two bumps is two bumps. A geometric mixture of two Gaussian bumps is a single Gaussian bump in between, and a geometric mixture of two bumps that don't overlap is close to nothing at all, because a product of densities vanishes wherever either factor does.</p>
+    <p>Each kind of interpolation has families of distributions it never leaves. Mixtures stay inside <em>mixture families</em>, the convex hulls of a few fixed distributions. Geometric mixtures stay inside <em>exponential families</em>,</p>
+    <p>$$p_\theta(x) \;=\; h(x)\,\exp\!\big(\theta\cdot T(x) \;-\; \psi(\theta)\big),$$</p>
+    <p>where \(T(x)\) is a vector of statistics, \(\theta\) are the <em>natural parameters</em>, and \(\psi(\theta) = \log\int h\,e^{\theta\cdot T}\) is the log-normalizer, which physicists call the log partition function. Gaussians, Bernoulli, Poisson, Gamma and categorical distributions belong here, and so do Ising models and every Boltzmann distribution with a fixed energy function. A geometric mixture of \(p_{\theta_0}\) and \(p_{\theta_1}\) is \(p_{(1-t)\theta_0+t\theta_1}\), a straight line in \(\theta\).</p>
+    <p>All the structure of an exponential family sits in the one function \(\psi\). It is
+      <button class="pop" data-target="pp-psi" aria-expanded="false">convex</button>, its gradient is the mean of the statistics and its Hessian is their covariance:</p>
+    <div class="popbody" id="pp-psi"><span class="ttl">derivatives of the log partition function</span>
+      <p>Differentiate \(\psi(\theta)=\log\int h\,e^{\theta\cdot T}\): \(\partial_i\psi = \int T_i\,h\,e^{\theta\cdot T}\big/\!\int h\,e^{\theta\cdot T} = \mathbb E_\theta[T_i]\). Differentiate again and you get \(\mathbb E[T_iT_j]-\mathbb E[T_i]\,\mathbb E[T_j]\), a covariance. Covariance matrices are positive semidefinite, so \(\psi\) is convex, and strictly convex unless some combination of the statistics is constant, in which case one statistic is redundant and you drop it.</p>
+      <p>The score of an exponential family is \(T(x)-\eta\), so the Fisher matrix, being the covariance of the score, is \(\mathrm{Cov}(T)\) once more. Physicists know the same identities with a single statistic, the energy, and \(\theta=-\beta\): the first derivative of \(\log Z\) in \(\beta\) is minus the mean energy, and the second is the variance of the energy, which sets the heat capacity.</p>
+    </div>
+    <p>$$\nabla\psi(\theta) \;=\; \mathbb E_\theta[T] \;=:\; \eta, \qquad \nabla^2\psi(\theta) \;=\; \mathrm{Cov}_\theta(T) \;=\; g(\theta).$$</p>
+    <p>The second identity says that the Fisher metric of an exponential family is the Hessian of its log-normalizer. The first defines a second coordinate system, the <em>expectation parameters</em> \(\eta\). For a Gaussian, \(\theta=(\mu/\sigma^2,\,-1/2\sigma^2)\) and \(\eta=(\mu,\,\mu^2+\sigma^2)\); for a categorical distribution, \(\theta_i=\log(p_i/p_k)\) and \(\eta_i=p_i\). Since \(\psi\) is strictly convex, the map \(\theta\mapsto\eta\) is invertible, and its inverse is the gradient of the
+      <button class="pop" data-target="pp-leg" aria-expanded="false">Legendre transform</button> \(\varphi(\eta)=\sup_\theta\,[\,\theta\cdot\eta-\psi(\theta)\,]\), which turns out to be the negative entropy. So one model has two coordinate systems, each the gradient of a convex function, the two functions Legendre duals of each other, and the Fisher metric is the Hessian of whichever one you are using: \(\nabla^2\psi\) in \(\theta\), and \(\nabla^2\varphi=(\nabla^2\psi)^{-1}\) in \(\eta\).</p>
+    <div class="popbody" id="pp-leg"><span class="ttl">the Legendre dual is negative entropy</span>
+      <p>The supremum in \(\varphi(\eta)=\sup_\theta[\theta\cdot\eta-\psi(\theta)]\) is attained where \(\nabla\psi(\theta)=\eta\), at the parameter whose mean statistics are \(\eta\). There, \(\varphi(\eta)=\theta\cdot\eta-\psi(\theta)=\mathbb E_\theta[\theta\cdot T-\psi(\theta)]=\mathbb E_\theta[\log(p_\theta/h)]\), minus the entropy of \(p_\theta\) relative to the base measure \(h\). In thermodynamics this is the step from a free energy to an entropy by trading a temperature for an energy.</p>
+      <p>Legendre pairs have inverse gradient maps, \(\nabla\varphi=(\nabla\psi)^{-1}\), and so their Hessians at corresponding points are inverse matrices. That is where \(\nabla^2\varphi=g^{-1}\) comes from, and it is the same fact as \(\mathrm d\eta = g\,\mathrm d\theta\).</p>
+    </div>
+
+    <h3>Flat twice, curved once</h3>
+    <p>Give the two straight lines names. An <em>e-geodesic</em> (e for exponential) is a straight line in \(\theta\), a geometric mixture. An <em>m-geodesic</em> (m for mixture) is a straight line in \(\eta\). Inside an exponential family that means the members whose mean statistics interpolate the endpoints' mean statistics, and on the full simplex, where \(\eta\) is the probability vector itself, it means the mixtures. A family is called e-flat if it has coordinates in which all its e-geodesics are straight lines, and m-flat likewise. An exponential family is e-flat by construction, and m-flat because \(\eta\) is also a global coordinate system. Amari's word for this is <em>dually flat</em>.</p>
+    <p>The simplex of Part I is a categorical family, so it is flat in two different ways, and it is also a patch of a sphere, which is curved everywhere. The two statements are compatible because Amari's flatness is a property of the chosen straight lines, and these straight lines are not the shortest paths. Three notions of straight line live on the same simplex: mixtures, geometric mixtures, and the great circles of the Fisher metric. In Euclidean space all three would coincide. On the simplex only the great circles are shortest, and the other two bend away from them on opposite sides. In a
+      <button class="pop" data-target="pp-conn" aria-expanded="false">precise sense</button> the Fisher geodesics sit halfway between the other two. Figure 3 draws all three between two distributions of your choice and measures each curve's Fisher length.</p>
+    <div class="popbody" id="pp-conn"><span class="ttl">connections, briefly</span>
+      <p>The object that decides which curves have zero acceleration is called a connection. A metric determines one connection, the Levi-Civita connection, whose straight curves are the locally shortest ones. A manifold can carry other connections too, and nothing forces them to be compatible with the metric. Amari's e- and m-connections are two such. Neither is compatible with the Fisher metric on its own, but they are compatible as a pair: transport one tangent vector along a curve with the e-rule and another with the m-rule, and their Fisher inner product stays constant. This duality is the structural core of the subject.</p>
+      <p>Interpolating, \(\nabla^{(\alpha)}=\frac{1+\alpha}2\nabla^{(e)}+\frac{1-\alpha}2\nabla^{(m)}\) gives Amari's \(\alpha\)-connections, and \(\alpha=0\) is the Levi-Civita connection of the Fisher metric. Averaging connections averages the rules for carrying directions along a curve, and the curves themselves need not average along with them, so the great circle is not the pointwise mean of the mixture and the geometric mixture. The figure shows it lying between them anyway.</p>
+    </div>
+  </div>
+
+  <figure class="sim" id="fig3">
+    <div class="sim-frame"><canvas height="360"></canvas></div>
+    <div class="controls">
+      <span><label>t</label><input type="range" data-role="t" min="0" max="1" step="0.002" value="0.5"><span class="readout" data-role="tlab">0.50</span></span>
+      <button class="ui toggled" data-role="play">pause</button>
+      <span class="legend"><span><i class="sw" style="border-color:#1f8a63"></i>mixture</span>
+      <span><i class="sw" style="border-color:#2b5fad"></i>geometric mixture</span>
+      <span><i class="sw" style="border-color:#111"></i>Fisher geodesic</span></span>
+    </div>
+    <p class="fig-note" data-role="note">Drag either endpoint. The bars on the right show the three interpolants at the current \(t\), one group per outcome. The readout gives each path's Fisher length, and the great circle always wins. Push an endpoint toward an edge and the geometric path hugs that edge, because a geometric mixture with one near-zero entry keeps it near zero for most of the way.</p>
+    <figcaption><span class="figno">Figure 3.</span> Three straight lines between the same two distributions. Two are straight in their own coordinates; one is shortest.</figcaption>
+  </figure>
+</section>
+
+<hr>
+
+<section id="s-3">
+  <div class="measure">
+    <h2><span class="no">Part III</span>Pythagoras for divergences</h2>
+    <p>Inside an exponential family the KL divergence has a closed form, and the form shows where its asymmetry comes from. A
+      <button class="pop" data-target="pp-breg" aria-expanded="false">three-line computation</button> gives</p>
+    <div class="popbody" id="pp-breg"><span class="ttl">KL as a Bregman divergence</span>
+      <p>\(\log(p_\theta/p_{\theta'}) = (\theta-\theta')\cdot T - \psi(\theta)+\psi(\theta')\). Take the expectation under \(p_\theta\): \(\mathrm{KL} = (\theta-\theta')\cdot\eta-\psi(\theta)+\psi(\theta')\). The group \(\theta\cdot\eta-\psi(\theta)\) is \(\varphi(\eta)\), because the Legendre supremum is attained there, and what remains is \(\psi(\theta')+\varphi(\eta)-\theta'\cdot\eta\).</p>
+      <p>Rearranged once more, \(\mathrm{KL}(p_\theta\|p_{\theta'}) = \psi(\theta')-\psi(\theta)-\nabla\psi(\theta)\cdot(\theta'-\theta)\): the height by which the convex function \(\psi\) lies above its tangent plane at \(\theta\), measured at \(\theta'\). That is the Bregman divergence of \(\psi\), and it makes Part I's second-order expansion immediate, since the gap between a convex function and its tangent plane is, to leading order, half the Hessian.</p>
+    </div>
+    <p>$$\mathrm{KL}\big(p_\theta\,\big\|\,p_{\theta'}\big) \;=\; \psi(\theta') \;+\; \varphi(\eta) \;-\; \theta'\cdot\eta,$$</p>
+    <p>with \(\eta\) the expectation parameters of the first argument. The first argument enters through its \(\eta\) coordinates and the second through its \(\theta\) coordinates. The right side is the gap in the Fenchel inequality \(\psi(\theta')+\varphi(\eta)\ge\theta'\cdot\eta\), which closes exactly when \(\eta=\nabla\psi(\theta')\), i.e. when the two distributions coincide. Divergences of this shape are called Bregman divergences, and the asymmetry of KL is the asymmetry of its two slots, each written in its own coordinate system.</p>
+    <p>The payoff is a three-point identity. Take any distribution \(p\), not necessarily in the family, and two members \(q\) and \(r\) of an exponential family. Then
+      <button class="pop" data-target="pp-3pt" aria-expanded="false">a short computation</button> shows</p>
+    <div class="popbody" id="pp-3pt"><span class="ttl">the three-point identity</span>
+      <p>\(\mathrm{KL}(p\|r)-\mathrm{KL}(p\|q)-\mathrm{KL}(q\|r) = \sum p\log\frac pr-\sum p\log\frac pq-\sum q\log\frac qr = \sum\,(p-q)\log\frac qr.\)</p>
+      <p>Because \(q\) and \(r\) belong to the same exponential family, \(\log(q/r) = (\theta_q-\theta_r)\cdot T(x)-\psi(\theta_q)+\psi(\theta_r)\). The constant part integrates to zero against \(p-q\), since both are probability distributions, and the \(T\) part gives \((\theta_q-\theta_r)\cdot(\mathbb E_pT-\mathbb E_qT)\). Nothing about \(p\) was used except that these expectations exist. That is why \(p\) can be any distribution at all, including the empirical distribution of a data set.</p>
+    </div>
+    <p>$$\mathrm{KL}(p\,\|\,r) \;=\; \mathrm{KL}(p\,\|\,q) \;+\; \mathrm{KL}(q\,\|\,r) \;+\; (\theta_q-\theta_r)\cdot(\eta_p-\eta_q),$$</p>
+    <p>where \(\eta_p=\mathbb E_p[T]\). The cross term pairs an m-direction (from \(q\) toward \(p\), measured in \(\eta\)) with an e-direction (from \(q\) toward \(r\), measured in \(\theta\)), and with one direction in each coordinate system
+      <button class="pop" data-target="pp-mixed" aria-expanded="false">the Fisher inner product is the plain dot product</button>. So the cross term vanishes exactly when the m-geodesic from \(q\) to \(p\) meets the e-geodesic from \(q\) to \(r\) at a right angle in the Fisher metric, and then</p>
+    <div class="popbody" id="pp-mixed"><span class="ttl">mixed coordinates</span>
+      <p>A tangent direction at \(q\) can be described by how it changes \(\theta\) or by how it changes \(\eta\), and the two descriptions are related by \(\mathrm d\eta = g\,\mathrm d\theta\). The Fisher inner product of directions \(u\) and \(v\) is \(\mathrm d\theta_u^{\mathsf T}\,g\,\mathrm d\theta_v = \mathrm d\theta_u\cdot\mathrm d\eta_v\). Describe one direction in natural coordinates and the other in expectation coordinates and the metric drops out of the formula.</p>
+      <p>When \(p\) lies outside the family the same holds with the m-direction taken in the space of all distributions: the Fisher inner product of the mixture direction \(p-q\) with a direction whose score is \((\theta_r-\theta_q)\cdot(T-\eta_q)\) is \(\sum(p-q)\,(\theta_r-\theta_q)\cdot(T-\eta_q) = (\theta_r-\theta_q)\cdot(\eta_p-\eta_q)\).</p>
+    </div>
+    <p>$$\boxed{\;\mathrm{KL}(p\,\|\,r) \;=\; \mathrm{KL}(p\,\|\,q) \;+\; \mathrm{KL}(q\,\|\,r)\;}$$</p>
+    <p>This is Amari's generalized Pythagorean theorem. The sides are divergences instead of squared lengths, and the right angle is a Fisher right angle between one geodesic of each kind. Two classical results fall out of it.</p>
+
+    <h3>Maximum likelihood is a projection</h3>
+    <p>Fix the family \(\mathcal E\) and a distribution \(p\) outside it, and look for the member of \(\mathcal E\) closest to \(p\) in the sense of \(\min_{q\in\mathcal E}\mathrm{KL}(p\,\|\,q)\). The cross term vanishes for every \(r\in\mathcal E\) at once if \(\eta_q=\eta_p\), that is, if \(q\) has the same mean statistics as \(p\). For that \(q^*\), Pythagoras gives \(\mathrm{KL}(p\|r) = \mathrm{KL}(p\|q^*)+\mathrm{KL}(q^*\|r)\ge\mathrm{KL}(p\|q^*)\) for every \(r\) in the family. So \(q^*\) is the minimizer, it is unique, and you find it by <em>matching moments</em>. Amari calls it the m-projection of \(p\) onto \(\mathcal E\), since the m-geodesic from \(p\) meets the family at a right angle.</p>
+    <p>Now let \(p=\hat p\) be the empirical distribution of a data set. Then \(\mathrm{KL}(\hat p\,\|\,q) = -\frac1n\sum_i\log q(x_i)+\text{const}\), and minimizing it is maximum likelihood. Fitting an exponential family by maximum likelihood comes down to matching sample moments, which is why fitting a Gaussian means computing a sample mean and a sample variance and stopping there. Pythagoras also says how much worse any other member \(r\) of the family is: by exactly \(\mathrm{KL}(q^*\|r)\), a quantity in which the data appear only through their moments.</p>
+
+    <h3>Maximum entropy is the other projection</h3>
+    <p>Swap the roles. Fix a reference distribution \(r\), uniform say, and a set of moment constraints \(\mathcal L=\{q:\mathbb E_q[T]=t\}\). This set is m-flat, since mixtures of distributions that satisfy the constraints satisfy them too. Now minimize over the first argument, \(\min_{q\in\mathcal L}\mathrm{KL}(q\,\|\,r)\). The same identity, read with \(p\in\mathcal L\), shows that the minimizer is the member of \(\mathcal L\) that lies in the exponential family through \(r\) with statistics \(T\), so \(q^*\propto r\,e^{\theta\cdot T}\), and that Pythagoras holds for every \(p\in\mathcal L\). With \(r\) uniform, minimizing \(\mathrm{KL}(q\|r)\) is maximizing entropy, and the result is Jaynes' maximum entropy principle: the least committal distribution with prescribed averages is exponential in the constrained statistics. Constrain the mean energy and the Boltzmann distribution comes out. Csiszár worked out this geometry in 1975 and called the minimizer the I-projection; Amari calls it the e-projection.</p>
+    <p>The two projections mirror each other. The m-projection minimizes over the second argument of KL, onto an e-flat family. The e-projection minimizes over the first argument, onto an m-flat set. Alternate the two between a model and the set of distributions consistent with partially observed data and you get the
+      <button class="pop" data-target="pp-em" aria-expanded="false">EM algorithm</button>.</p>
+    <div class="popbody" id="pp-em"><span class="ttl">EM as alternating projections</span>
+      <p>With latent variables \(z\), the data constrain only the marginal over \(x\). The set \(\mathcal D\) of joint distributions over \((x,z)\) whose \(x\)-marginal equals the empirical one is m-flat. The model \(\mathcal M=\{p_\theta(x,z)\}\) is often an exponential family in the joint variables, hence e-flat. Minimizing \(\mathrm{KL}(q\|p_\theta)\) over \(q\in\mathcal D\) with \(\theta\) fixed is an e-projection onto \(\mathcal D\), and its solution sets \(q(z\,|\,x)=p_\theta(z\,|\,x)\): the E-step. Minimizing over \(\theta\) with \(q\) fixed is an m-projection onto \(\mathcal M\), moment matching on the completed data: the M-step.</p>
+      <p>Csiszár and Tusnády (1984) wrote EM as this alternating minimization, and Amari (1995) gave the projection reading and pointed out where the geometric version and the statistical one can differ. Every step lowers the same KL, so the algorithm never goes uphill. Convergence to the global minimum would need both sets to be convex in the mixture sense, and an e-flat model usually isn't, which is how EM ends up in local optima.</p>
+    </div>
+
+    <h3>The other direction has neither</h3>
+    <p>One combination is left over: minimizing \(\mathrm{KL}(q\,\|\,p)\) over \(q\) in an exponential family, with \(p\) fixed outside it. This is the objective of variational inference. The family now sits in the first slot, where the theorem wants an m-flat set, and an exponential family is not m-flat inside the space of all distributions (mixtures of Gaussians are not Gaussian). No Pythagorean identity applies, the minimizer need not be unique, and you find it by search, since there is nothing to match. Its behaviour is the familiar mode-seeking one. If \(p\) has two bumps, the best \(q\) sits on one of them, because \(\mathrm{KL}(q\|p)\) punishes \(q\) for putting mass where \(p\) has little and does not care what \(q\) misses. The forward direction \(\mathrm{KL}(p\|q)\) punishes the opposite failure, and its moment-matched fit spreads over both bumps and sits on neither. Figure 4 has both, and its readout tests Pythagoras for the forward fit while you drag a third Gaussian around.</p>
+  </div>
+
+  <figure class="sim" id="fig4">
+    <div class="sim-frame"><div class="split"><div><canvas height="300" data-role="left"></canvas></div><div><canvas height="300" data-role="right"></canvas></div></div></div>
+    <div class="controls">
+      <button class="ui" data-role="draw">draw p</button>
+      <button class="ui" data-role="preset">next target</button>
+      <button class="ui" data-role="shade">shading: KL(p&#8214;q)</button>
+      <span class="legend"><span><i class="sw" style="border-color:#2b5fad"></i>forward fit \(q^*\)</span>
+      <span><i class="sw" style="border-color:#1f8a63"></i>reverse fit</span>
+      <span><i class="sw" style="border-color:#999;border-top-style:dashed"></i>your \(r\)</span></span>
+    </div>
+    <p class="fig-note" data-role="note">Left: a target \(p\) and its Gaussian fits on a grid, the forward fit by moment matching and the reverse fit by search. Right: the plane of Gaussians \((\mu,\sigma)\), with \(\sigma\) on a log scale, shaded by \(\mathrm{KL}(p\|q)\). Drag the grey point \(r\) anywhere. The readout compares \(\mathrm{KL}(p\|r)\) with \(\mathrm{KL}(p\|q^*)+\mathrm{KL}(q^*\|r)\), and the two agree to rounding error. Switch the shading to the reverse direction: for a two-bump target there is a valley on each bump, and here a third, shallower one for a wide Gaussian straddling both.</p>
+    <figcaption><span class="figno">Figure 4.</span> Fitting a Gaussian in both directions. Forward KL is a projection with a Pythagorean theorem; reverse KL is a search with local minima.</figcaption>
+  </figure>
+</section>
+
+<hr>
+
+<section id="s-4">
+  <div class="measure">
+    <h2><span class="no">Part IV</span>Walking downhill</h2>
+    <p>A ruler on parameter space changes what downhill means. Ordinary gradient descent, \(\theta\leftarrow\theta-h\,\nabla L\), takes the steepest step as measured by the Euclidean metric of whatever coordinates you wrote the model in. Write a Gaussian in terms of \((\mu,\sigma)\), \((\mu,\log\sigma)\) or \((\mu,\sigma^2)\) and you get three different algorithms with three different paths, although the model and the loss are the same. Amari's <em>natural gradient</em> uses the Fisher metric instead,</p>
+    <p>$$\theta \;\leftarrow\; \theta \;-\; h\,g(\theta)^{-1}\,\nabla L(\theta).$$</p>
+    <p>The step is the steepest descent direction when length is measured in Fisher units, which is the same as steepest descent
+      <button class="pop" data-target="pp-klball" aria-expanded="false">inside a small KL ball</button>. And in the limit of small steps the path no longer depends on the parametrization at all, because the Fisher metric
+      <button class="pop" data-target="pp-transf" aria-expanded="false">transforms the right way</button> under a change of coordinates.</p>
+    <div class="popbody" id="pp-klball"><span class="ttl">steepest descent in a KL ball</span>
+      <p>Minimize the linearized loss \(L(\theta)+\nabla L\cdot\delta\) subject to \(\mathrm{KL}(p_\theta\|p_{\theta+\delta})\le\varepsilon\). By Part I the constraint is \(\tfrac12\delta^{\mathsf T}g\,\delta\le\varepsilon\) to leading order, and a Lagrange multiplier gives \(\delta\propto-g^{-1}\nabla L\). The natural gradient answers the question: among all models equally distinguishable from the current one, which lowers the loss most?</p>
+      <p>Policy optimization in reinforcement learning asks this with a KL constraint on the policy. Kakade's natural policy gradient (2001) is the natural gradient of the expected return, TRPO enforces the KL ball explicitly, and PPO's clipped objective is a cheaper surrogate for the same constraint.</p>
+    </div>
+    <div class="popbody" id="pp-transf"><span class="ttl">why the natural gradient flow is coordinate-free</span>
+      <p>Change coordinates \(\theta=\theta(\xi)\) with Jacobian \(J=\partial\theta/\partial\xi\). The gradient picks up one factor, \(\nabla_\xi L = J^{\mathsf T}\nabla_\theta L\). The Fisher metric picks up two, \(g_\xi = J^{\mathsf T}g_\theta J\), because it is a covariance of scores and each score picks up a \(J^{\mathsf T}\). Then \(g_\xi^{-1}\nabla_\xi L = J^{-1}g_\theta^{-1}\nabla_\theta L\), which is exactly how a velocity in \(\theta\) looks in \(\xi\) coordinates. The flows \(\dot\theta=-g^{-1}\nabla L\) written in different coordinates trace the same curve. Ordinary gradient descent fails this test because the Euclidean metric in \(\xi\) is not the Euclidean metric in \(\theta\) carried over.</p>
+      <p>Discrete steps are another matter. Two natural gradient methods in different coordinates agree to first order in the step size and differ after that, and from a bad starting point "after that" can be a lot, as the figure shows when you raise the step size.</p>
+    </div>
+    <p>For exponential families something cleaner happens. The maximum likelihood loss is \(L(\theta)=\mathrm{KL}(\hat p\,\|\,p_\theta)\) up to a constant, its gradient in natural parameters is \(\eta(\theta)-\hat\eta\), and the natural gradient flow \(\dot\theta=-g^{-1}(\eta-\hat\eta)\) becomes, after one use of the chain rule \(\dot\eta=g\,\dot\theta\),</p>
+    <p>$$\dot\eta \;=\; -\,(\eta-\hat\eta).$$</p>
+    <p>In expectation coordinates the flow runs in a straight line to the answer at exponential speed. The natural gradient flow of maximum likelihood travels the m-geodesic from the starting model to the fitted one. Two more identities come with it. In natural parameters the Hessian of the loss is \(\nabla^2\psi=g\), so natural gradient descent there is Newton's method. And mirror descent with \(\psi\) as the mirror map, \(\eta_{k+1}=\eta_k-h\,\nabla_\theta L\), is natural gradient descent carried out in the \(\eta\) coordinates, step for step; Raskutti and Mukherjee proved the general version. Figure 5 fits a Gaussian from a bad starting point and draws four paths: plain gradient descent in two parametrizations, and natural gradient descent in the same two.</p>
+  </div>
+
+  <figure class="sim" id="fig5">
+    <div class="sim-frame"><canvas height="400"></canvas></div>
+    <div class="controls">
+      <span><label>step size h</label><input type="range" data-role="h" min="0" max="1" step="0.001" value="0.155"><span class="readout" data-role="hlab"></span></span>
+      <span class="legend"><span><i class="sw" style="border-color:#999"></i>GD in \((\mu,\sigma)\)</span>
+      <span><i class="sw" style="border-color:#999;border-top-style:dashed"></i>GD in \((\mu,\log\sigma)\)</span>
+      <span><i class="sw" style="border-color:#2b5fad"></i>natural, \((\mu,\sigma)\)</span>
+      <span><i class="sw" style="border-color:#2b5fad;border-top-style:dashed"></i>natural, \((\mu,\log\sigma)\)</span>
+      <span><i class="sw" style="border-color:#1f8a63;border-top-style:dotted"></i>m-geodesic</span></span>
+    </div>
+    <p class="fig-note" data-role="note">Drag the open circle (the starting Gaussian) or the filled one (the data's mean and standard deviation). Shading is the negative log-likelihood. At the default step size the two blue paths lie on top of each other and on the green line, while the two grey paths disagree with each other about the route and need nearly twice as many steps. Raise the step size: plain gradient descent from a narrow start blows up first, because its step in \(\mu\) scales like \(1/\sigma^2\).</p>
+    <figcaption><span class="figno">Figure 5.</span> Four ways down the same hill. In the small-step limit the natural gradient ignores which coordinates you wrote the model in.</figcaption>
+  </figure>
+
+  <div class="measure">
+    <p>A few remarks on natural gradients in machine learning, since that is where most people meet the subject. Amari proved in 1998 that online natural gradient learning with step size \(1/t\) is <em>Fisher efficient</em>: it attains the Cramér&ndash;Rao bound asymptotically, which plain stochastic gradient descent does not in general. For networks with millions of parameters \(g\) cannot be stored, let alone inverted, and practical methods approximate it; K-FAC (Martens and Grosse, 2015) uses a Kronecker factorization per layer. Two cautions apply. The "empirical Fisher", built from gradients at the observed labels instead of labels sampled from the model, is a different matrix, and Kunstner, Balles and Hennig showed it can precondition badly even on simple problems. And Adam divides each coordinate by the square root of a running mean of squared gradients. That resemblance to a diagonal Fisher is often cited, and it doesn't make Adam a natural gradient method: the square root changes the scaling, and the statistic is the empirical one.</p>
+  </div>
+</section>
+
+<hr>
+
+<section id="s-5">
+  <div class="measure">
+    <h2><span class="no">Part V</span>Fisher meets Wasserstein</h2>
+    <p>So far everything lived in finite-dimensional families: a coin, a die, Gaussians. The Fisher metric also makes sense on the space of all densities on \(\mathbb R^d\), where it is usually called the Fisher&ndash;Rao metric, and that space carries a second well-known geometry, the Wasserstein geometry of optimal transport. The two get compared often and usually loosely. In this section I try to say exactly what is shared and what isn't.</p>
+
+    <h3>Two ways to change a density</h3>
+    <p>A tangent vector at a density \(\rho\) is an infinitesimal change \(\dot\rho\), a function that integrates to zero, and a metric has to assign it a length. Both geometries do this the same way. They represent \(\dot\rho\) through a potential and measure the potential with a norm weighted by \(\rho\). What differs is how a potential produces a change.</p>
+    <p>Fisher&ndash;Rao reweights. A potential \(a\) changes the density by multiplication, \(\dot\rho=\rho\,(a-\mathbb E_\rho a)\), the subtraction keeping the total mass fixed. Mass grows where \(a\) is above average and shrinks where it is below, in place, without going anywhere. The squared length is</p>
+    <p>$$\|\dot\rho\|^2_{\mathrm{FR}} \;=\; \int\rho\,(a-\mathbb E_\rho a)^2\,\mathrm dx \;=\; \int\frac{\dot\rho^2}{\rho}\,\mathrm dx .$$</p>
+    <p>Wasserstein moves. A potential \(\phi\) changes the density by pushing mass along its gradient, \(\dot\rho=-\nabla\!\cdot(\rho\nabla\phi)\), which is the continuity equation, and the squared length is the kinetic energy of the push:</p>
+    <p>$$\|\dot\rho\|^2_{\mathrm W} \;=\; \int\rho\,|\nabla\phi|^2\,\mathrm dx .$$</p>
+    <p>Side by side, these are one construction with one ingredient swapped. Each geometry has an operator \(K_\rho\) that takes a potential to a change of density, \(K^{\mathrm{FR}}_\rho a=\rho(a-\mathbb E_\rho a)\) and \(K^{\mathrm W}_\rho\phi=-\nabla\!\cdot(\rho\nabla\phi)\), and in both the squared length of \(\dot\rho=K_\rho u\) is \(\langle u,K_\rho u\rangle\). Following Mielke these are called
+      <button class="pop" data-target="pp-onsager" aria-expanded="false">Onsager operators</button>, and the gradient flow of a functional \(\mathcal F\) in either geometry is</p>
+    <div class="popbody" id="pp-onsager"><span class="ttl">Onsager operators</span>
+      <p>In the gradient-flow description of dissipative systems, an evolution is written \(\dot\rho=-K_\rho\,\mathrm D\mathcal F(\rho)\) with \(K_\rho\) symmetric and positive semidefinite, and the inverse of \(K_\rho\) is the metric. Diffusion corresponds to the Wasserstein operator and chemical reactions to operators of Fisher&ndash;Rao type; adding the two gives reaction&ndash;diffusion. Liero, Mielke and Savaré describe the Hellinger&ndash;Kantorovich distance below in exactly these terms. The useful point for us is that choosing a geometry on densities and choosing an Onsager operator are the same decision.</p>
+    </div>
+    <p>$$\partial_t\rho \;=\; -\,K_\rho\,\frac{\delta\mathcal F}{\delta\rho}.$$</p>
+    <p>The swap from multiplication to a weighted Laplacian decides everything that follows. \(K^{\mathrm{FR}}\) contains nothing about the space the density lives on: shuffle the points of \(\mathbb R^d\) and it would not notice. \(K^{\mathrm W}\) contains a gradient, and a gradient needs a notion of distance on \(\mathbb R^d\) to exist.</p>
+    <p>Run one functional down both geometries and the difference becomes dynamics. Take \(\mathcal F(\rho)=\mathrm{KL}(\rho\,\|\,\pi)\) with \(\pi\propto e^{-V}\). In the Wasserstein geometry its gradient flow is the Fokker&ndash;Planck equation \(\partial_t\rho=\nabla\!\cdot(\rho\nabla V)+\Delta\rho\), the theorem of Jordan, Kinderlehrer and Otto that <a href="fpe.html">the Fokker&ndash;Planck essay</a> was built around. In the Fisher&ndash;Rao geometry the flow
+      <button class="pop" data-target="pp-frflow" aria-expanded="false">can be solved in closed form</button>,</p>
+    <div class="popbody" id="pp-frflow"><span class="ttl">the two Fisher&ndash;Rao flows of KL</span>
+      <p>For \(\mathcal F=\mathrm{KL}(\rho\|\pi)\), \(\delta\mathcal F/\delta\rho=\log(\rho/\pi)+1\), and the flow is \(\partial_t\rho=-\rho\big(\log\tfrac\rho\pi-\mathbb E_\rho\log\tfrac\rho\pi\big)\). Divide by \(\rho\): with \(\ell=\log(\rho/\pi)\) this reads \(\dot\ell=-\ell+c(t)\), where \(c(t)\) only renormalizes. So \(\ell_t=e^{-t}\ell_0\) plus a function of \(t\) alone, which is the displayed formula. It is the geometric path between \(\rho_0\) and \(\pi\) that annealed importance sampling and tempering schemes use, run on an exponential clock.</p>
+      <p>For \(\mathcal F=\mathrm{KL}(p\|\rho)\), \(\delta\mathcal F/\delta\rho=-p/\rho\) and \(\mathbb E_\rho[p/\rho]=1\), so \(\partial_t\rho=-\rho(-p/\rho+1)=p-\rho\), a linear equation solved by the mixture path.</p>
+    </div>
+    <p>$$\rho_t \;\propto\; \rho_0^{\,e^{-t}}\;\pi^{\,1-e^{-t}},$$</p>
+    <p>a geometric mixture: the e-geodesic from \(\rho_0\) to \(\pi\), traversed at exponential speed. Descend the other direction, \(\mathrm{KL}(p\,\|\,\rho)\), and the Fisher&ndash;Rao flow is \(\rho_t=e^{-t}\rho_0+(1-e^{-t})\,p\), the m-geodesic. Under Fisher&ndash;Rao both KL flows travel straight lines from Part II, one of each kind, and neither moves mass anywhere. If \(\rho_0\) vanishes on some region, the e-flow keeps it at zero forever, and the m-flow fills it by fading \(p\) in everywhere at once. The Wasserstein flow is the only one of the three in which mass travels.</p>
+    <p>The same construction works inside a parametric family. A model \(\rho_\theta\) has tangent vectors \(\partial_i\rho_\theta\), and each can be produced either by a Fisher&ndash;Rao potential (the score, since \(\partial_i\rho=\rho\,\partial_i\log\rho\)) or by a Wasserstein potential \(\phi_i\) solving \(-\nabla\!\cdot(\rho\nabla\phi_i)=\partial_i\rho\). The two Gram matrices are</p>
+    <p>$$g^{\mathrm F}_{ij} \;=\; \int\rho\;\partial_i\log\rho\;\partial_j\log\rho\,\mathrm dx, \qquad g^{\mathrm W}_{ij} \;=\; \int\rho\;\nabla\phi_i\cdot\nabla\phi_j\,\mathrm dx,$$</p>
+    <p>the Fisher information matrix and the <em>Wasserstein information matrix</em>, which is what Li and Montúfar's Wasserstein natural gradient preconditions with. For the Gaussian family \(\mathcal N(\mu,\sigma^2)\) on the line both are explicit, and they disagree completely:</p>
+    <p>$$\mathrm ds^2_{\mathrm F} \;=\; \frac{\mathrm d\mu^2+2\,\mathrm d\sigma^2}{\sigma^2}, \qquad \mathrm ds^2_{\mathrm W} \;=\; \mathrm d\mu^2+\mathrm d\sigma^2 .$$</p>
+    <p>The Wasserstein metric on Gaussians is flat, plain Euclidean distance in \((\mu,\sigma)\). The Fisher metric is the
+      <button class="pop" data-target="pp-hyp" aria-expanded="false">hyperbolic plane</button>, with constant curvature \(-1/2\). In Fisher's geometry a narrow Gaussian is far from everything else, because a narrow Gaussian is easy to tell apart from everything else. To get from one narrow Gaussian to another, the shortest path widens first, slides while wide, and narrows at the end. In Wasserstein's geometry the shortest path slides. Figure 6 draws both.</p>
+    <div class="popbody" id="pp-hyp"><span class="ttl">Gaussians as the hyperbolic plane</span>
+      <p>Substitute \(u=\mu/\sqrt2\) and the Fisher metric becomes \(2(\mathrm du^2+\mathrm d\sigma^2)/\sigma^2\), twice the metric of the Poincaré half-plane. Half-plane geodesics are vertical lines and semicircles centred on the boundary \(\sigma=0\), so the Fisher geodesics between Gaussians are those semicircles, stretched horizontally by \(\sqrt2\). The distance has a closed form,</p>
+      <p>$$d_F \;=\; \sqrt2\,\operatorname{arccosh}\!\Big(1+\frac{(\mu_1-\mu_2)^2/2+(\sigma_1-\sigma_2)^2}{2\,\sigma_1\sigma_2}\Big),$$</p>
+      <p>and as both widths shrink to \(\sigma\) at fixed means it grows like \(2\sqrt2\log(1/\sigma)\), while the Wasserstein distance stays at \(|\mu_1-\mu_2|\). The Wasserstein formula is the Gaussian formula from <a href="ot.html">the transport essay</a> in one dimension, where its covariance term reduces to \((\sigma_1-\sigma_2)^2\).</p>
+      <p>Compare the simplex of Part I, a piece of a sphere. Fisher geometry has no preferred sign of curvature: categorical families are positively curved, the Gaussian family is negatively curved, and both are dually flat in Amari's sense regardless.</p>
+    </div>
+  </div>
+
+  <figure class="sim" id="fig6">
+    <div class="sim-frame"><canvas height="450"></canvas></div>
+    <div class="controls">
+      <span><label>t</label><input type="range" data-role="t" min="0" max="1" step="0.002" value="0.5"><span class="readout" data-role="tlab">0.50</span></span>
+      <button class="ui toggled" data-role="play">pause</button>
+      <span class="legend"><span><i class="sw" style="border-color:#2b5fad"></i>Fisher geodesic</span>
+      <span><i class="sw" style="border-color:#1f8a63"></i>Wasserstein geodesic</span></span>
+    </div>
+    <p class="fig-note" data-role="note">Top: the half-plane of Gaussians \(\mathcal N(\mu,\sigma^2)\), drawn with equal scales so that Wasserstein distance is ordinary distance on the screen. The faint ellipses are balls of equal Fisher radius, and they shrink toward \(\sigma=0\). Drag the two points. Bottom: the density at time \(t\) along each path. Drag both points down to small \(\sigma\) and apart, and the Fisher path inflates, slides and deflates while the Wasserstein path slides.</p>
+    <figcaption><span class="figno">Figure 6.</span> One family, two metrics. Gaussians are flat to optimal transport and hyperbolic to statistics.</figcaption>
+  </figure>
+
+  <div class="measure">
+    <h3>What each one can see</h3>
+    <p>The swap of operators has a blunt consequence. Fisher&ndash;Rao distances are invariant under any rearrangement of the sample space. That is Chentsov's property from Part I, and on smooth densities Bauer, Bruveris and Michor showed that invariance under all diffeomorphisms of the underlying space characterizes Fisher&ndash;Rao up to a constant. Wasserstein distances are built from the distance on the sample space and change under almost any rearrangement. Figure 7 makes the point as literally as possible, with two histograms on a line and a button that applies the same random permutation to the bins of both.</p>
+  </div>
+
+  <figure class="sim" id="fig7">
+    <div class="sim-frame"><canvas height="300"></canvas></div>
+    <div class="controls">
+      <span><label>shift q by</label><input type="range" data-role="sep" min="0" max="0.6" step="0.0025" value="0.15"><span class="readout" data-role="seplab">0.15</span></span>
+      <button class="ui" data-role="shuffle">shuffle the bins</button>
+      <button class="ui" data-role="unshuffle">unshuffle</button>
+      <span class="legend"><span><i class="sw" style="border-color:#2b5fad"></i>\(p\)</span>
+      <span><i class="sw" style="border-color:#1f8a63"></i>\(q\)</span></span>
+    </div>
+    <p class="fig-note" data-role="note">Two bumps on 40 bins. Shuffling applies one random permutation to the bins of both histograms. Fisher&ndash;Rao, Hellinger and KL are sums over bins, and none of them changes in any digit. The Wasserstein distance depends on where each bin sits, and jumps. Unshuffle and slide: \(W_2\) grows in proportion to the shift, while Fisher&ndash;Rao saturates near its maximum \(\pi\) once the bumps stop overlapping.</p>
+    <figcaption><span class="figno">Figure 7.</span> The shuffle test. Fisher&ndash;Rao is invariant under relabelling the sample space; Wasserstein is built out of it.</figcaption>
+  </figure>
+
+  <div class="measure">
+    <p>Each geometry is blind to what the other sees. Two narrow spikes a millimetre apart are close in Wasserstein distance and maximally far in Fisher&ndash;Rao, because a single sample tells them apart. Move one percent of the mass from one end of a long interval to the other: the Wasserstein distance scales with the length of the interval, while the Fisher&ndash;Rao distance doesn't depend on it and stays at a size that takes on the order of a hundred samples to detect. Fisher&ndash;Rao measures distinguishability and ignores where things are. Wasserstein measures displacement and ignores how many samples you would need. Which one you want depends on which of those questions you are asking, and that choice is part of the model.</p>
+
+    <h3>Where they meet exactly</h3>
+    <p>In four places the relation is an identity. I'll go from the most concrete to the most structural.</p>
+    <p><em>Entropic transport is an information projection.</em> The entropically regularized transport problem, \(\min_\pi\,\langle c,\pi\rangle+\varepsilon\,\mathrm{KL}(\pi\,\|\,\mu\otimes\nu)\) over couplings with marginals \(\mu\) and \(\nu\), can be rewritten as</p>
+    <p>$$\min_{\pi\in\Pi(\mu,\nu)}\;\mathrm{KL}(\pi\,\|\,G), \qquad G \;\propto\; e^{-c/\varepsilon}\,\mu\otimes\nu,$$</p>
+    <p>the e-projection of the Gibbs kernel \(G\) onto the set of couplings. That set is m-flat, since mixtures of couplings are couplings, so Part III applies word for word. The minimizer lies in the exponential family through \(G\) whose statistics are the row and column indicators, which is the familiar form \(\pi=\mathrm{diag}(a)\,G\,\mathrm{diag}(b)\), and Pythagoras holds for every coupling: \(\mathrm{KL}(\pi\|G)=\mathrm{KL}(\pi\|\pi_\varepsilon)+\mathrm{KL}(\pi_\varepsilon\|G)\). Sinkhorn's algorithm alternates e-projections onto the two m-flat sets "rows sum to \(\mu\)" and "columns sum to \(\nu\)", each a single division, and
+      <button class="pop" data-target="pp-sink" aria-expanded="false">the Pythagorean theorem is its convergence proof</button>. Amari, Karakida and Oizumi built a full dually flat geometry on top of this observation.</p>
+    <div class="popbody" id="pp-sink"><span class="ttl">why Sinkhorn converges, in one identity</span>
+      <p>Let \(C_1\) be the couplings with the right row sums and \(\pi_k\) the current iterate. The row step returns \(\pi_{k+1}\), the e-projection of \(\pi_k\) onto \(C_1\). The solution \(\pi_\varepsilon\) lies in \(C_1\), so Pythagoras gives</p>
+      <p>$$\mathrm{KL}(\pi_\varepsilon\|\pi_k) \;=\; \mathrm{KL}(\pi_\varepsilon\|\pi_{k+1}) \;+\; \mathrm{KL}(\pi_{k+1}\|\pi_k),$$</p>
+      <p>and the column step does the same with \(C_2\). The divergence from the solution to the iterate drops at every half step by exactly the divergence between successive iterates. It is bounded below, so those decrements are summable, successive iterates converge together, and a compactness argument finishes the proof. This is Csiszár's 1975 argument for iterative proportional fitting, which is the same algorithm under its statisticians' name, and a case of Bregman's 1967 method of cyclic projections.</p>
+      <p>The rewriting itself: \(\langle c,\pi\rangle+\varepsilon\sum\pi\log\frac{\pi}{\mu\otimes\nu} = \varepsilon\sum\pi\log\frac{\pi}{e^{-c/\varepsilon}\mu\otimes\nu}\), which is \(\varepsilon\,\mathrm{KL}(\pi\|G)\) up to the constant \(\varepsilon\log Z\) from normalizing \(G\).</p>
+    </div>
+    <p><em>Legendre duality is a shared ancestor.</em> Both subjects are built on a convex function and its Legendre transform. In transport with quadratic cost, the Brenier potential \(u\) and its transform \(u^*\) satisfy \(u(x)+u^*(y)\ge x\cdot y\), with equality exactly on the support of the optimal plan. In an exponential family, \(\psi\) and \(\varphi\) satisfy the same inequality, and Part III showed that the gap is the KL divergence. So the KL divergence between members of an exponential family is the dual slack of a quadratic-cost transport problem whose Brenier map is \(\theta\mapsto\nabla\psi(\theta)=\eta\). The statement is
+      <button class="pop" data-target="pp-anc" aria-expanded="false">true and limited</button>: that transport problem moves mass between parameter space and its dual, and has nothing to do with moving the distributions \(p_\theta\) themselves. Wong and Yang turned the general version into a theorem. For a transport problem with a general cost, the pseudo-Riemannian geometry that Kim and McCann put on the product space encodes a dual pair of connections, and dually flat information geometry is the quadratic-cost case.</p>
+    <div class="popbody" id="pp-anc"><span class="ttl">how limited</span>
+      <p>Pick any probability measure \(m\) on \(\theta\)-space. Because \(\nabla\psi\) is the gradient of a convex function, Brenier's theorem says it is the optimal map from \(m\) to its image \((\nabla\psi)_\#m\), for the cost \(-\theta\cdot\eta\) or equivalently \(\tfrac12|\theta-\eta|^2\), whatever \(m\) is. The dual slack of a pair \((\theta',\eta)\) is \(\psi(\theta')+\varphi(\eta)-\theta'\cdot\eta=\mathrm{KL}(p_\theta\|p_{\theta'})\), where \(p_\theta\) is the member with mean statistics \(\eta\). So KL measures how far the pair \((\theta',\eta)\) is from being matched by the optimal map.</p>
+      <p>The arbitrariness of \(m\) is where the statement stops. Nothing in the transport problem depends on which measure is being transported, and the identity says more about Legendre duality than about either subject.</p>
+    </div>
+    <p><em>One inequality contains both, by name.</em> For \(\pi\propto e^{-V}\) with \(\nabla^2V\succeq\kappa I\), Otto and Villani proved the HWI inequality</p>
+    <p>$$\mathrm{KL}(\rho\,\|\,\pi) \;\le\; W_2(\rho,\pi)\,\sqrt{I(\rho\,\|\,\pi)} \;-\; \frac\kappa2\,W_2(\rho,\pi)^2,$$</p>
+    <p>where \(I(\rho\|\pi)=\int\rho\,|\nabla\log(\rho/\pi)|^2\) is the relative Fisher information. Maximize the right side over \(W_2\) and you get the logarithmic Sobolev inequality \(\mathrm{KL}\le I/2\kappa\); Otto and Villani's argument along the Fokker&ndash;Planck flow then gives Talagrand's \(W_2^2\le2\,\mathrm{KL}/\kappa\). It is tempting to read HWI as information geometry and transport meeting in one line, and that reading needs correcting. \(I\) is called Fisher information because \(\int\rho|\nabla\log\rho|^2\) is the Fisher information of the translation family \(\rho(x-\theta)\), where a derivative in the parameter equals minus a derivative in space. Inside HWI it plays a different role: it is the squared Wasserstein length of the gradient of KL, the rate at which KL dissipates along the Fokker&ndash;Planck flow. All three letters are Wasserstein quantities. The overlap with Fisher's matrix is real for translation families, and information theory uses it (de Bruijn's identity, which says entropy grows along the heat flow at a rate equal to this Fisher information, drives Stam's proof of the entropy power inequality), but it does not extend to the Fisher metric on a general model.</p>
+    <p><em>The two metrics add.</em> If reweighting and moving are both Onsager operators, so is their sum, and the resulting distance lets mass travel and also appear or vanish: \(\dot\rho=-\nabla\!\cdot(\rho v)+\rho\,a\), at cost \(\int\rho\,(|v|^2+\delta^2a^2)\), with constants that vary between papers. This is the Wasserstein&ndash;Fisher&ndash;Rao or Hellinger&ndash;Kantorovich distance, found around 2015 by three groups independently: Chizat, Peyré, Schmitzer and Vialard; Liero, Mielke and Savaré; Kondratyev, Monsaingeon and Vorotnikov. The length scale \(\delta\) sets the exchange rate. Mass is moved over distances that are short compared with \(\delta\), and beyond a fixed multiple of \(\delta\) it is cheaper to destroy it at one end and create it at the other. Unbalanced transport, used for growing cell populations and for images with missing parts, runs on this.</p>
+
+    <h3>The comparison, in one table</h3>
+    <table class="dict">
+      <tr><th></th><th>Fisher&ndash;Rao</th><th>Wasserstein</th></tr>
+      <tr><td>a small change of density</td><td>reweighting in place, \(\dot\rho=\rho(a-\mathbb E_\rho a)\)</td><td>moving mass, \(\dot\rho=-\nabla\!\cdot(\rho\nabla\phi)\)</td></tr>
+      <tr><td>its squared length</td><td>\(\int\dot\rho^2/\rho\)</td><td>\(\int\rho|\nabla\phi|^2\)</td></tr>
+      <tr><td>needs a distance on \(x\)</td><td>no</td><td>yes</td></tr>
+      <tr><td>invariant under relabelling \(x\)</td><td>yes, and characterized by it</td><td>no</td></tr>
+      <tr><td>two disjoint narrow spikes</td><td>maximally far, \(\pi\)</td><td>as far apart as the spikes are</td></tr>
+      <tr><td>natural divergence</td><td>KL, a Bregman divergence</td><td>\(W_2^2\), a squared distance</td></tr>
+      <tr><td>Gaussians on the line</td><td>hyperbolic plane</td><td>Euclidean half-plane</td></tr>
+      <tr><td>gradient flow of \(\mathrm{KL}(\rho\|\pi)\)</td><td>geometric mixture toward \(\pi\)</td><td>Fokker&ndash;Planck equation</td></tr>
+      <tr><td>flat coordinates</td><td>\(\theta\) and \(\eta\), dually, on exponential families</td><td>quantile functions, in one dimension only</td></tr>
+      <tr><td>what the distance answers</td><td>how many samples to tell them apart</td><td>how much work to move one onto the other</td></tr>
+    </table>
+    <p>Compressed into one sentence: both geometries put a \(\rho\)-weighted norm on a potential, Fisher&ndash;Rao lets the potential act by multiplication and Wasserstein lets it act through the divergence of a flux, and every row of the table follows from that choice.</p>
+  </div>
+</section>
+
+<hr>
+
+<section id="s-coda">
+  <div class="measure">
+    <h2><span class="no">Coda</span>Fine print, and the road onward</h2>
+    <p>Three caveats, from the most practical to the most structural.</p>
+    <p><em>Singular models.</em> Everything above assumed the Fisher matrix is invertible, so that the model is a smooth manifold and its parameters are locally identifiable. Mixtures, hidden Markov models and neural networks fail this badly. Set a hidden unit's outgoing weight to zero and its incoming weights stop mattering, so whole regions of parameter space map to one distribution and the Fisher matrix degenerates there, which is where fitted models tend to end up. On those sets the Cramér&ndash;Rao bound, the asymptotic normality of maximum likelihood and the BIC penalty all break, and Watanabe's singular learning theory replaces the metric with tools from algebraic geometry. The manifold picture of this essay is the regular case, and the models people care most about right now are not regular.</p>
+    <p><em>Infinite dimensions.</em> On the space of all densities, the Fisher&ndash;Rao "manifold" of Part V is a formal object, in the same way that Otto's Wasserstein manifold is. Making either one rigorous takes real work (Pistone and Sempi's exponential Orlicz manifolds on the information side, metric-space gradient flows on the transport side), and the formal calculations should be read as good guides that still need checking.</p>
+    <p><em>KL is a choice.</em> The Fisher metric is canonical by Chentsov's theorem, and the divergence is not. A whole family of \(\alpha\)-divergences has the Fisher metric as its second-order part, each with its own pair of dual connections, and KL is the member at \(\alpha=\pm1\). What singles it out is its link to likelihood and to large deviations through Sanov's theorem; the metric alone would not pick it. Every dually flat structure has its own Bregman divergence and its own Pythagorean theorem.</p>
+    <p>The road onward branches early. The <em>Jeffreys prior</em> is the volume form \(\sqrt{\det g}\) of the Fisher metric, so for categorical models it is the uniform distribution on Part I's sphere; for the coin it is the arcsine law, and the ticks of Figure 1 are its quantiles. Efron's <em>statistical curvature</em> measures how far a curved family bends away from being exponential and controls second-order efficiency of estimators. <em>Quantum</em> information geometry has no unique monotone metric, and the smallest one leads to the
+      <button class="pop" data-target="pp-bures" aria-expanded="false">Bures distance</button>, a formula that turns up on both sides of Part V. And the natural gradient keeps returning in machine learning under other names, as preconditioning, mirror descent and trust regions.</p>
+    <div class="popbody" id="pp-bures"><span class="ttl">the Bures coincidence</span>
+      <p>On positive definite matrices, \(d(A,B)^2=\operatorname{tr}A+\operatorname{tr}B-2\operatorname{tr}\big(A^{1/2}BA^{1/2}\big)^{1/2}\). Between covariance matrices it is the Wasserstein distance between \(\mathcal N(0,A)\) and \(\mathcal N(0,B)\). Between density matrices it is the Bures distance of quantum information, whose infinitesimal form is a quarter of the quantum Fisher information of the symmetric logarithmic derivative (Braunstein and Caves, 1994). When \(A\) and \(B\) commute it reduces to \(\|\sqrt a-\sqrt b\|^2\) on their eigenvalues, the squared Hellinger chord of Part I.</p>
+      <p>So one formula is transport between Gaussians, quantum Fisher information, and classical Hellinger distance. The partial explanation is that all three come from writing a positive matrix as \(A=XX^{\mathsf T}\) and minimizing \(\|X-YU\|\) over orthogonal (or unitary) \(U\), a square root taken modulo rotations. Whether there is more to it than that construction I don't know.</p>
+    </div>
+    <p>Rao's ruler started from a modest question, how many samples it takes to tell two hypotheses apart. Taking the answer seriously as geometry produced a sphere, two flat structures that disagree with it, a Pythagorean theorem whose sides are divergences, and a single account of maximum likelihood, maximum entropy, EM and the natural gradient. Set next to optimal transport, it differs in one operator, and that operator is the difference between asking what can be told apart and asking what has to move.</p>
+
+    <h3>Further reading</h3>
+    <ul class="refs">
+      <li>Shun-ichi Amari, <em>Information Geometry and Its Applications</em>. <a href="https://doi.org/10.1007/978-4-431-55978-8">Springer, 2016</a>. The book by the person who built most of it, readable with little differential geometry.</li>
+      <li>Shun-ichi Amari &amp; Hiroshi Nagaoka, <em>Methods of Information Geometry</em>. <a href="https://bookstore.ams.org/mmono-191">AMS, 2000</a>. The standard reference for the dual connections.</li>
+      <li>Frank Nielsen, <em>An elementary introduction to information geometry</em>. <a href="https://arxiv.org/abs/1808.08271">arXiv:1808.08271</a> (Entropy 22, 2020). A compact survey, closest in scope to this essay.</li>
+      <li>Imre Csiszár, <em>I-divergence geometry of probability distributions and minimization problems</em>. <a href="https://doi.org/10.1214/aop/1176996454">Ann. Probab. 3 (1975)</a>. Pythagoras for KL, projections, and iterative proportional fitting.</li>
+      <li>Shun-ichi Amari, <em>Natural gradient works efficiently in learning</em>. <a href="https://doi.org/10.1162/089976698300017746">Neural Computation 10 (1998)</a>.</li>
+      <li>Garvesh Raskutti &amp; Sayan Mukherjee, <em>The information geometry of mirror descent</em>. <a href="https://arxiv.org/abs/1310.7780">arXiv:1310.7780</a>.</li>
+      <li>James Martens &amp; Roger Grosse, <em>Optimizing neural networks with Kronecker-factored approximate curvature</em>. <a href="https://arxiv.org/abs/1503.05671">arXiv:1503.05671</a>.</li>
+      <li>Frederik Kunstner, Lukas Balles &amp; Philipp Hennig, <em>Limitations of the empirical Fisher approximation for natural gradient descent</em>. <a href="https://arxiv.org/abs/1905.12558">arXiv:1905.12558</a> (NeurIPS 2019).</li>
+      <li>Martin Bauer, Martins Bruveris &amp; Peter W. Michor, <em>Uniqueness of the Fisher&ndash;Rao metric on the space of smooth densities</em>. <a href="https://arxiv.org/abs/1411.5577">arXiv:1411.5577</a> (Bull. LMS 48, 2016).</li>
+      <li>Wuchen Li &amp; Guido Montúfar, <em>Natural gradient via optimal transport</em>. <a href="https://arxiv.org/abs/1803.07033">arXiv:1803.07033</a> (Information Geometry 1, 2018).</li>
+      <li>Shun-ichi Amari, Ryo Karakida &amp; Masafumi Oizumi, <em>Information geometry connecting Wasserstein distance and Kullback&ndash;Leibler divergence via the entropy-relaxed transportation problem</em>. <a href="https://arxiv.org/abs/1709.10219">arXiv:1709.10219</a> (Information Geometry 1, 2018).</li>
+      <li>Ting-Kam Leonard Wong &amp; Jiaowen Yang, <em>Pseudo-Riemannian geometry encodes information geometry in optimal transport</em>. <a href="https://arxiv.org/abs/1906.00030">arXiv:1906.00030</a> (Information Geometry 5, 2022).</li>
+      <li>Felix Otto &amp; Cédric Villani, <em>Generalization of an inequality by Talagrand and links with the logarithmic Sobolev inequality</em>. <a href="https://doi.org/10.1006/jfan.1999.3557">J. Funct. Anal. 173 (2000)</a>. The HWI inequality.</li>
+      <li>Lénaïc Chizat, Gabriel Peyré, Bernhard Schmitzer &amp; François-Xavier Vialard, <em>An interpolating distance between optimal transport and Fisher&ndash;Rao metrics</em>. <a href="https://arxiv.org/abs/1506.06430">arXiv:1506.06430</a> (Found. Comput. Math. 18, 2018).</li>
+      <li>Matthias Liero, Alexander Mielke &amp; Giuseppe Savaré, <em>Optimal entropy-transport problems and a new Hellinger&ndash;Kantorovich distance between positive measures</em>. <a href="https://arxiv.org/abs/1508.07941">arXiv:1508.07941</a> (Invent. Math. 211, 2018).</li>
+      <li>Rajendra Bhatia, Tanvi Jain &amp; Yongdo Lim, <em>On the Bures&ndash;Wasserstein distance between positive definite matrices</em>. <a href="https://arxiv.org/abs/1712.01504">arXiv:1712.01504</a> (Expo. Math. 37, 2019).</li>
+    </ul>
+  </div>
+</section>
+
+<footer></footer>
+<script>
+/* ---- part indicator: highlight the section currently being read ---- */
+(function(){
+  var nav = document.getElementById('partnav');
+  if(!nav) return;
+  var links = [].slice.call(nav.querySelectorAll('a'));
+  var secs  = links.map(function(a){ return document.getElementById(a.dataset.sec); });
+  var queued = false;
+  function update(){
+    queued = false;
+    var mark = window.scrollY + window.innerHeight*0.28, idx = 0;
+    for(var i=0;i<secs.length;i++){
+      if(secs[i] && secs[i].getBoundingClientRect().top + window.scrollY <= mark) idx = i;
+    }
+    for(var j=0;j<links.length;j++) links[j].classList.toggle('on', j===idx);
+  }
+  function onScroll(){ if(!queued){ queued = true; requestAnimationFrame(update); } }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  window.addEventListener('resize', onScroll);
+  window.addEventListener('load', function(){ update(); setTimeout(update, 1200); });
+  update();
+})();
+</script>
+<script>
+/*CORE-BEGIN*/
+function lgamma(x){
+  const g=7, c=[0.99999999999980993,676.5203681218851,-1259.1392167224028,771.32342877765313,
+    -176.61502916214059,12.507343278686905,-0.13857109526572012,9.9843695780195716e-6,1.5056327351493116e-7];
+  if(x<0.5) return Math.log(Math.PI/Math.sin(Math.PI*x))-lgamma(1-x);
+  x-=1; let a=c[0]; const t=x+g+0.5;
+  for(let i=1;i<9;i++) a+=c[i]/(x+i);
+  return 0.5*Math.log(2*Math.PI)+(x+0.5)*Math.log(t)-t+Math.log(a);
+}
+function binomPmf(n,p){
+  const out=new Float64Array(n+1), lp=Math.log(p), lq=Math.log(1-p), ln=lgamma(n+1);
+  for(let k=0;k<=n;k++) out[k]=Math.exp(ln-lgamma(k+1)-lgamma(n-k+1)+k*lp+(n-k)*lq);
+  return out;
+}
+function fisherCoin(p,q){ return 2*Math.abs(Math.asin(Math.sqrt(q))-Math.asin(Math.sqrt(p))); }
+function bhatt(p,q){ let b=0; for(let i=0;i<p.length;i++) b+=Math.sqrt(p[i]*q[i]); return b; }
+function frDist(p,q){ return 2*Math.acos(Math.min(1,bhatt(p,q))); }
+function klv(p,q){ let s=0; for(let i=0;i<p.length;i++) if(p[i]>0) s+=p[i]*Math.log(p[i]/q[i]); return s; }
+// ---- discrete Gaussian family on a grid: q(x_i) ∝ exp(t1 x + t2 x^2) ----
+const NX=240, XL=-6, XR=6, DXG=(XR-XL)/(NX-1);
+const XG=new Float64Array(NX); for(let i=0;i<NX;i++) XG[i]=XL+i*DXG;
+function famTheta(t1,t2,out){
+  let M=-Infinity;
+  for(let i=0;i<NX;i++){ const x=XG[i], e=t1*x+t2*x*x; out[i]=e; if(e>M) M=e; }
+  let s=0; for(let i=0;i<NX;i++){ out[i]=Math.exp(out[i]-M); s+=out[i]; }
+  for(let i=0;i<NX;i++) out[i]/=s;
+  return M+Math.log(s);
+}
+function thetaOf(mu,sig){ return [mu/(sig*sig), -1/(2*sig*sig)]; }
+function muSigOf(t1,t2){ const v=-1/(2*t2); return [t1*v, Math.sqrt(v)]; }
+function mproj(p){
+  let m1=0,m2=0; for(let i=0;i<NX;i++){ m1+=p[i]*XG[i]; m2+=p[i]*XG[i]*XG[i]; }
+  const v0=Math.max(m2-m1*m1,1e-3);
+  let t1=m1/v0, t2=-1/(2*v0);
+  const q=new Float64Array(NX);
+  const obj=(a,b)=>famTheta(a,b,q)-a*m1-b*m2;
+  let f=obj(t1,t2);
+  for(let it=0;it<80;it++){
+    famTheta(t1,t2,q);
+    let e1=0,e2=0,e3=0,e4=0;
+    for(let i=0;i<NX;i++){ const x=XG[i], w=q[i]; e1+=w*x; e2+=w*x*x; e3+=w*x*x*x; e4+=w*x*x*x*x; }
+    const g1=e1-m1, g2=e2-m2;
+    if(Math.abs(g1)+Math.abs(g2)<1e-15) break;
+    const h11=e2-e1*e1, h12=e3-e1*e2, h22=e4-e2*e2, det=h11*h22-h12*h12;
+    const d1=( h22*g1-h12*g2)/det, d2=(-h12*g1+h11*g2)/det;
+    let st=1, ok=false;
+    for(let k=0;k<40;k++){
+      const a=t1-st*d1, b=t2-st*d2;
+      if(b<0){ const fn=obj(a,b); if(fn<=f+1e-15){ t1=a; t2=b; f=fn; ok=true; break; } }
+      st*=0.5;
+    }
+    if(!ok) break;
+  }
+  famTheta(t1,t2,q);
+  return {t1:t1,t2:t2,q:q};
+}
+// ---- 1D Gaussians: Fisher (hyperbolic) and Wasserstein ----
+function frGauss(m1,s1,m2,s2){
+  const z=1+((m1-m2)*(m1-m2)/2+(s1-s2)*(s1-s2))/(2*s1*s2);
+  return Math.SQRT2*Math.acosh(z);
+}
+function w2Gauss(m1,s1,m2,s2){ return Math.hypot(m1-m2,s1-s2); }
+function klGauss(m1,s1,m2,s2){ return Math.log(s2/s1)+(s1*s1+(m1-m2)*(m1-m2))/(2*s2*s2)-0.5; }
+function frGeo(m1,s1,m2,s2){
+  const u1=m1/Math.SQRT2, u2=m2/Math.SQRT2;
+  if(Math.abs(u1-u2)<1e-7) return function(t){ return [m1+(m2-m1)*t, s1*Math.pow(s2/s1,t)]; };
+  const c=((u2*u2+s2*s2)-(u1*u1+s1*s1))/(2*(u2-u1)), R=Math.hypot(u1-c,s1);
+  const a1=Math.atanh(Math.max(-1+1e-15,Math.min(1-1e-15,(u1-c)/R)));
+  const a2=Math.atanh(Math.max(-1+1e-15,Math.min(1-1e-15,(u2-c)/R)));
+  return function(t){ const a=a1+(a2-a1)*t; return [Math.SQRT2*(c+R*Math.tanh(a)), R/Math.cosh(a)]; };
+}
+// ---- discrete W2 on a common sorted support ----
+function w2disc(xs,a,b){
+  const n=xs.length; let i=0,j=0, ra=a[0], rb=b[0], s=0, guard=0;
+  while(i<n&&j<n&&guard<4*n+10){
+    guard++;
+    const m=Math.min(ra,rb); const d=xs[i]-xs[j]; s+=m*d*d; ra-=m; rb-=m;
+    if(ra<=1e-17){ i++; if(i<n) ra=a[i]; }
+    if(rb<=1e-17){ j++; if(j<n) rb=b[j]; }
+  }
+  return Math.sqrt(Math.max(0,s));
+}
+/*CORE-END*/
+if(typeof module!=='undefined') module.exports={lgamma,binomPmf,fisherCoin,bhatt,frDist,klv,NX,XG,DXG,famTheta,thetaOf,muSigOf,mproj,frGauss,w2Gauss,klGauss,frGeo,w2disc};
+
+</script>
+<script>
+if(typeof window!=='undefined'){(function(){
+'use strict';
+const INK='#111', GRAY='#999', LINE='#ddd', BLUE='#2b5fad', GREEN='#1f8a63';
+let sp=null;
+function rnd(){ if(sp!==null){const v=sp;sp=null;return v;}
+  let u,v,s2; do{u=Math.random()*2-1;v=Math.random()*2-1;s2=u*u+v*v;}while(s2>=1||s2===0);
+  const f=Math.sqrt(-2*Math.log(s2)/s2); sp=v*f; return u*f; }
+function fit(c){
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  const w=Math.round(c.clientWidth*dpr), h=Math.round(c.clientHeight*dpr);
+  if(c.width!==w||c.height!==h){ c.width=w; c.height=h; }
+  const x=c.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); return x;
+}
+function lab(ctx,t,x,y,col,align){ ctx.font='11px Palatino, Georgia, serif'; ctx.fillStyle=col||GRAY;
+  const W=ctx.canvas.clientWidth, tw=ctx.measureText(t).width, a=align||'left';
+  const room=a==='left'?W-x-4:(a==='right'?x-4:2*Math.min(x,W-x)-8);
+  if(tw>room&&room>0) ctx.font=Math.max(7,11*room/tw).toFixed(1)+'px Palatino, Georgia, serif';
+  ctx.textAlign=a; ctx.fillText(t,x,y); ctx.textAlign='left'; }
+function say(fig,html){
+  const n=fig.querySelector('[data-role=note]'); if(!n) return;
+  n.classList.add('dim'); clearTimeout(n._t);
+  n._t=setTimeout(()=>{ n.innerHTML=html; n.classList.remove('dim');
+    if(window.MathJax&&MathJax.typesetPromise) MathJax.typesetPromise([n]).catch(()=>{}); },240);
+}
+function canvasPos(c,ev){ const r=c.getBoundingClientRect(); return [ev.clientX-r.left, ev.clientY-r.top]; }
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function logmap(v,lo,hi){ return lo*Math.pow(hi/lo,v); }
+function ramp(v,col){ v=clamp(v,0,1); return [Math.round(255+(col[0]-255)*v),Math.round(255+(col[1]-255)*v),Math.round(255+(col[2]-255)*v)]; }
+const RB=[43,95,173], RG=[31,138,99];
+function dot(a,b){ return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]; }
+function cross(a,b){ return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]]; }
+function nrm(a){ const l=Math.hypot(a[0],a[1],a[2]); return [a[0]/l,a[1]/l,a[2]/l]; }
+function rot(v,k,a){ // Rodrigues
+  const c=Math.cos(a), s=Math.sin(a), kv=cross(k,v), kd=dot(k,v);
+  return [v[0]*c+kv[0]*s+k[0]*kd*(1-c), v[1]*c+kv[1]*s+k[1]*kd*(1-c), v[2]*c+kv[2]*s+k[2]*kd*(1-c)];
+}
+// geodesic circle on the unit sphere around s0 with angular radius r; returns array of points (null = gap)
+function sphereCircle(s0,r,N){
+  let e=[1,0,0]; if(Math.abs(dot(e,s0))>0.9) e=[0,1,0];
+  const t1=nrm([e[0]-dot(e,s0)*s0[0], e[1]-dot(e,s0)*s0[1], e[2]-dot(e,s0)*s0[2]]), t2=cross(s0,t1);
+  const out=[];
+  for(let k=0;k<=N;k++){ const a=2*Math.PI*k/N, ca=Math.cos(a), sa=Math.sin(a), cr=Math.cos(r), sr=Math.sin(r);
+    const s=[cr*s0[0]+sr*(ca*t1[0]+sa*t2[0]), cr*s0[1]+sr*(ca*t1[1]+sa*t2[1]), cr*s0[2]+sr*(ca*t1[2]+sa*t2[2])];
+    out.push((s[0]<0||s[1]<0||s[2]<0)?null:s); }
+  return out;
+}
+function sqrtv(p){ return [Math.sqrt(p[0]),Math.sqrt(p[1]),Math.sqrt(p[2])]; }
+function sq(s){ const a=s[0]*s[0], b=s[1]*s[1], c=s[2]*s[2], t=a+b+c; return [a/t,b/t,c/t]; }
+// ---- simplex geometry shared by figures 2 and 3 ----
+function simplexGeo(x0,y0,w,h){
+  const L=Math.min(w-24,(h-30)/0.866), cx=x0+w/2, yb=y0+h/2+0.866*L/2;
+  const V=[[cx-L/2,yb],[cx+L/2,yb],[cx,yb-0.866*L]];
+  return {V:V,L:L,
+    xy:function(p){ return [p[0]*V[0][0]+p[1]*V[1][0]+p[2]*V[2][0], p[0]*V[0][1]+p[1]*V[1][1]+p[2]*V[2][1]]; },
+    bary:function(x,y){
+      const [x1,y1]=V[0],[x2,y2]=V[1],[x3,y3]=V[2], d=(y2-y3)*(x1-x3)+(x3-x2)*(y1-y3);
+      const a=((y2-y3)*(x-x3)+(x3-x2)*(y-y3))/d, b=((y3-y1)*(x-x3)+(x1-x3)*(y-y3))/d;
+      return [a,b,1-a-b]; }};
+}
+function clampSimplex(p,m){ let q=[Math.max(m,p[0]),Math.max(m,p[1]),Math.max(m,p[2])]; const s=q[0]+q[1]+q[2]; return [q[0]/s,q[1]/s,q[2]/s]; }
+function drawTriangle(ctx,G){
+  ctx.beginPath(); ctx.moveTo(G.V[0][0],G.V[0][1]); ctx.lineTo(G.V[1][0],G.V[1][1]); ctx.lineTo(G.V[2][0],G.V[2][1]); ctx.closePath();
+  ctx.strokeStyle='rgba(17,17,17,0.5)'; ctx.lineWidth=1; ctx.stroke();
+  lab(ctx,'outcome 1',G.V[0][0]-4,G.V[0][1]+14,GRAY,'left');
+  lab(ctx,'outcome 2',G.V[1][0]+4,G.V[1][1]+14,GRAY,'right');
+  lab(ctx,'outcome 3',G.V[2][0],G.V[2][1]-6,GRAY,'center');
+}
+function polyline(ctx,pts,map){
+  let pen=false; ctx.beginPath();
+  for(const s of pts){ if(!s){ pen=false; continue; } const q=map(s); if(!q){pen=false;continue;}
+    if(pen) ctx.lineTo(q[0],q[1]); else { ctx.moveTo(q[0],q[1]); pen=true; } }
+}
+
+// =================== FIGURE 1: the coin ===================
+function Fig1(){
+  const s=this, fig=document.getElementById('fig1');
+  s.fig=fig; s.active=false; s.c=fig.querySelector('canvas');
+  s.mode='fisher'; s.center=0.5; s.dirty=true;
+  const q=r=>fig.querySelector('[data-role='+r+']');
+  const sepS=q('sep'), nS=q('n');
+  s.read=function(){
+    s.n=Math.round(logmap(parseFloat(nS.value),10,400));
+    const v=parseFloat(sepS.value);
+    s.dF=logmap(v,0.02,0.7); s.gap=logmap(v,0.004,0.3);
+    q('nlab').textContent=String(s.n);
+    q('seplab').textContent=s.mode==='fisher'?('d = '+s.dF.toFixed(3)):('|p−q| = '+s.gap.toFixed(3));
+    s.dirty=true;
+  };
+  const PMIN=0.002, PMAX=0.998;
+  s.pair=function(){
+    if(s.mode==='fisher'){
+      const LO=Math.asin(Math.sqrt(PMIN)), HI=Math.asin(Math.sqrt(PMAX));
+      const ph=Math.asin(Math.sqrt(s.center)), half=s.dF/4;
+      let lo=ph-half, hi=ph+half; if(lo<LO){hi+=LO-lo;lo=LO;} if(hi>HI){lo-=hi-HI;hi=HI;}
+      return [Math.sin(lo)**2, Math.sin(hi)**2];
+    }
+    let lo=s.center-s.gap/2, hi=s.center+s.gap/2; if(lo<PMIN){hi+=PMIN-lo;lo=PMIN;} if(hi>PMAX){lo-=hi-PMAX;hi=PMAX;}
+    return [lo,hi];
+  };
+  s.geo=function(w,h){
+    const ax0=40, ax1=w-24, ay=36;
+    const top=74, bot=h-50, S=Math.min(bot-top-22, w*0.30);
+    const ox=34, oy=top+S;
+    return {ax0:ax0,ax1:ax1,ay:ay,ox:ox,oy:oy,R:S-6,hx0:ox+S+46,hx1:w-20,top:top,bot:bot};
+  };
+  let drag=false;
+  function setFrom(ev){
+    const [x,y]=canvasPos(s.c,ev), G=s.geo(s.c.clientWidth,s.c.clientHeight);
+    if(x<G.ox+G.R+20 && y>G.top-10){ // on the arc: use angle
+      const ang=Math.atan2(x-G.ox, G.oy-y); // 0 at top (p=0), pi/2 at right (p=1)
+      s.center=clamp(Math.sin(clamp(ang,0,Math.PI/2))**2,PMIN,PMAX);
+    } else s.center=clamp((x-G.ax0)/(G.ax1-G.ax0),PMIN,PMAX);
+    s.dirty=true;
+  }
+  s.c.addEventListener('pointerdown',ev=>{ drag=true; s.c.setPointerCapture(ev.pointerId); setFrom(ev); ev.preventDefault(); });
+  s.c.addEventListener('pointermove',ev=>{ if(drag) setFrom(ev); });
+  const up=()=>{drag=false;}; s.c.addEventListener('pointerup',up); s.c.addEventListener('pointercancel',up);
+  s.c.style.cursor='ew-resize';
+  q('mode').addEventListener('click',function(){
+    const [p0,p1]=s.pair();
+    s.mode=(s.mode==='fisher')?'euclid':'fisher';
+    this.textContent=s.mode==='fisher'?'holding fixed: Fisher distance':'holding fixed: |p − q|';
+    this.classList.toggle('toggled',s.mode==='fisher');
+    // keep the current pair: set slider to reproduce its separation in the new mode
+    const target=s.mode==='fisher'?fisherCoin(p0,p1):(p1-p0);
+    const lo=s.mode==='fisher'?0.02:0.004, hi=s.mode==='fisher'?0.7:0.3;
+    sepS.value=String(clamp(Math.log(target/lo)/Math.log(hi/lo),0,1));
+    s.center=0.5*(p0+p1); s.read();
+    say(fig, s.mode==='fisher'
+      ? 'Holding the Fisher distance fixed. Drag the pair from the middle to an end: the window on the axis shrinks, the arc between the points does not, and the overlap \\(\\cos(d/2)^n\\) stays put.'
+      : 'Holding \\(|p-q|\\) fixed. Near \\(p=0.5\\) the two histograms overlap heavily; drag toward an end and the same gap becomes easy to detect, because the Fisher distance it spans keeps growing.');
+  });
+  sepS.addEventListener('input',s.read); nS.addEventListener('input',s.read);
+  s.read();
+  s.step=function(){};
+  s.draw=function(){
+    if(!s.dirty) return; s.dirty=false;
+    const ctx=fit(s.c), w=s.c.clientWidth, h=s.c.clientHeight, G=s.geo(w,h);
+    ctx.clearRect(0,0,w,h);
+    const [p,qq]=s.pair(), n=s.n, d=fisherCoin(p,qq);
+    const X=v=>G.ax0+v*(G.ax1-G.ax0);
+    // axis
+    ctx.strokeStyle=INK; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(G.ax0,G.ay); ctx.lineTo(G.ax1,G.ay); ctx.stroke();
+    ctx.fillStyle='rgba(43,95,173,0.13)'; ctx.fillRect(X(p),G.ay-12,X(qq)-X(p),24);
+    ctx.strokeStyle='rgba(17,17,17,0.55)';
+    const K=24;
+    for(let k=0;k<=K;k++){ const t=Math.sin(k*Math.PI/(2*K))**2, x=X(t);
+      ctx.beginPath(); ctx.moveTo(x,G.ay-5); ctx.lineTo(x,G.ay+5); ctx.stroke(); }
+    lab(ctx,'0',X(0),G.ay+20,GRAY,'center'); lab(ctx,'0.5',X(0.5),G.ay+20,GRAY,'center'); lab(ctx,'1',X(1),G.ay+20,GRAY,'center');
+    lab(ctx,'bias p of the coin (ticks: equal Fisher steps)',G.ax0,G.ay-18);
+    for(const [v,col] of [[p,BLUE],[qq,GREEN]]){ ctx.beginPath(); ctx.arc(X(v),G.ay,5,0,7); ctx.fillStyle=col; ctx.fill(); }
+    // quarter circle
+    const R=G.R, ox=G.ox, oy=G.oy;
+    const pt=v=>[ox+R*Math.sqrt(v), oy-R*Math.sqrt(1-v)];
+    ctx.strokeStyle='rgba(17,17,17,0.35)'; ctx.beginPath(); ctx.moveTo(ox,oy); ctx.lineTo(ox+R+8,oy); ctx.moveTo(ox,oy); ctx.lineTo(ox,oy-R-8); ctx.stroke();
+    ctx.beginPath(); ctx.arc(ox,oy,R,-Math.PI/2,0); ctx.strokeStyle=INK; ctx.lineWidth=1.3; ctx.stroke();
+    ctx.lineWidth=1;
+    for(let k=0;k<=K;k++){ const t=Math.sin(k*Math.PI/(2*K))**2, a=pt(t), ux=(a[0]-ox)/R, uy=(oy-a[1])/R;
+      ctx.beginPath(); ctx.moveTo(a[0]-4*ux,a[1]+4*uy); ctx.lineTo(a[0]+4*ux,a[1]-4*uy); ctx.strokeStyle='rgba(17,17,17,0.5)'; ctx.stroke(); }
+    const a0=-Math.PI/2+Math.asin(Math.sqrt(p)), a1=-Math.PI/2+Math.asin(Math.sqrt(qq));
+    ctx.beginPath(); ctx.arc(ox,oy,R,a0,a1); ctx.strokeStyle=BLUE; ctx.lineWidth=4; ctx.globalAlpha=0.35; ctx.stroke(); ctx.globalAlpha=1; ctx.lineWidth=1;
+    for(const [v,col] of [[p,BLUE],[qq,GREEN]]){ const a=pt(v); ctx.beginPath(); ctx.arc(a[0],a[1],5,0,7); ctx.fillStyle=col; ctx.fill(); }
+    lab(ctx,'p = 0',ox+6,oy-R-4); lab(ctx,'p = 1',ox+R+4,oy+14,GRAY,'right');
+    lab(ctx,'(2√p, 2√(1−p)): a quarter circle',ox,oy+30);
+    // histograms of head counts
+    const P=binomPmf(n,p), Q=binomPmf(n,qq);
+    let kmin=n, kmax=0; for(let k=0;k<=n;k++){ if(P[k]>1e-4||Q[k]>1e-4){ if(k<kmin)kmin=k; if(k>kmax)kmax=k; } }
+    kmin=Math.max(0,kmin-1); kmax=Math.min(n,kmax+1); if(kmax-kmin<6){ kmax=Math.min(n,kmin+6); kmin=Math.max(0,kmax-6); }
+    const nb=kmax-kmin+1, bw=(G.hx1-G.hx0)/nb;
+    let mx=0; for(let k=kmin;k<=kmax;k++) mx=Math.max(mx,P[k],Q[k]);
+    const Y=v=>G.bot-(v/mx)*(G.bot-G.top-10);
+    for(let k=kmin;k<=kmax;k++){ const x=G.hx0+(k-kmin)*bw, m=Math.min(P[k],Q[k]);
+      ctx.fillStyle='rgba(17,17,17,0.16)'; ctx.fillRect(x,Y(m),Math.max(1,bw-0.5),G.bot-Y(m)); }
+    for(const [A,col] of [[P,BLUE],[Q,GREEN]]){
+      ctx.beginPath();
+      for(let k=kmin;k<=kmax;k++){ const x=G.hx0+(k-kmin)*bw; if(k===kmin) ctx.moveTo(x,G.bot); ctx.lineTo(x,Y(A[k])); ctx.lineTo(x+bw,Y(A[k])); }
+      ctx.lineTo(G.hx0+nb*bw,G.bot); ctx.strokeStyle=col; ctx.lineWidth=1.5; ctx.stroke(); }
+    ctx.lineWidth=1; ctx.strokeStyle=LINE; ctx.beginPath(); ctx.moveTo(G.hx0,G.bot); ctx.lineTo(G.hx1,G.bot); ctx.stroke();
+    lab(ctx,'heads in '+n+' tosses',G.hx0,G.top-4);
+    lab(ctx,String(kmin),G.hx0,G.bot+13,GRAY,'left'); lab(ctx,String(kmax),G.hx1,G.bot+13,GRAY,'right');
+    let bc=0, err=0; for(let k=0;k<=n;k++){ bc+=Math.sqrt(P[k]*Q[k]); err+=Math.min(P[k],Q[k]); } err*=0.5;
+    lab(ctx,'p = '+p.toFixed(4)+'    q = '+qq.toFixed(4)+'    |p − q| = '+(qq-p).toFixed(4)+'    Fisher distance d = '+d.toFixed(4),12,h-26,INK);
+    lab(ctx,'overlap Σ√(PQ) = '+bc.toFixed(6)+'    cos(d/2)ⁿ = '+Math.pow(Math.cos(d/2),n).toFixed(6)+'    error of the best test = '+err.toFixed(4),12,h-9,INK);
+  };
+}
+
+// =================== FIGURE 2: simplex and sphere ===================
+function Fig2(){
+  const s=this, fig=document.getElementById('fig2');
+  s.fig=fig; s.active=false;
+  s.cL=fig.querySelector('canvas[data-role=left]'); s.cR=fig.querySelector('canvas[data-role=right]');
+  s.P=[0.62,0.26,0.12]; s.yaw=0; s.pitch=0; s.samples=[];
+  const q=r=>fig.querySelector('[data-role='+r+']');
+  const nS=q('n');
+  s.read=function(){ s.n=Math.round(logmap(parseFloat(nS.value),10,2000)); q('nlab').textContent=String(s.n); s.samples=[]; };
+  nS.addEventListener('input',s.read); s.read();
+  // lattice of equal Fisher circles
+  s.lattice=[]; const N=7;
+  for(let a=1;a<N;a++) for(let b=1;a+b<N;b++){ const c=N-a-b; s.lattice.push(sphereCircle(sqrtv([a/N,b/N,c/N]),0.11,48)); }
+  s.grid=[];
+  for(let i=0;i<3;i++) for(let k=1;k<6;k++){ const cc=k/6, pts=[];
+    for(let m=0;m<=40;m++){ const u=m/40, p=[0,0,0]; p[i]=cc; p[(i+1)%3]=(1-cc)*u; p[(i+2)%3]=(1-cc)*(1-u); pts.push(sqrtv(p)); }
+    s.grid.push(pts); }
+  s.edges=[];
+  for(let i=0;i<3;i++){ const j=(i+1)%3, pts=[]; for(let m=0;m<=60;m++){ const t=m/60*Math.PI/2, v=[0,0,0]; v[i]=Math.cos(t); v[j]=Math.sin(t); pts.push(v); } s.edges.push(pts); }
+  // camera
+  const F0=nrm([1,1,1]), U0=nrm([-1,-1,2]), R0=nrm([-1,1,0]);
+  s.cam=function(){ const f1=rot(F0,U0,s.yaw), r1=rot(R0,U0,s.yaw); const f2=rot(f1,r1,s.pitch), u2=rot(U0,r1,s.pitch); return [r1,u2,f2]; };
+  // interaction
+  let dragL=false, dragR=null;
+  s.cL.addEventListener('pointerdown',ev=>{ dragL=true; s.cL.setPointerCapture(ev.pointerId); moveP(ev); ev.preventDefault(); });
+  s.cL.addEventListener('pointermove',ev=>{ if(dragL) moveP(ev); });
+  const upL=()=>{dragL=false;}; s.cL.addEventListener('pointerup',upL); s.cL.addEventListener('pointercancel',upL);
+  function moveP(ev){ const [x,y]=canvasPos(s.cL,ev), G=simplexGeo(0,6,s.cL.clientWidth,s.cL.clientHeight-34);
+    s.P=clampSimplex(G.bary(x,y),0.01); s.samples=[]; }
+  s.cR.addEventListener('pointerdown',ev=>{ dragR=canvasPos(s.cR,ev); s.cR.setPointerCapture(ev.pointerId); ev.preventDefault(); });
+  s.cR.addEventListener('pointermove',ev=>{ if(!dragR) return; const p=canvasPos(s.cR,ev);
+    s.yaw+=(p[0]-dragR[0])*0.01; s.pitch=clamp(s.pitch+(p[1]-dragR[1])*0.01,-1.3,1.3); dragR=p; });
+  const upR=()=>{dragR=null;}; s.cR.addEventListener('pointerup',upR); s.cR.addEventListener('pointercancel',upR);
+  s.cL.style.cursor='crosshair'; s.cR.style.cursor='grab';
+  q('reset').addEventListener('click',()=>{ s.yaw=0; s.pitch=0; });
+  s.step=function(){
+    const n=s.n, P=s.P;
+    for(let b=0;b<3;b++){
+      let c0=0,c1=0; for(let k=0;k<n;k++){ const u=Math.random(); if(u<P[0]) c0++; else if(u<P[0]+P[1]) c1++; }
+      s.samples.push([c0/n,c1/n,(n-c0-c1)/n]);
+    }
+    if(s.samples.length>360) s.samples.splice(0,s.samples.length-360);
+  };
+  s.draw=function(){
+    const n=s.n, sP=sqrtv(s.P), ring=sphereCircle(sP,1/Math.sqrt(n),90);
+    let inside=0; for(const f of s.samples){ const c=clamp(Math.sqrt(f[0]*s.P[0])+Math.sqrt(f[1]*s.P[1])+Math.sqrt(f[2]*s.P[2]),-1,1); if(Math.acos(c)<=1/Math.sqrt(n)) inside++; }
+    const frac=s.samples.length?inside/s.samples.length:0;
+    // ---- left: simplex ----
+    { const ctx=fit(s.cL), w=s.cL.clientWidth, h=s.cL.clientHeight, G=simplexGeo(0,6,w,h-34);
+      ctx.clearRect(0,0,w,h);
+      const M=v=>G.xy(sq(v));
+      ctx.strokeStyle='rgba(17,17,17,0.07)'; for(const g of s.grid){ polyline(ctx,g,M); ctx.stroke(); }
+      drawTriangle(ctx,G);
+      ctx.strokeStyle='rgba(43,95,173,0.45)'; for(const c of s.lattice){ polyline(ctx,c,M); ctx.stroke(); }
+      ctx.fillStyle='rgba(31,138,99,0.55)';
+      for(const f of s.samples){ const a=G.xy(f); ctx.fillRect(a[0]-1.2,a[1]-1.2,2.4,2.4); }
+      ctx.strokeStyle=INK; ctx.lineWidth=1.4; polyline(ctx,ring,M); ctx.stroke(); ctx.lineWidth=1;
+      const a=G.xy(s.P); ctx.beginPath(); ctx.arc(a[0],a[1],5,0,7); ctx.fillStyle=INK; ctx.fill();
+      lab(ctx,'the simplex, drawn flat',8,14);
+      lab(ctx,'p = ('+s.P.map(v=>v.toFixed(2)).join(', ')+')',8,h-8,INK);
+    }
+    // ---- right: sphere ----
+    { const ctx=fit(s.cR), w=s.cR.clientWidth, h=s.cR.clientHeight;
+      ctx.clearRect(0,0,w,h);
+      const R=Math.min(w,h)*0.40, cx=w/2, cy=h/2+6, [r,u,f]=s.cam();
+      const proj=v=>[cx+R*dot(r,v), cy-R*dot(u,v), dot(f,v)];
+      const M=v=>{ const p=proj(v); return [p[0],p[1]]; };
+      ctx.beginPath(); ctx.arc(cx,cy,R,0,7); ctx.strokeStyle='rgba(17,17,17,0.10)'; ctx.stroke();
+      ctx.strokeStyle='rgba(17,17,17,0.07)'; for(const g of s.grid){ polyline(ctx,g,M); ctx.stroke(); }
+      ctx.strokeStyle='rgba(17,17,17,0.5)'; for(const e of s.edges){ polyline(ctx,e,M); ctx.stroke(); }
+      ctx.strokeStyle='rgba(43,95,173,0.45)'; for(const c of s.lattice){ polyline(ctx,c,M); ctx.stroke(); }
+      for(const fq of s.samples){ const pp=proj(sqrtv(fq)); ctx.fillStyle=pp[2]>=0?'rgba(31,138,99,0.55)':'rgba(31,138,99,0.2)'; ctx.fillRect(pp[0]-1.2,pp[1]-1.2,2.4,2.4); }
+      ctx.strokeStyle=INK; ctx.lineWidth=1.4; polyline(ctx,ring,M); ctx.stroke(); ctx.lineWidth=1;
+      const a=proj(sP); ctx.beginPath(); ctx.arc(a[0],a[1],5,0,7); ctx.fillStyle=INK; ctx.fill();
+      const lbl=[[1,0,0],[0,1,0],[0,0,1]];
+      for(let i=0;i<3;i++){ const pp=proj(lbl[i]); lab(ctx,'outcome '+(i+1),pp[0],pp[1]+(i===2?-6:14),GRAY,'center'); }
+      lab(ctx,'the same, on the sphere (drag to rotate)',8,14);
+      lab(ctx,'inside the ring: '+Math.round(100*frac)+'% of '+s.samples.length+' batches   (expected ≈ 86%)',8,h-8,INK);
+    }
+  };
+}
+
+// =================== FIGURE 3: three straight lines ===================
+function Fig3(){
+  const s=this, fig=document.getElementById('fig3');
+  s.fig=fig; s.active=false; s.c=fig.querySelector('canvas');
+  s.A=[0.70,0.22,0.08]; s.B=[0.10,0.25,0.65]; s.t=0.5; s.dir=1; s.playing=true;
+  const NP=160;
+  s.paths=function(){
+    const A=s.A, B=s.B, m=[], e=[], g=[];
+    const sa=sqrtv(A), sb=sqrtv(B), al=Math.acos(clamp(dot(sa,sb),-1,1));
+    for(let k=0;k<=NP;k++){ const t=k/NP;
+      m.push([(1-t)*A[0]+t*B[0],(1-t)*A[1]+t*B[1],(1-t)*A[2]+t*B[2]]);
+      const ge=[Math.pow(A[0],1-t)*Math.pow(B[0],t),Math.pow(A[1],1-t)*Math.pow(B[1],t),Math.pow(A[2],1-t)*Math.pow(B[2],t)];
+      const z=ge[0]+ge[1]+ge[2]; e.push([ge[0]/z,ge[1]/z,ge[2]/z]);
+      if(al<1e-9) g.push(A.slice()); else { const c0=Math.sin((1-t)*al)/Math.sin(al), c1=Math.sin(t*al)/Math.sin(al);
+        g.push(sq([c0*sa[0]+c1*sb[0],c0*sa[1]+c1*sb[1],c0*sa[2]+c1*sb[2]])); }
+    }
+    return {m:m,e:e,g:g};
+  };
+  function flen(path){ let L=0; for(let k=1;k<path.length;k++){ const a=path[k-1], b=path[k];
+    L+=2*Math.acos(clamp(Math.sqrt(a[0]*b[0])+Math.sqrt(a[1]*b[1])+Math.sqrt(a[2]*b[2]),-1,1)); } return L; }
+  s.geo=function(w,h){ const sw=Math.min(w*0.56,h*1.25); return {G:simplexGeo(0,0,sw,h-26), bx0:sw+30, bx1:w-14}; };
+  let drag=-1;
+  s.c.addEventListener('pointerdown',ev=>{ const [x,y]=canvasPos(s.c,ev), L=s.geo(s.c.clientWidth,s.c.clientHeight), G=L.G;
+    const a=G.xy(s.A), b=G.xy(s.B), da=Math.hypot(a[0]-x,a[1]-y), db=Math.hypot(b[0]-x,b[1]-y);
+    drag=Math.min(da,db)<40?(da<db?0:1):-1; if(drag>=0){ s.c.setPointerCapture(ev.pointerId); ev.preventDefault(); } });
+  s.c.addEventListener('pointermove',ev=>{ if(drag<0) return; const [x,y]=canvasPos(s.c,ev), G=s.geo(s.c.clientWidth,s.c.clientHeight).G;
+    const p=clampSimplex(G.bary(x,y),0.004); if(drag===0) s.A=p; else s.B=p; });
+  const up=()=>{drag=-1;}; s.c.addEventListener('pointerup',up); s.c.addEventListener('pointercancel',up);
+  const q=r=>fig.querySelector('[data-role='+r+']');
+  const tS=q('t'), tL=q('tlab');
+  s.sync=function(){ tS.value=String(s.t); tL.textContent=s.t.toFixed(2); };
+  tS.addEventListener('input',()=>{ s.t=parseFloat(tS.value); tL.textContent=s.t.toFixed(2); s.playing=false; q('play').textContent='play'; q('play').classList.remove('toggled'); });
+  q('play').addEventListener('click',function(){ s.playing=!s.playing; this.textContent=s.playing?'pause':'play'; this.classList.toggle('toggled',s.playing); });
+  s.step=function(){ if(s.playing){ s.t+=0.004*s.dir; if(s.t>=1){s.t=1;s.dir=-1;} if(s.t<=0){s.t=0;s.dir=1;} s.sync(); } };
+  s.draw=function(){
+    const ctx=fit(s.c), w=s.c.clientWidth, h=s.c.clientHeight, L=s.geo(w,h), G=L.G;
+    ctx.clearRect(0,0,w,h);
+    const P=s.paths(), M=v=>G.xy(v);
+    drawTriangle(ctx,G);
+    const cols=[[P.m,GREEN],[P.e,BLUE],[P.g,INK]];
+    for(const [pth,col] of cols){ ctx.strokeStyle=col; ctx.lineWidth=1.8; polyline(ctx,pth,M); ctx.stroke(); }
+    ctx.lineWidth=1;
+    const k=Math.round(s.t*NP);
+    for(const [pth,col] of cols){ const a=M(pth[k]); ctx.beginPath(); ctx.arc(a[0],a[1],4,0,7); ctx.fillStyle=col; ctx.fill(); }
+    for(const [v,nm] of [[s.A,'p'],[s.B,'q']]){ const a=M(v); ctx.beginPath(); ctx.arc(a[0],a[1],6.5,0,7); ctx.fillStyle='#fff'; ctx.fill();
+      ctx.lineWidth=2; ctx.strokeStyle=INK; ctx.stroke(); ctx.lineWidth=1; lab(ctx,nm,a[0]+9,a[1]-7,INK); }
+    // bars
+    const top=24, bot=h-60, bx0=L.bx0, bx1=L.bx1, gw=(bx1-bx0)/3;
+    for(let i=0;i<3;i++){
+      const vals=[P.m[k][i],P.e[k][i],P.g[k][i]], cs=[GREEN,BLUE,INK];
+      for(let j=0;j<3;j++){ const x=bx0+i*gw+gw*0.14+j*gw*0.24, hh=vals[j]*(bot-top);
+        ctx.fillStyle=cs[j]; ctx.globalAlpha=j===2?0.75:0.8; ctx.fillRect(x,bot-hh,gw*0.2,hh); ctx.globalAlpha=1; }
+      lab(ctx,'outcome '+(i+1),bx0+i*gw+gw/2,bot+14,GRAY,'center');
+    }
+    ctx.strokeStyle=LINE; ctx.beginPath(); ctx.moveTo(bx0,bot); ctx.lineTo(bx1,bot); ctx.stroke();
+    lab(ctx,'the three interpolants at t = '+s.t.toFixed(2),bx0,14);
+    const lm=flen(P.m), le=flen(P.e), lg=flen(P.g);
+    lab(ctx,'Fisher length:  great circle '+lg.toFixed(4)+'    mixture '+lm.toFixed(4)+'    geometric '+le.toFixed(4),bx0,h-30,INK);
+    lab(ctx,'KL(p‖q) = '+klv(s.A,s.B).toFixed(4)+'    KL(q‖p) = '+klv(s.B,s.A).toFixed(4),bx0,h-12,INK);
+  };
+}
+
+// =================== FIGURE 4: forward and reverse fits ===================
+function Fig4(){
+  const s=this, fig=document.getElementById('fig4');
+  s.fig=fig; s.active=false;
+  s.cL=fig.querySelector('canvas[data-role=left]'); s.cR=fig.querySelector('canvas[data-role=right]');
+  const MU0=-5, MU1=5, LS0=Math.log(0.2), LS1=Math.log(4.5);
+  s.presets=[
+    [[-2.3,0.6,0.5],[2.0,0.9,0.5]],
+    [[-1.0,1.6,0.7],[2.2,0.5,0.3]],
+    [[-3.2,0.45,0.3],[0,0.5,0.35],[3.0,0.6,0.35]]
+  ];
+  s.pk=0; s.p=new Float64Array(NX); s.shade='fwd'; s.drawMode=false;
+  s.r=[2.8,1.3]; s.fit=null; s.rev=[]; s.heat=null; s.dirty=true;
+  s.loadPreset=function(){
+    const ps=s.presets[s.pk];
+    for(let i=0;i<NX;i++){ let v=0; for(const [m,sg,wt] of ps){ const z=(XG[i]-m)/sg; v+=wt*Math.exp(-0.5*z*z)/sg; } s.p[i]=v; }
+    s.finish();
+  };
+  s.finish=function(){ let sum=0; for(let i=0;i<NX;i++){ s.p[i]=Math.max(s.p[i],0)+1e-5; sum+=s.p[i]; } for(let i=0;i<NX;i++) s.p[i]/=sum; s.recompute(); };
+  const tmp=new Float64Array(NX);
+  function famMS(mu,sig,out){ const t=thetaOf(mu,sig); famTheta(t[0],t[1],out); return out; }
+  function revKL(mu,ls){ famMS(mu,Math.exp(ls),tmp); return klv(tmp,s.p); }
+  s.recompute=function(){
+    s.fit=mproj(s.p);
+    const ms=muSigOf(s.fit.t1,s.fit.t2); s.fitMS=ms;
+    // heat fields
+    const HW=96, HH=64; s.HW=HW; s.HH=HH;
+    s.hf=new Float64Array(HW*HH); s.hr=new Float64Array(HW*HH);
+    for(let j=0;j<HH;j++){ const ls=LS1-(j+0.5)/HH*(LS1-LS0), sig=Math.exp(ls);
+      for(let i=0;i<HW;i++){ const mu=MU0+(i+0.5)/HW*(MU1-MU0); famMS(mu,sig,tmp);
+        s.hf[j*HW+i]=klv(s.p,tmp); s.hr[j*HW+i]=klv(tmp,s.p); } }
+    // reverse-KL local minima
+    const cands=[];
+    for(let j=1;j<HH-1;j++) for(let i=1;i<HW-1;i++){ const v=s.hr[j*HW+i]; let ok=true;
+      for(let dj=-1;dj<=1&&ok;dj++) for(let di=-1;di<=1;di++){ if(!di&&!dj) continue; if(s.hr[(j+dj)*HW+i+di]<v){ok=false;break;} }
+      if(ok) cands.push([MU0+(i+0.5)/HW*(MU1-MU0), LS1-(j+0.5)/HH*(LS1-LS0)]); }
+    const mins=[];
+    for(const c of cands){ let x=c[0], y=c[1], f=revKL(x,y), st=0.2;
+      while(st>1e-4){ let moved=false;
+        for(const [dx,dy] of [[st,0],[-st,0],[0,st],[0,-st]]){ const nx=x+dx, ny=clamp(y+dy,LS0,LS1), fn=revKL(nx,ny); if(fn<f){x=nx;y=ny;f=fn;moved=true;break;} }
+        if(!moved) st*=0.5; }
+      if(!mins.some(m=>Math.hypot(m[0]-x,m[1]-y)<0.15)) mins.push([x,y,f]); }
+    mins.sort((a,b)=>a[2]-b[2]); s.rev=mins.slice(0,3);
+    s.qstar=s.fit.q; s.qrev=s.rev.length?famMS(s.rev[0][0],Math.exp(s.rev[0][1]),new Float64Array(NX)):null;
+    s.dirty=true;
+  };
+  // parameter plane mapping
+  s.pg=function(w,h){ const x0=34,x1=w-10,y0=10,y1=h-54;
+    return {x0,x1,y0,y1, X:mu=>x0+(mu-MU0)/(MU1-MU0)*(x1-x0), Y:ls=>y0+(LS1-ls)/(LS1-LS0)*(y1-y0),
+      mu:x=>MU0+(x-x0)/(x1-x0)*(MU1-MU0), ls:y=>LS1-(y-y0)/(y1-y0)*(LS1-LS0)}; };
+  let dragR=false;
+  s.cR.addEventListener('pointerdown',ev=>{ dragR=true; s.cR.setPointerCapture(ev.pointerId); moveR(ev); ev.preventDefault(); });
+  s.cR.addEventListener('pointermove',ev=>{ if(dragR) moveR(ev); });
+  const upR=()=>{dragR=false;}; s.cR.addEventListener('pointerup',upR); s.cR.addEventListener('pointercancel',upR);
+  function moveR(ev){ const [x,y]=canvasPos(s.cR,ev), P=s.pg(s.cR.clientWidth,s.cR.clientHeight);
+    s.r=[clamp(P.mu(x),MU0,MU1), Math.exp(clamp(P.ls(y),LS0,LS1))]; s.dirty=true; }
+  s.cR.style.cursor='crosshair';
+  // drawing p
+  let drawing=false, last=-1, lastV=0; const raw=new Float64Array(NX);
+  s.lg=function(w,h){ return {x0:8,x1:w-8,y0:18,y1:h-54}; };
+  s.cL.addEventListener('pointerdown',ev=>{ if(!s.drawMode) return; drawing=true; last=-1;
+    let mx=0; for(let i=0;i<NX;i++) mx=Math.max(mx,s.p[i]); for(let i=0;i<NX;i++) raw[i]=s.p[i]/mx;
+    s.cL.setPointerCapture(ev.pointerId); ptL(ev); ev.preventDefault(); });
+  s.cL.addEventListener('pointermove',ev=>{ if(drawing) ptL(ev); });
+  function ptL(ev){ const [x,y]=canvasPos(s.cL,ev), L=s.lg(s.cL.clientWidth,s.cL.clientHeight);
+    const cell=clamp(Math.round((x-L.x0)/(L.x1-L.x0)*(NX-1)),0,NX-1), val=clamp((L.y1-y)/(L.y1-L.y0),0,1);
+    if(last>=0&&Math.abs(cell-last)>1){ const a=Math.min(cell,last), b=Math.max(cell,last);
+      for(let i=a;i<=b;i++){ const f=(i-a)/(b-a); raw[i]=(cell>last)?(lastV*(1-f)+val*f):(val*(1-f)+lastV*f); } }
+    else raw[cell]=val;
+    last=cell; lastV=val; for(let i=0;i<NX;i++) s.p[i]=raw[i]; s.dirtyDraw=true; }
+  const doneL=()=>{ if(!drawing) return; drawing=false;
+    const t=new Float64Array(NX); for(let pass=0;pass<3;pass++){ for(let i=0;i<NX;i++){ const a=Math.max(0,i-1), b=Math.min(NX-1,i+1); t[i]=0.25*raw[a]+0.5*raw[i]+0.25*raw[b]; } raw.set(t); }
+    for(let i=0;i<NX;i++) s.p[i]=raw[i]; s.finish();
+    say(fig,'Your target, renormalized. The forward fit matches its mean and variance exactly, and the readout checks Pythagoras against the grey \\(r\\). The reverse fit looks for the region where a single Gaussian can sit without paying for mass where \\(p\\) has little.'); };
+  s.cL.addEventListener('pointerup',doneL); s.cL.addEventListener('pointercancel',doneL);
+  const q=r=>fig.querySelector('[data-role='+r+']');
+  q('draw').addEventListener('click',function(){ s.drawMode=!s.drawMode; this.classList.toggle('toggled',s.drawMode);
+    s.cL.style.cursor=s.drawMode?'crosshair':'default';
+    if(s.drawMode) say(fig,'Drawing is on: sketch a density across the left panel and release. Several bumps make the reverse direction interesting.'); });
+  q('preset').addEventListener('click',()=>{ s.pk=(s.pk+1)%s.presets.length; s.loadPreset(); });
+  q('shade').addEventListener('click',function(){ s.shade=s.shade==='fwd'?'rev':'fwd';
+    this.textContent=s.shade==='fwd'?'shading: KL(p‖q)':'shading: KL(q‖p)'; s.dirty=true;
+    say(fig, s.shade==='rev'
+      ? 'Shaded by \\(\\mathrm{KL}(q\\|p)\\). Each green ring marks a local minimum of the reverse fit, the filled one the best. Separated bumps give a valley each, sometimes with another for a wide Gaussian that straddles them, and which one wins depends on the weights and widths.'
+      : 'Shaded by \\(\\mathrm{KL}(p\\|q)\\). One valley, one minimum, at the moment-matched Gaussian, as Pythagoras requires.'); });
+  s.loadPreset();
+  s.buf=document.createElement('canvas'); s.buf.width=96; s.buf.height=64;
+  s.img=s.buf.getContext('2d').createImageData(96,64);
+  s.step=function(){};
+  s.draw=function(){
+    if(!s.dirty&&!s.dirtyDraw) return;
+    const onlyLeft=!s.dirty; s.dirty=false; s.dirtyDraw=false;
+    // ---- left ----
+    { const ctx=fit(s.cL), w=s.cL.clientWidth, h=s.cL.clientHeight, L=s.lg(w,h);
+      ctx.clearRect(0,0,w,h);
+      const rr=famMS(s.r[0],s.r[1],new Float64Array(NX));
+      let mx=0; for(let i=0;i<NX;i++) mx=Math.max(mx,s.p[i],s.qstar[i],s.qrev?s.qrev[i]:0);
+      mx=Math.min(mx*1.08, 3*Math.max.apply(null,Array.from(s.p))+1e-9);
+      const X=i=>L.x0+i/(NX-1)*(L.x1-L.x0), Y=v=>L.y1-Math.min(v/mx,1.05)*(L.y1-L.y0);
+      ctx.beginPath(); ctx.moveTo(X(0),L.y1); for(let i=0;i<NX;i++) ctx.lineTo(X(i),Y(s.p[i])); ctx.lineTo(X(NX-1),L.y1); ctx.closePath();
+      ctx.fillStyle='rgba(17,17,17,0.10)'; ctx.fill();
+      ctx.beginPath(); for(let i=0;i<NX;i++) i?ctx.lineTo(X(i),Y(s.p[i])):ctx.moveTo(X(i),Y(s.p[i])); ctx.strokeStyle=INK; ctx.lineWidth=1.5; ctx.stroke();
+      {
+        const curves=[[rr,GRAY,[5,4]],[s.qstar,BLUE,[]]]; if(s.qrev) curves.push([s.qrev,GREEN,[]]);
+        for(const [A,col,dash] of curves){ ctx.setLineDash(dash); ctx.beginPath(); for(let i=0;i<NX;i++) i?ctx.lineTo(X(i),Y(A[i])):ctx.moveTo(X(i),Y(A[i]));
+          ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.stroke(); } ctx.setLineDash([]); }
+      ctx.lineWidth=1; ctx.strokeStyle=LINE; ctx.beginPath(); ctx.moveTo(L.x0,L.y1); ctx.lineTo(L.x1,L.y1); ctx.stroke();
+      lab(ctx,'target p (black) and its Gaussian fits',L.x0,12);
+      let m1=0,m2=0,n1=0,n2=0; for(let i=0;i<NX;i++){ m1+=s.p[i]*XG[i]; m2+=s.p[i]*XG[i]*XG[i]; n1+=s.qstar[i]*XG[i]; n2+=s.qstar[i]*XG[i]*XG[i]; }
+      lab(ctx,'mean, variance of p: '+m1.toFixed(4)+', '+(m2-m1*m1).toFixed(4),L.x0,h-22,INK);
+      lab(ctx,'mean, variance of q*: '+n1.toFixed(4)+', '+(n2-n1*n1).toFixed(4),L.x0,h-6,BLUE);
+    }
+    if(onlyLeft) return;
+    // ---- right: parameter plane ----
+    { const ctx=fit(s.cR), w=s.cR.clientWidth, h=s.cR.clientHeight, P=s.pg(w,h);
+      ctx.clearRect(0,0,w,h);
+      const F=s.shade==='fwd'?s.hf:s.hr, col=s.shade==='fwd'?RB:RG, d=s.img.data;
+      let fmin=Infinity; for(const v of F) fmin=Math.min(fmin,v);
+      for(let k=0;k<F.length;k++){ const v=Math.log(1+F[k]-fmin), t=1-Math.min(1,v/2.6), band=(Math.floor(v*5)%2)?0.04:0;
+        const c=ramp(0.06+0.8*t*t+band,col); d[4*k]=c[0]; d[4*k+1]=c[1]; d[4*k+2]=c[2]; d[4*k+3]=255; }
+      s.buf.getContext('2d').putImageData(s.img,0,0);
+      ctx.imageSmoothingEnabled=true; ctx.drawImage(s.buf,P.x0,P.y0,P.x1-P.x0,P.y1-P.y0);
+      ctx.strokeStyle=LINE; ctx.strokeRect(P.x0,P.y0,P.x1-P.x0,P.y1-P.y0);
+      for(const sg of [0.25,0.5,1,2,4]){ const y=P.Y(Math.log(sg)); lab(ctx,String(sg),P.x0-4,y+4,GRAY,'right'); }
+      for(const mu of [-4,-2,0,2,4]) lab(ctx,String(mu),P.X(mu),P.y1+13,GRAY,'center');
+      lab(ctx,'μ →',P.x1-20,P.y1+13); lab(ctx,'σ',P.x0-24,P.y0+10);
+      // markers
+      const fx=P.X(s.fitMS[0]), fy=P.Y(Math.log(s.fitMS[1]));
+      ctx.beginPath(); ctx.arc(fx,fy,6,0,7); ctx.fillStyle=BLUE; ctx.fill(); ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke();
+      s.rev.forEach((m,i)=>{ const x=P.X(m[0]), y=P.Y(m[1]); ctx.beginPath(); ctx.arc(x,y,6,0,7); ctx.lineWidth=2; ctx.strokeStyle=GREEN; ctx.stroke();
+        if(i===0){ ctx.fillStyle=GREEN; ctx.fill(); } });
+      const rx=P.X(s.r[0]), ry=P.Y(Math.log(s.r[1]));
+      ctx.beginPath(); ctx.moveTo(fx,fy); ctx.lineTo(rx,ry); ctx.setLineDash([3,3]); ctx.strokeStyle='rgba(17,17,17,0.45)'; ctx.lineWidth=1; ctx.stroke(); ctx.setLineDash([]);
+      ctx.beginPath(); ctx.arc(rx,ry,6,0,7); ctx.fillStyle='#fff'; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle=GRAY; ctx.stroke(); ctx.lineWidth=1;
+      lab(ctx,'r',rx+9,ry-6,INK);
+      const rr=famMS(s.r[0],s.r[1],new Float64Array(NX));
+      const a=klv(s.p,rr), b=klv(s.p,s.qstar)+klv(s.qstar,rr);
+      lab(ctx,'KL(p‖r) = '+a.toFixed(10)+'     KL(p‖q*) + KL(q*‖r) = '+b.toFixed(10),6,h-20,INK);
+      lab(ctx,'difference '+(a-b).toExponential(1)+'     reverse-KL local minima: '+s.rev.length,6,h-5,INK);
+    }
+  };
+}
+
+// =================== FIGURE 5: four ways down ===================
+function Fig5(){
+  const s=this, fig=document.getElementById('fig5');
+  s.fig=fig; s.active=false; s.c=fig.querySelector('canvas');
+  s.start=[-2.2,0.45]; s.tgt=[1.4,1.1]; s.dirty=true;
+  const MU0=-3.5, MU1=3.5, SG0=0, SG1=3.2, MAXS=20000;
+  const q=r=>fig.querySelector('[data-role='+r+']');
+  const hS=q('h');
+  s.read=function(){ s.h=logmap(parseFloat(hS.value),0.001,1.2); q('hlab').textContent=s.h<0.01?s.h.toFixed(4):s.h.toFixed(3); s.recompute(); };
+  s.recompute=function(){
+    const m=s.tgt[0], S=s.tgt[1]*s.tgt[1], h=s.h;
+    s.runs=['gd','gds','ng','ngs'].map(kind=>{
+      let mu=s.start[0], sg=s.start[1], ls=Math.log(sg); const pts=[[mu,sg]]; let status='nc', steps=MAXS;
+      for(let k=1;k<=MAXS;k++){
+        const d=mu-m, dLmu=d/(sg*sg), dLsig=1/sg-(S+d*d)/(sg*sg*sg);
+        if(kind==='gd'){ mu-=h*dLmu; sg-=h*dLsig; }
+        else if(kind==='gds'){ mu-=h*dLmu; ls-=h*sg*dLsig; sg=Math.exp(ls); }
+        else if(kind==='ng'){ mu-=h*d; sg-=h*0.5*(sg-(S+d*d)/sg); }
+        else { mu-=h*d; ls-=0.5*h*(1-(S+d*d)/(sg*sg)); sg=Math.exp(ls); }
+        if(!isFinite(mu)||!isFinite(sg)||sg<=0||Math.abs(mu)>1e3||sg>1e3){ status='diverged'; steps=k; break; }
+        pts.push([mu,sg]);
+        if(Math.abs(mu-m)<1e-3&&Math.abs(sg-s.tgt[1])<1e-3){ status='ok'; steps=k; break; }
+      }
+      return {pts:pts,status:status,steps:steps};
+    });
+    // NLL field
+    const HW=140, HH=96; s.HW=HW; s.HH=HH;
+    if(!s.buf){ s.buf=document.createElement('canvas'); s.buf.width=HW; s.buf.height=HH; s.img=s.buf.getContext('2d').createImageData(HW,HH); }
+    const dd=s.img.data, Lmin=Math.log(s.tgt[1])+0.5;
+    for(let j=0;j<HH;j++){ const sg=SG1-(j+0.5)/HH*(SG1-SG0);
+      for(let i=0;i<HW;i++){ const mu=MU0+(i+0.5)/HW*(MU1-MU0), L=Math.log(sg)+(S+(mu-m)*(mu-m))/(2*sg*sg)-Lmin;
+        const v=Math.log(1+L), band=(Math.floor(v*4)%2)?0.05:0, c=ramp(0.03+band+0.25*Math.max(0,1-v/4),[120,120,120]), k=4*(j*HW+i);
+        dd[k]=c[0]; dd[k+1]=c[1]; dd[k+2]=c[2]; dd[k+3]=255; } }
+    s.buf.getContext('2d').putImageData(s.img,0,0);
+    s.dirty=true;
+  };
+  s.geo=function(w,h){ const x0=40,x1=w-14,y0=12,y1=h-58;
+    return {x0,x1,y0,y1, X:mu=>x0+(mu-MU0)/(MU1-MU0)*(x1-x0), Y:sg=>y1-(sg-SG0)/(SG1-SG0)*(y1-y0),
+      mu:x=>MU0+(x-x0)/(x1-x0)*(MU1-MU0), sg:y=>SG0+(y1-y)/(y1-y0)*(SG1-SG0)}; };
+  let drag=null;
+  s.c.addEventListener('pointerdown',ev=>{ const [x,y]=canvasPos(s.c,ev), G=s.geo(s.c.clientWidth,s.c.clientHeight);
+    const d0=Math.hypot(G.X(s.start[0])-x,G.Y(s.start[1])-y), d1=Math.hypot(G.X(s.tgt[0])-x,G.Y(s.tgt[1])-y);
+    drag=(Math.min(d0,d1)<40)?(d0<d1?'start':'tgt'):'start'; s.c.setPointerCapture(ev.pointerId); move(ev); ev.preventDefault(); });
+  s.c.addEventListener('pointermove',ev=>{ if(drag) move(ev); });
+  function move(ev){ const [x,y]=canvasPos(s.c,ev), G=s.geo(s.c.clientWidth,s.c.clientHeight);
+    const pnt=[clamp(G.mu(x),MU0+0.05,MU1-0.05), clamp(G.sg(y),0.08,SG1-0.05)];
+    if(drag==='start') s.start=pnt; else s.tgt=pnt; s.recompute(); }
+  const up=()=>{drag=null;}; s.c.addEventListener('pointerup',up); s.c.addEventListener('pointercancel',up);
+  s.c.style.cursor='crosshair';
+  hS.addEventListener('input',s.read);
+  hS.addEventListener('change',()=>{ const r=s.runs;
+    if(r[0].status==='diverged'||r[1].status==='diverged') say(fig,'At this step size plain gradient descent from a narrow start overshoots and blows up, while the natural gradient in \\((\\mu,\\sigma)\\) still converges. Push higher and the natural gradient in \\((\\mu,\\log\\sigma)\\) fails too: invariance holds for the flow, and finite steps in different coordinates are different algorithms.');
+    else say(fig,'The two blue paths overlap each other and the green m-geodesic, about as well as the step size allows, as the flow \\(\\dot\\eta=-(\\eta-\\hat\\eta)\\) predicts. The grey paths disagree with each other about the route. Shrink the step and the blue paths merge completely; grow it and the grey ones fail first.'); });
+  s.read();
+  s.step=function(){};
+  s.draw=function(){
+    if(!s.dirty) return; s.dirty=false;
+    const ctx=fit(s.c), w=s.c.clientWidth, h=s.c.clientHeight, G=s.geo(w,h);
+    ctx.clearRect(0,0,w,h);
+    ctx.imageSmoothingEnabled=true; ctx.drawImage(s.buf,G.x0,G.y0,G.x1-G.x0,G.y1-G.y0);
+    ctx.strokeStyle=LINE; ctx.strokeRect(G.x0,G.y0,G.x1-G.x0,G.y1-G.y0);
+    for(const mu of [-3,-2,-1,0,1,2,3]) lab(ctx,String(mu),G.X(mu),G.y1+13,GRAY,'center');
+    for(const sg of [0.5,1,1.5,2,2.5,3]) lab(ctx,sg.toFixed(1),G.x0-5,G.Y(sg)+4,GRAY,'right');
+    lab(ctx,'μ',G.x1-8,G.y1+13); lab(ctx,'σ',G.x0-28,G.y0+10);
+    ctx.save(); ctx.beginPath(); ctx.rect(G.x0,G.y0,G.x1-G.x0,G.y1-G.y0); ctx.clip();
+    // m-geodesic
+    const m=s.tgt[0], S=s.tgt[1]*s.tgt[1], m0=s.start[0], S0=s.start[1]*s.start[1];
+    ctx.beginPath();
+    for(let k=0;k<=200;k++){ const t=k/200, mu=(1-t)*m0+t*m, e2=(1-t)*(m0*m0+S0)+t*(m*m+S), sg=Math.sqrt(Math.max(e2-mu*mu,0));
+      k?ctx.lineTo(G.X(mu),G.Y(sg)):ctx.moveTo(G.X(mu),G.Y(sg)); }
+    ctx.setLineDash([2,3]); ctx.strokeStyle=GREEN; ctx.lineWidth=2.2; ctx.stroke(); ctx.setLineDash([]);
+    const sty=[[GRAY,[],1.4],[GRAY,[6,4],1.4],[BLUE,[],1.8],[BLUE,[6,4],1.8]];
+    s.runs.forEach((r,i)=>{ const [col,dash,lw]=sty[i]; ctx.setLineDash(dash); ctx.beginPath();
+      const pts=r.pts, stride=Math.max(1,Math.floor(pts.length/1500));
+      for(let k=0;k<pts.length;k+=stride){ const x=G.X(pts[k][0]), y=G.Y(Math.min(pts[k][1],50)); k?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+      const L=pts[pts.length-1]; ctx.lineTo(G.X(L[0]),G.Y(Math.min(L[1],50)));
+      ctx.strokeStyle=col; ctx.lineWidth=lw; ctx.stroke(); ctx.setLineDash([]);
+      if(r.status==='diverged'){ const x=G.X(clamp(L[0],MU0,MU1)), y=G.Y(clamp(L[1],SG0,SG1)); ctx.strokeStyle=col; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.moveTo(x-5,y-5); ctx.lineTo(x+5,y+5); ctx.moveTo(x+5,y-5); ctx.lineTo(x-5,y+5); ctx.stroke(); }
+      // step dots for coarse steps
+      if(pts.length<60){ ctx.fillStyle=col; for(const p of pts){ ctx.beginPath(); ctx.arc(G.X(p[0]),G.Y(Math.min(p[1],50)),2,0,7); ctx.fill(); } }
+    });
+    ctx.restore(); ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(G.X(s.start[0]),G.Y(s.start[1]),6,0,7); ctx.fillStyle='#fff'; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle=INK; ctx.stroke();
+    ctx.beginPath(); ctx.arc(G.X(s.tgt[0]),G.Y(s.tgt[1]),6,0,7); ctx.fillStyle=INK; ctx.fill(); ctx.lineWidth=1;
+    lab(ctx,'start',G.X(s.start[0])+9,G.Y(s.start[1])-6,INK); lab(ctx,'data',G.X(s.tgt[0])+9,G.Y(s.tgt[1])-6,INK);
+    const fmt=r=>r.status==='ok'?(r.steps+' steps'):(r.status==='diverged'?'diverged':'> '+MAXS+' steps');
+    const R=s.runs;
+    lab(ctx,'GD (μ,σ): '+fmt(R[0])+'     GD (μ,log σ): '+fmt(R[1]),G.x0,h-28,INK);
+    lab(ctx,'natural (μ,σ): '+fmt(R[2])+'     natural (μ,log σ): '+fmt(R[3]),G.x0,h-11,BLUE);
+  };
+}
+
+// =================== FIGURE 6: Gaussians, two metrics ===================
+function Fig6(){
+  const s=this, fig=document.getElementById('fig6');
+  s.fig=fig; s.active=false; s.c=fig.querySelector('canvas');
+  s.A=[-2.6,0.35]; s.B=[2.4,0.5]; s.t=0.5; s.dir=1; s.playing=true;
+  const q=r=>fig.querySelector('[data-role='+r+']');
+  const tS=q('t'), tL=q('tlab');
+  s.sync=function(){ tS.value=String(s.t); tL.textContent=s.t.toFixed(2); };
+  tS.addEventListener('input',()=>{ s.t=parseFloat(tS.value); tL.textContent=s.t.toFixed(2); s.playing=false; q('play').textContent='play'; q('play').classList.remove('toggled'); });
+  q('play').addEventListener('click',function(){ s.playing=!s.playing; this.textContent=s.playing?'pause':'play'; this.classList.toggle('toggled',s.playing); });
+  s.geo=function(w,h){ const k=Math.min((w-60)/9.4,(h-174)/3.1), topH=3.1*k+30, cx=w/2, y0=topH-6;
+    return {k:k,topH:topH, X:mu=>cx+mu*k, Y:sg=>y0-sg*k, mu:x=>(x-cx)/k, sg:y=>(y0-y)/k, y0:y0, xl:cx-4.7*k, xr:cx+4.7*k}; };
+  let drag=-1;
+  s.c.addEventListener('pointerdown',ev=>{ const [x,y]=canvasPos(s.c,ev), G=s.geo(s.c.clientWidth,s.c.clientHeight);
+    const da=Math.hypot(G.X(s.A[0])-x,G.Y(s.A[1])-y), db=Math.hypot(G.X(s.B[0])-x,G.Y(s.B[1])-y);
+    drag=Math.min(da,db)<40?(da<db?0:1):-1; if(drag>=0){ s.c.setPointerCapture(ev.pointerId); ev.preventDefault(); } });
+  s.c.addEventListener('pointermove',ev=>{ if(drag<0) return; const [x,y]=canvasPos(s.c,ev), G=s.geo(s.c.clientWidth,s.c.clientHeight);
+    const p=[clamp(G.mu(x),-4.5,4.5), clamp(G.sg(y),0.08,3.0)]; if(drag===0) s.A=p; else s.B=p; });
+  const up=()=>{drag=-1;}; s.c.addEventListener('pointerup',up); s.c.addEventListener('pointercancel',up);
+  s.step=function(){ if(s.playing){ s.t+=0.005*s.dir; if(s.t>=1){s.t=1;s.dir=-1;} if(s.t<=0){s.t=0;s.dir=1;} s.sync(); } };
+  function gpdf(x,m,sg){ const z=(x-m)/sg; return Math.exp(-0.5*z*z)/(sg*2.5066282746); }
+  s.draw=function(){
+    const ctx=fit(s.c), w=s.c.clientWidth, h=s.c.clientHeight, G=s.geo(w,h);
+    ctx.clearRect(0,0,w,h);
+    // axis
+    ctx.strokeStyle=INK; ctx.beginPath(); ctx.moveTo(G.xl,G.y0); ctx.lineTo(G.xr,G.y0); ctx.stroke();
+    for(const mu of [-4,-2,0,2,4]) lab(ctx,String(mu),G.X(mu),G.y0+13,GRAY,'center');
+    for(const sg of [1,2,3]){ lab(ctx,'σ = '+sg,G.xl-4,G.Y(sg)+4,GRAY,'right');
+      ctx.strokeStyle='rgba(17,17,17,0.06)'; ctx.beginPath(); ctx.moveTo(G.xl,G.Y(sg)); ctx.lineTo(G.xr,G.Y(sg)); ctx.stroke(); }
+    lab(ctx,'μ',G.xr+6,G.y0+4);
+    // Fisher balls
+    ctx.save(); ctx.beginPath(); ctx.rect(G.xl,G.Y(3.1),G.xr-G.xl,G.y0-G.Y(3.1)); ctx.clip();
+    const rho=0.45/Math.SQRT2;
+    ctx.strokeStyle='rgba(43,95,173,0.20)';
+    for(const sg0 of [0.18,0.36,0.72,1.44,2.6]) for(let mu0=-4.2;mu0<=4.21;mu0+=(sg0<0.3?0.6:sg0<0.5?0.9:1.4)){
+      const cy=sg0*Math.cosh(rho), r=sg0*Math.sinh(rho);
+      ctx.beginPath(); ctx.ellipse(G.X(mu0),G.Y(cy),Math.SQRT2*r*G.k,r*G.k,0,0,7); ctx.stroke(); }
+    // geodesics
+    const fg=frGeo(s.A[0],s.A[1],s.B[0],s.B[1]);
+    ctx.beginPath(); for(let k=0;k<=200;k++){ const p=fg(k/200); k?ctx.lineTo(G.X(p[0]),G.Y(p[1])):ctx.moveTo(G.X(p[0]),G.Y(p[1])); }
+    ctx.strokeStyle=BLUE; ctx.lineWidth=2; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(G.X(s.A[0]),G.Y(s.A[1])); ctx.lineTo(G.X(s.B[0]),G.Y(s.B[1])); ctx.strokeStyle=GREEN; ctx.stroke(); ctx.lineWidth=1;
+    ctx.restore();
+    const pf=fg(s.t), pw=[(1-s.t)*s.A[0]+s.t*s.B[0],(1-s.t)*s.A[1]+s.t*s.B[1]];
+    for(const [p,col] of [[pf,BLUE],[pw,GREEN]]){ ctx.beginPath(); ctx.arc(G.X(p[0]),G.Y(p[1]),4.5,0,7); ctx.fillStyle=col; ctx.fill(); }
+    for(const [p,nm] of [[s.A,'A'],[s.B,'B']]){ ctx.beginPath(); ctx.arc(G.X(p[0]),G.Y(p[1]),6.5,0,7); ctx.fillStyle='#fff'; ctx.fill();
+      ctx.lineWidth=2; ctx.strokeStyle=INK; ctx.stroke(); ctx.lineWidth=1; lab(ctx,nm,G.X(p[0])+9,G.Y(p[1])-7,INK); }
+    const dF=frGauss(s.A[0],s.A[1],s.B[0],s.B[1]), dW=w2Gauss(s.A[0],s.A[1],s.B[0],s.B[1]);
+    lab(ctx,'Fisher distance '+dF.toFixed(3)+'    Wasserstein distance '+dW.toFixed(3)+'    KL(A‖B) '+klGauss(s.A[0],s.A[1],s.B[0],s.B[1]).toFixed(3)+'    KL(B‖A) '+klGauss(s.B[0],s.B[1],s.A[0],s.A[1]).toFixed(3),10,14,INK);
+    // bottom: densities
+    const by0=h-16, by1=G.topH+38, bx0=G.xl, bx1=G.xr, XR=6;
+    const X=x=>bx0+(x+XR)/(2*XR)*(bx1-bx0);
+    const curves=[[s.A,'rgba(17,17,17,0.25)',[3,3]],[s.B,'rgba(17,17,17,0.25)',[3,3]],[pw,GREEN,[]],[pf,BLUE,[]]];
+    let mx=0; for(const [p] of curves) mx=Math.max(mx,1/(p[1]*2.5066282746));
+    mx=Math.min(mx,2.6);
+    const Y=v=>by0-Math.min(v/mx,1.02)*(by0-by1);
+    for(const [p,col,dash] of curves){ ctx.setLineDash(dash); ctx.beginPath();
+      for(let k=0;k<=400;k++){ const x=-XR+2*XR*k/400; const y=Y(gpdf(x,p[0],p[1])); k?ctx.lineTo(X(x),y):ctx.moveTo(X(x),y); }
+      ctx.strokeStyle=col; ctx.lineWidth=dash.length?1:1.8; ctx.stroke(); }
+    ctx.setLineDash([]); ctx.lineWidth=1;
+    ctx.strokeStyle=LINE; ctx.beginPath(); ctx.moveTo(bx0,by0); ctx.lineTo(bx1,by0); ctx.stroke();
+    lab(ctx,'densities at t = '+s.t.toFixed(2)+':  Fisher path σ = '+pf[1].toFixed(2)+'   Wasserstein path σ = '+pw[1].toFixed(2),bx0,by1-6,INK);
+  };
+}
+
+// =================== FIGURE 7: the shuffle test ===================
+function Fig7(){
+  const s=this, fig=document.getElementById('fig7');
+  s.fig=fig; s.active=false; s.c=fig.querySelector('canvas');
+  const NB=40; s.slot=[]; s.pos=[]; for(let i=0;i<NB;i++){ s.slot.push(i); s.pos.push(i); }
+  const q=r=>fig.querySelector('[data-role='+r+']');
+  const sS=q('sep');
+  s.build=function(){
+    s.sep=parseFloat(sS.value); q('seplab').textContent=s.sep.toFixed(2);
+    const bump=(c,wd)=>{ const a=new Float64Array(NB); let t=0; for(let i=0;i<NB;i++){ const x=(i+0.5)/NB, z=(x-c)/wd; a[i]=Math.exp(-0.5*z*z)+2e-4; t+=a[i]; } for(let i=0;i<NB;i++) a[i]/=t; return a; };
+    s.p=bump(0.25,0.05); s.q=bump(0.25+s.sep,0.05);
+  };
+  sS.addEventListener('input',s.build); s.build();
+  q('shuffle').addEventListener('click',()=>{ const perm=[]; for(let i=0;i<NB;i++) perm.push(i);
+    for(let i=NB-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=perm[i]; perm[i]=perm[j]; perm[j]=t; }
+    s.slot=perm;
+    say(fig,'Shuffled. Every quantity that is a sum over bins, Fisher&ndash;Rao, Hellinger and KL among them, is unchanged to the last digit. \\(W_2\\) changed, because it pays for distance along the axis and the bins now sit somewhere else.'); });
+  q('unshuffle').addEventListener('click',()=>{ for(let i=0;i<NB;i++) s.slot[i]=i; });
+  s.step=function(){ for(let i=0;i<NB;i++) s.pos[i]+=(s.slot[i]-s.pos[i])*0.15; };
+  s.draw=function(){
+    const ctx=fit(s.c), w=s.c.clientWidth, h=s.c.clientHeight;
+    ctx.clearRect(0,0,w,h);
+    const x0=16, x1=w-16, y0=20, y1=h-62, bw=(x1-x0)/NB;
+    let mx=0; for(let i=0;i<NB;i++) mx=Math.max(mx,s.p[i],s.q[i]);
+    const Y=v=>y1-v/mx*(y1-y0);
+    for(let i=0;i<NB;i++){ const x=x0+s.pos[i]*bw;
+      ctx.fillStyle='rgba(43,95,173,0.45)'; ctx.fillRect(x+1,Y(s.p[i]),bw-2,y1-Y(s.p[i]));
+      ctx.strokeStyle=GREEN; ctx.lineWidth=1.6; ctx.strokeRect(x+1.5,Y(s.q[i]),bw-3,y1-Y(s.q[i])); }
+    ctx.lineWidth=1; ctx.strokeStyle=INK; ctx.beginPath(); ctx.moveTo(x0,y1); ctx.lineTo(x1,y1); ctx.stroke();
+    lab(ctx,'0',x0,y1+13); lab(ctx,'1',x1,y1+13,GRAY,'right');
+    // metrics: sums in fixed bin order
+    let bc=0,hh=0,kl=0; for(let i=0;i<NB;i++){ bc+=Math.sqrt(s.p[i]*s.q[i]); const d=Math.sqrt(s.p[i])-Math.sqrt(s.q[i]); hh+=d*d; kl+=s.p[i]*Math.log(s.p[i]/s.q[i]); }
+    const A=new Array(NB), B=new Array(NB), xs=new Array(NB);
+    for(let i=0;i<NB;i++){ A[s.slot[i]]=s.p[i]; B[s.slot[i]]=s.q[i]; xs[i]=(i+0.5)/NB; }
+    const w2=w2disc(xs,A,B);
+    lab(ctx,'Fisher–Rao '+(2*Math.acos(Math.min(1,bc))).toFixed(12)+'    Hellinger '+Math.sqrt(hh).toFixed(12)+'    KL(p‖q) '+kl.toFixed(12),x0,h-28,INK);
+    lab(ctx,'Wasserstein W₂ '+w2.toFixed(6)+'    (positions in [0, 1])',x0,h-10,GREEN);
+  };
+}
+
+// ---- popups ----
+document.addEventListener('click',function(ev){
+  const btn=ev.target.closest('.pop'); if(!btn) return;
+  const el=document.getElementById(btn.dataset.target); if(!el) return;
+  const open=el.classList.toggle('open'); btn.setAttribute('aria-expanded',String(open));
+  if(open && !el.dataset.typeset && window.MathJax && MathJax.typesetPromise){ el.dataset.typeset='1'; MathJax.typesetPromise([el]).catch(()=>{}); }
+});
+document.querySelectorAll('.sim-frame canvas').forEach(c=>{ c.style.height=c.getAttribute('height')+'px'; });
+const sims=[new Fig1(), new Fig2(), new Fig3(), new Fig4(), new Fig5(), new Fig6(), new Fig7()];
+const io=new IntersectionObserver(es=>{ for(const e of es){ const s=sims.find(x=>x.fig===e.target); if(s){ s.active=e.isIntersecting; if(e.isIntersecting) s.dirty=true; } } },{threshold:0.02});
+for(const s of sims) io.observe(s.fig);
+window.addEventListener('resize',()=>{ for(const s of sims) s.dirty=true; });
+(function loop(){
+  if(!document.hidden) for(const s of sims) if(s.active){ try{ s.step(); s.draw(); }catch(e){ console.error(e); } }
+  requestAnimationFrame(loop);
+})();
+})();}
+</script>
+</body>
+</html>
